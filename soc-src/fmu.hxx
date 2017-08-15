@@ -1,0 +1,35 @@
+
+
+#ifndef FMU_HXX_
+#define FMU_HXX_
+
+#include "global-defs.hxx"
+#include "hardware-defs.hxx"
+#include <stdio.h>
+#include <fcntl.h>
+#include <unistd.h>
+#include <termios.h>
+#include <stdint.h>
+#include <iostream>
+#include <exception>
+#include <stdexcept>
+
+class Fmu {
+  public:
+    static const uint8_t BfsHeaderSize = 9;
+    const uint8_t BfsHeader[2]={0x42,0x46};
+    Fmu();
+    void WriteMessage(BfsMessage MessageId,uint16_t PayloadSize,uint8_t *Payload);
+    bool ReadMessage(bool *ReadOperation,BfsMessage *MessageId,uint16_t *PayloadSize,uint8_t *Payload);
+    bool GetSensorData(FmuData *FmuDataPtr);
+  private:
+    int FmuFileDesc_;
+    void OpenPort();
+    void WritePort(size_t BufferSize,uint8_t* Buffer);    
+    void CalcChecksum(size_t ArraySize, uint8_t *ByteArray, uint8_t *Checksum);
+    void ChecksumIteration(uint8_t Data, uint8_t *Checksum);
+    void BuildBfsMessage(bool ReadOperation,BfsMessage MessageId,uint16_t PayloadSize,uint8_t *Payload,uint8_t *TxBuffer);
+    bool ParseBfsMessage(uint8_t RxBuffer,bool *ReadOperation,BfsMessage *MessageId,uint16_t *PayloadSize,uint8_t *Payload);
+};
+
+#endif

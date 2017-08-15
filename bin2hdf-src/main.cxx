@@ -1,0 +1,395 @@
+/*
+main.cxx
+Brian R Taylor
+brian.taylor@bolderflight.com
+2017-04-18
+Copyright (c) 2017 Bolder Flight Systems
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software 
+and associated documentation files (the "Software"), to deal in the Software without restriction, 
+including without limitation the rights to use, copy, modify, merge, publish, distribute, 
+sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is 
+furnished to do so, subject to the following conditions:
+The above copyright notice and this permission notice shall be included in all copies or 
+substantial portions of the Software.
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING 
+BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND 
+NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, 
+DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, 
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+*/
+
+#include "hdf5class.hxx"
+#include "config.hxx"
+#include "global-defs.hxx"
+#include <H5Cpp.h>
+#include <iostream>
+#include <string>
+#include <vector>
+
+using namespace std;
+using namespace H5;
+
+int main(int argc, char* argv[]) {
+  if (argc!=4) {
+    std::cerr << "ERROR: Incorrect number of input arguments." << std::endl;
+    return -1;
+  }
+
+  /* initialize structures */
+  FmuData Data;
+
+  /* load configuration file */
+  LoadConfigFile(argv[1],&Data);
+
+  /* load the flight data file*/
+  FILE *BinaryFile = fopen(argv[2],"rb");
+
+  /* figure out how many data records we have */
+  fseek(BinaryFile,0,SEEK_END);
+  size_t size = ftell(BinaryFile);
+  rewind(BinaryFile);
+  size_t bytes = sizeof(Data.Time_s)+2*sizeof(Voltage)+sizeof(Mpu9250Data)+sizeof(Bme280Data)+Data.Mpu9250Ext.size()*sizeof(Mpu9250Data)+Data.Bme280Ext.size()*sizeof(Bme280Data)+Data.SbusRx.size()*sizeof(SbusRxData)+Data.Gps.size()*sizeof(GpsData)+Data.Pitot.size()*sizeof(PitotData)+Data.Analog.size()*sizeof(AnalogData)+Data.SbusVoltage.size()*sizeof(Voltage)+Data.PwmVoltage.size()*sizeof(Voltage);
+  size_t NumberRecords = size/bytes;
+
+  cout << "File size: " << size << " bytes"<< endl;
+  cout << "Data packet size: " << bytes << " bytes" << endl;
+  cout << "Number of records: " << NumberRecords << endl;
+
+  /* allocate memory to store data file contents */
+  uint8_t** FileBuffer = new uint8_t* [NumberRecords];
+  for (size_t i=0; i < NumberRecords; i++) {
+    FileBuffer[i] = new uint8_t [bytes];
+  }
+
+  /* read binary file into memory */
+  for (size_t i=0; i < NumberRecords; i++) {
+    fread(FileBuffer[i],bytes,1,BinaryFile);
+  }
+  fclose(BinaryFile);
+
+  /* create an HDF5 file */
+  hdf5class Logger(argv[3]);
+
+  /* parse binary files into data structures */
+  double Time_s[NumberRecords];
+  Voltage InputVoltage[NumberRecords];
+  Voltage RegulatedVoltage[NumberRecords];
+  Mpu9250Data Mpu9250[NumberRecords];
+  Bme280Data Bme280[NumberRecords];
+  Mpu9250Data Mpu9250Ext[Data.Mpu9250Ext.size()][NumberRecords];
+  Bme280Data Bme280Ext[Data.Bme280Ext.size()][NumberRecords];
+  SbusRxData SbusRx[Data.SbusRx.size()][NumberRecords];
+  GpsData Gps[Data.Gps.size()][NumberRecords];
+  PitotData Pitot[Data.Pitot.size()][NumberRecords];
+  AnalogData Analog[Data.Analog.size()][NumberRecords];
+  Voltage SbusVoltage[Data.SbusVoltage.size()][NumberRecords];
+  Voltage PwmVoltage[Data.PwmVoltage.size()][NumberRecords];
+
+  for (size_t i=0; i < NumberRecords; i++) {
+    memcpy(&Time_s[i],FileBuffer[i],sizeof(Time_s[i]));
+    memcpy(&InputVoltage[i],FileBuffer[i]+sizeof(Time_s[i]),sizeof(InputVoltage[i]));
+    memcpy(&RegulatedVoltage[i],FileBuffer[i]+sizeof(Time_s[i])+sizeof(InputVoltage[i]),sizeof(RegulatedVoltage[i]));
+    memcpy(&Mpu9250[i],FileBuffer[i]+sizeof(Time_s[i])+sizeof(InputVoltage[i])+sizeof(RegulatedVoltage[i]),sizeof(Mpu9250[i]));
+    memcpy(&Bme280[i],FileBuffer[i]+sizeof(Time_s[i])+sizeof(InputVoltage[i])+sizeof(RegulatedVoltage[i])+sizeof(Mpu9250[i]),sizeof(Bme280[i]));
+    for (size_t j=0; j < Data.Mpu9250Ext.size(); j++) {
+      memcpy(&Mpu9250Ext[j][i],FileBuffer[i]+sizeof(Time_s[i])+sizeof(InputVoltage[i])+sizeof(RegulatedVoltage[i])+sizeof(Mpu9250[i])+sizeof(Bme280[i])+j*sizeof(Mpu9250Ext[j][i]),sizeof(Mpu9250Ext[j][i]));
+    }
+    for (size_t j=0; j < Data.Bme280Ext.size(); j++) {
+      memcpy(&Bme280Ext[j][i],FileBuffer[i]+sizeof(Time_s[i])+sizeof(InputVoltage[i])+sizeof(RegulatedVoltage[i])+sizeof(Mpu9250[i])+sizeof(Bme280[i])+
+        Data.Mpu9250Ext.size()*sizeof(Mpu9250Data)+j*sizeof(Bme280Ext[j][i]),sizeof(Bme280Ext[j][i]));
+    }
+    for (size_t j=0; j < Data.SbusRx.size(); j++) {
+      memcpy(&SbusRx[j][i],FileBuffer[i]+sizeof(Time_s[i])+sizeof(InputVoltage[i])+sizeof(RegulatedVoltage[i])+sizeof(Mpu9250[i])+sizeof(Bme280[i])+
+        Data.Mpu9250Ext.size()*sizeof(Mpu9250Data)+Data.Bme280Ext.size()*sizeof(Bme280Data)+j*sizeof(SbusRx[j][i]),sizeof(SbusRx[j][i]));
+    }
+    for (size_t j=0; j < Data.Gps.size(); j++) {
+      memcpy(&Gps[j][i],FileBuffer[i]+sizeof(Time_s[i])+sizeof(InputVoltage[i])+sizeof(RegulatedVoltage[i])+sizeof(Mpu9250[i])+sizeof(Bme280[i])+
+        Data.Mpu9250Ext.size()*sizeof(Mpu9250Data)+Data.Bme280Ext.size()*sizeof(Bme280Data)+Data.SbusRx.size()*sizeof(SbusRxData)+j*sizeof(Gps[j][i]),sizeof(Gps[j][i]));
+    }
+    for (size_t j=0; j < Data.Pitot.size(); j++) {
+      memcpy(&Pitot[j][i],FileBuffer[i]+sizeof(Time_s[i])+sizeof(InputVoltage[i])+sizeof(RegulatedVoltage[i])+sizeof(Mpu9250[i])+sizeof(Bme280[i])+
+        Data.Mpu9250Ext.size()*sizeof(Mpu9250Data)+Data.Bme280Ext.size()*sizeof(Bme280Data)+Data.SbusRx.size()*sizeof(SbusRxData)+Data.Gps.size()*sizeof(GpsData)+
+        j*sizeof(Pitot[j][i]),sizeof(Pitot[j][i]));
+    }
+    for (size_t j=0; j < Data.Analog.size(); j++) {
+      memcpy(&Analog[j][i],FileBuffer[i]+sizeof(Time_s[i])+sizeof(InputVoltage[i])+sizeof(RegulatedVoltage[i])+sizeof(Mpu9250[i])+sizeof(Bme280[i])+
+        Data.Mpu9250Ext.size()*sizeof(Mpu9250Data)+Data.Bme280Ext.size()*sizeof(Bme280Data)+Data.SbusRx.size()*sizeof(SbusRxData)+Data.Gps.size()*sizeof(GpsData)+
+        Data.Pitot.size()*sizeof(PitotData)+j*sizeof(Analog[j][i]),sizeof(Analog[j][i]));
+    }
+    for (size_t j=0; j < Data.SbusVoltage.size(); j++) {
+      memcpy(&SbusVoltage[j][i],FileBuffer[i]+sizeof(Time_s[i])+sizeof(InputVoltage[i])+sizeof(RegulatedVoltage[i])+sizeof(Mpu9250[i])+sizeof(Bme280[i])+
+        Data.Mpu9250Ext.size()*sizeof(Mpu9250Data)+Data.Bme280Ext.size()*sizeof(Bme280Data)+Data.SbusRx.size()*sizeof(SbusRxData)+Data.Gps.size()*sizeof(GpsData)+
+        Data.Pitot.size()*sizeof(PitotData)+Data.Analog.size()*sizeof(AnalogData)+j*sizeof(SbusVoltage[j][i]),sizeof(SbusVoltage[j][i]));
+    }
+    for (size_t j=0; j < Data.PwmVoltage.size(); j++) {
+      memcpy(&PwmVoltage[j][i],FileBuffer[i]+sizeof(Time_s[i])+sizeof(InputVoltage[i])+sizeof(RegulatedVoltage[i])+sizeof(Mpu9250[i])+sizeof(Bme280[i])+
+        Data.Mpu9250Ext.size()*sizeof(Mpu9250Data)+Data.Bme280Ext.size()*sizeof(Bme280Data)+Data.SbusRx.size()*sizeof(SbusRxData)+Data.Gps.size()*sizeof(GpsData)+
+        Data.Pitot.size()*sizeof(PitotData)+Data.Analog.size()*sizeof(AnalogData)+Data.SbusVoltage.size()*sizeof(Voltage)+j*sizeof(PwmVoltage[j][i]),sizeof(PwmVoltage[j][i]));
+    }
+  }
+
+  /* save data into HDF5 */
+  float data1D[NumberRecords];
+  float data3D[NumberRecords][3];
+  float data5D[NumberRecords][5];
+
+  double data1Dd[NumberRecords];
+  double data3Dd[NumberRecords][3];
+
+  uint8_t data1Du8[NumberRecords];
+
+  uint16_t data1Du16[NumberRecords];
+
+  uint32_t data1Du32[NumberRecords];
+
+  /* FMU data: time, input voltage, and regulated voltage */
+  Logger.WriteData("/Fmu","Time_s",Time_s,"Time, s",NumberRecords,1);
+  for (size_t k=0; k < NumberRecords; k++) {
+    data1D[k] = InputVoltage[k].Voltage_V;
+  }
+  Logger.WriteData("/Fmu","InputVoltage_V",data1D,"Input voltage, V",NumberRecords,1);
+  for (size_t k=0; k < NumberRecords; k++) {
+    data1D[k] = RegulatedVoltage[k].Voltage_V;
+  }
+  Logger.WriteData("/Fmu","RegulatedVoltage_V",data1D,"Regulated voltage, V",NumberRecords,1);
+
+  /* MPU-9250 data: accel, gyro, mag, and temperature */
+  for (size_t k=0; k < NumberRecords; k++) {
+    data3D[k][0] = Mpu9250[k].Accel_mss(0,0);
+    data3D[k][1] = Mpu9250[k].Accel_mss(1,0);
+    data3D[k][2] = Mpu9250[k].Accel_mss(2,0);
+  }
+  Logger.WriteData("/Fmu/Mpu9250","Accel_mss",data3D[0],"X, Y, Z accelerometer translated to aircraft body axis system, m/s/s",NumberRecords,3);
+  for (size_t k=0; k < NumberRecords; k++) {
+    data3D[k][0] = Mpu9250[k].Gyro_rads(0,0);
+    data3D[k][1] = Mpu9250[k].Gyro_rads(1,0);
+    data3D[k][2] = Mpu9250[k].Gyro_rads(2,0);
+  }
+  Logger.WriteData("/Fmu/Mpu9250","Gyro_rads",data3D[0],"X, Y, Z gyro translated to aircraft body axis system, rad/s",NumberRecords,3);
+  for (size_t k=0; k < NumberRecords; k++) {
+    data3D[k][0] = Mpu9250[k].Mag_uT(0,0);
+    data3D[k][1] = Mpu9250[k].Mag_uT(1,0);
+    data3D[k][2] = Mpu9250[k].Mag_uT(2,0);
+  }
+  Logger.WriteData("/Fmu/Mpu9250","Mag_uT",data3D[0],"X, Y, Z magnetometer translated to aircraft body axis system, uT",NumberRecords,3);
+  for (size_t k=0; k < NumberRecords; k++) {
+    data1D[k] = Mpu9250[k].Temp_C;
+  }
+  Logger.WriteData("/Fmu/Mpu9250","Temp_C",data1D,"Temperature, C",NumberRecords,1);
+
+  /* BME-280 data: pressure, temperature, humidity */
+  for (size_t k=0; k < NumberRecords; k++) {
+    data1D[k] = Bme280[k].Pressure_Pa;
+  }
+  Logger.WriteData("/Fmu/Bme280","Pressure_Pa",data1D,"Static pressure, Pa",NumberRecords,1);
+  for (size_t k=0; k < NumberRecords; k++) {
+    data1D[k] = Bme280[k].Temp_C;
+  }
+  Logger.WriteData("/Fmu/Bme280","Temp_C",data1D,"Temperature, C",NumberRecords,1);
+  for (size_t k=0; k < NumberRecords; k++) {
+    data1D[k] = Bme280[k].Humidity_RH;
+  }
+  Logger.WriteData("/Fmu/Bme280","Humidity_RH",data1D,"Percent relative humidity",NumberRecords,1);
+
+  /* External MPU-9250 */
+  for (size_t l=0; l < Data.Mpu9250Ext.size(); l++) {
+    string GroupName = "/Mpu9250_" + to_string(l);
+    for (size_t k=0; k < NumberRecords; k++) {
+      data3D[k][0] = Mpu9250Ext[l][k].Accel_mss(0,0);
+      data3D[k][1] = Mpu9250Ext[l][k].Accel_mss(1,0);
+      data3D[k][2] = Mpu9250Ext[l][k].Accel_mss(2,0);
+    }
+    Logger.WriteData(GroupName,"Accel_mss",data3D[0],"X, Y, Z accelerometer translated to aircraft body axis system, m/s/s",NumberRecords,3);
+    for (size_t k=0; k < NumberRecords; k++) {
+      data3D[k][0] = Mpu9250Ext[l][k].Gyro_rads(0,0);
+      data3D[k][1] = Mpu9250Ext[l][k].Gyro_rads(1,0);
+      data3D[k][2] = Mpu9250Ext[l][k].Gyro_rads(2,0);
+    }
+    Logger.WriteData(GroupName,"Gyro_rads",data3D[0],"X, Y, Z gyro translated to aircraft body axis system, rad/s",NumberRecords,3);
+    for (size_t k=0; k < NumberRecords; k++) {
+      data3D[k][0] = Mpu9250Ext[l][k].Mag_uT(0,0);
+      data3D[k][1] = Mpu9250Ext[l][k].Mag_uT(1,0);
+      data3D[k][2] = Mpu9250Ext[l][k].Mag_uT(2,0);
+    }
+    Logger.WriteData(GroupName,"Mag_uT",data3D[0],"X, Y, Z magnetometer translated to aircraft body axis system, uT",NumberRecords,3);
+    for (size_t k=0; k < NumberRecords; k++) {
+      data1D[k] = Mpu9250Ext[l][k].Temp_C;
+    }
+    Logger.WriteData(GroupName,"Temp_C",data1D,"Temperature, C",NumberRecords,1);
+  }
+
+  /* External BME-280 */
+  for (size_t l=0; l < Data.Bme280Ext.size(); l++) {
+    string GroupName = "/Bme280_" + to_string(l);
+    for (size_t k=0; k < NumberRecords; k++) {
+      data1D[k] = Bme280Ext[l][k].Pressure_Pa;
+    }
+    Logger.WriteData(GroupName,"Pressure_Pa",data1D,"Static pressure, Pa",NumberRecords,1);
+    for (size_t k=0; k < NumberRecords; k++) {
+      data1D[k] = Bme280Ext[l][k].Temp_C;
+    }
+    Logger.WriteData(GroupName,"Temp_C",data1D,"Temperature, C",NumberRecords,1);
+    for (size_t k=0; k < NumberRecords; k++) {
+      data1D[k] = Bme280Ext[l][k].Humidity_RH;
+    }
+    Logger.WriteData(GroupName,"Humidity_RH",data1D,"Percent relative humidity",NumberRecords,1);
+  }
+
+  /* Sbus RX */
+  for (size_t l=0; l < Data.SbusRx.size(); l++) {
+    string GroupName = "/SbusRx_" + to_string(l);
+    for (size_t k=0; k < NumberRecords; k++) {
+      data1Du8[k] = SbusRx[l][k].Failsafe;
+    }
+    Logger.WriteData(GroupName,"Failsafe",data1Du8,"True when failsafe active",NumberRecords,1);    
+    for (size_t k=0; k < NumberRecords; k++) {
+      data1Du16[k] = SbusRx[l][k].LostFrames;
+    }
+    Logger.WriteData(GroupName,"LostFrames",data1Du16,"Number of lost frames",NumberRecords,1); 
+    for (size_t k=0; k < NumberRecords; k++) {
+      data1Du8[k] = SbusRx[l][k].AutoEnabled;
+    }
+    Logger.WriteData(GroupName,"AutoEnabled",data1Du8,"True when autopilot enabled",NumberRecords,1); 
+    for (size_t k=0; k < NumberRecords; k++) {
+      data1Du8[k] = SbusRx[l][k].ThrottleEnabled;
+    }
+    Logger.WriteData(GroupName,"ThrottleEnabled",data1Du8,"True when throttle enabled",NumberRecords,1);
+     for (size_t k=0; k < NumberRecords; k++) {
+      data1D[k] = SbusRx[l][k].RSSI;
+    }
+    Logger.WriteData(GroupName,"RSSI",data1D,"RSSI value",NumberRecords,1);
+    for (size_t k=0; k < NumberRecords; k++) {
+      data5D[k][0] = SbusRx[l][k].Inceptors(0,0);
+      data5D[k][1] = SbusRx[l][k].Inceptors(1,0);
+      data5D[k][2] = SbusRx[l][k].Inceptors(2,0);
+      data5D[k][3] = SbusRx[l][k].Inceptors(3,0);
+      data5D[k][4] = SbusRx[l][k].Inceptors(4,0);
+    }
+    Logger.WriteData(GroupName,"Inceptors",data5D[0],"Aerodynamic inceptors, roll pitch yaw lift thrust, normalized to +/- 1",NumberRecords,5);
+    for (size_t k=0; k < NumberRecords; k++) {
+      data5D[k][0] = SbusRx[l][k].AuxInputs(0,0);
+      data5D[k][1] = SbusRx[l][k].AuxInputs(1,0);
+      data5D[k][2] = SbusRx[l][k].AuxInputs(2,0);
+      data5D[k][3] = SbusRx[l][k].AuxInputs(3,0);
+      data5D[k][4] = SbusRx[l][k].AuxInputs(4,0);
+    }
+    Logger.WriteData(GroupName,"AuxInputs",data5D[0],"Auxiliary inputs, normalized to +/- 1",NumberRecords,5);
+  } 
+
+  /* Gps */
+  for (size_t l=0; l < Data.Gps.size(); l++) {
+    string GroupName = "/Gps_" + to_string(l);
+    for (size_t k=0; k < NumberRecords; k++) {
+      data1Du8[k] = Gps[l][k].Fix;
+    }
+    Logger.WriteData(GroupName,"Fix",data1Du8,"True for 3D fix only",NumberRecords,1); 
+    for (size_t k=0; k < NumberRecords; k++) {
+      data1Du8[k] = Gps[l][k].NumberSatellites;
+    }
+    Logger.WriteData(GroupName,"NumberSatellites",data1Du8,"Number of satellites used in solution",NumberRecords,1); 
+    for (size_t k=0; k < NumberRecords; k++) {
+      data1Du32[k] = Gps[l][k].TOW;
+    }
+    Logger.WriteData(GroupName,"TOW",data1Du32,"GPS time of the navigation epoch",NumberRecords,1); 
+    for (size_t k=0; k < NumberRecords; k++) {
+      data1Du16[k] = Gps[l][k].Year;
+    }
+    Logger.WriteData(GroupName,"Year",data1Du16,"UTC year",NumberRecords,1);
+    for (size_t k=0; k < NumberRecords; k++) {
+      data1Du8[k] = Gps[l][k].Month;
+    }
+    Logger.WriteData(GroupName,"Month",data1Du8,"UTC month",NumberRecords,1); 
+    for (size_t k=0; k < NumberRecords; k++) {
+      data1Du8[k] = Gps[l][k].Day;
+    }
+    Logger.WriteData(GroupName,"Day",data1Du8,"UTC day",NumberRecords,1); 
+    for (size_t k=0; k < NumberRecords; k++) {
+      data1Du8[k] = Gps[l][k].Hour;
+    }
+    Logger.WriteData(GroupName,"Hour",data1Du8,"UTC hour",NumberRecords,1); 
+    for (size_t k=0; k < NumberRecords; k++) {
+      data1Du8[k] = Gps[l][k].Min;
+    }
+    Logger.WriteData(GroupName,"Min",data1Du8,"UTC minute",NumberRecords,1); 
+    for (size_t k=0; k < NumberRecords; k++) {
+      data1Du8[k] = Gps[l][k].Sec;
+    }
+    Logger.WriteData(GroupName,"Sec",data1Du8,"UTC second",NumberRecords,1); 
+    for (size_t k=0; k < NumberRecords; k++) {
+      data3Dd[k][0] = Gps[l][k].LLA(0,0);
+      data3Dd[k][1] = Gps[l][k].LLA(1,0);
+      data3Dd[k][2] = Gps[l][k].LLA(2,0);
+    }
+    Logger.WriteData(GroupName,"LLA",data3Dd[0],"Latitude (rad), Longitude (rad), Altitude (m)",NumberRecords,3);
+    for (size_t k=0; k < NumberRecords; k++) {
+      data3Dd[k][0] = Gps[l][k].NEDVelocity_ms(0,0);
+      data3Dd[k][1] = Gps[l][k].NEDVelocity_ms(1,0);
+      data3Dd[k][2] = Gps[l][k].NEDVelocity_ms(2,0);
+    }
+    Logger.WriteData(GroupName,"NEDVelocity_ms",data3Dd[0],"North, East, Down Velocity, m/s",NumberRecords,3);
+    for (size_t k=0; k < NumberRecords; k++) {
+      data3Dd[k][0] = Gps[l][k].Accuracy(0,0);
+      data3Dd[k][1] = Gps[l][k].Accuracy(1,0);
+      data3Dd[k][2] = Gps[l][k].Accuracy(2,0);
+    }
+    Logger.WriteData(GroupName,"Accuracy",data3Dd[0],"Horizontal (m), vertical (m), and speed (m/s) accuracy estimates",NumberRecords,3);
+    for (size_t k=0; k < NumberRecords; k++) {
+      data1Dd[k] = Gps[l][k].pDOP;
+    }
+    Logger.WriteData(GroupName,"pDOP",data1Dd,"Position degree of precision",NumberRecords,1); 
+  }
+
+  /* Pitot */
+  for (size_t l=0; l < Data.Pitot.size(); l++) {
+    string GroupName = "/Pitot_" + to_string(l);
+    for (size_t k=0; k < NumberRecords; k++) {
+      data1D[k] = Pitot[l][k].Static.Pressure_Pa;
+    }
+    Logger.WriteData(GroupName + "/Static","Pressure_Pa",data1D,"Static pressure, Pa",NumberRecords,1);
+    for (size_t k=0; k < NumberRecords; k++) {
+      data1D[k] = Pitot[l][k].Static.Temp_C;
+    }
+    Logger.WriteData(GroupName + "/Static","Temp_C",data1D,"Temperature, C",NumberRecords,1);
+    for (size_t k=0; k < NumberRecords; k++) {
+      data1D[k] = Pitot[l][k].Diff.Pressure_Pa;
+    }
+    Logger.WriteData(GroupName + "/Diff","Pressure_Pa",data1D,"Differential pressure, Pa",NumberRecords,1);
+    for (size_t k=0; k < NumberRecords; k++) {
+      data1D[k] = Pitot[l][k].Diff.Temp_C;
+    }
+    Logger.WriteData(GroupName + "/Diff","Temp_C",data1D,"Temperature, C",NumberRecords,1);
+  }
+
+  /* Analog */
+  for (size_t l=0; l < Data.Analog.size(); l++) {
+    string GroupName = "Analog_" + to_string(l);
+    for (size_t k=0; k < NumberRecords; k++) {
+      data1D[k] = Analog[l][k].Voltage_V;
+    }
+    Logger.WriteData(GroupName,"Voltage_V",data1D,"Measured voltage, V",NumberRecords,1);
+    for (size_t k=0; k < NumberRecords; k++) {
+      data1D[k] = Analog[l][k].CalValue;
+    }
+    Logger.WriteData(GroupName,"CalValue",data1D,"Value from applying calibration to voltage",NumberRecords,1);
+  }
+
+  /* Sbus Voltage */
+  for (size_t l=0; l < Data.SbusVoltage.size(); l++) {
+    string GroupName = "SbusVoltage_" + to_string(l);
+    for (size_t k=0; k < NumberRecords; k++) {
+      data1D[k] = SbusVoltage[l][k].Voltage_V;
+    }
+    Logger.WriteData(GroupName,"Voltage_V",data1D,"Measured voltage, V",NumberRecords,1);
+  }
+
+  /* Pwm Voltage */ 
+  for (size_t l=0; l < Data.PwmVoltage.size(); l++) {
+    string GroupName = "PwmVoltage_" + to_string(l);
+    for (size_t k=0; k < NumberRecords; k++) {
+      data1D[k] = PwmVoltage[l][k].Voltage_V;
+    }
+    Logger.WriteData(GroupName,"Voltage_V",data1D,"Measured voltage, V",NumberRecords,1);
+  }
+
+	return 0;
+}
