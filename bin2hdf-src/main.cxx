@@ -70,20 +70,44 @@ int main(int argc, char* argv[]) {
   /* create an HDF5 file */
   hdf5class Logger(argv[3]);
 
-  /* parse binary files into data structures */
-  double Time_s[NumberRecords];
-  Voltage InputVoltage[NumberRecords];
-  Voltage RegulatedVoltage[NumberRecords];
-  Mpu9250Data Mpu9250[NumberRecords];
-  Bme280Data Bme280[NumberRecords];
-  Mpu9250Data Mpu9250Ext[Data.Mpu9250Ext.size()][NumberRecords];
-  Bme280Data Bme280Ext[Data.Bme280Ext.size()][NumberRecords];
-  SbusRxData SbusRx[Data.SbusRx.size()][NumberRecords];
-  GpsData Gps[Data.Gps.size()][NumberRecords];
-  PitotData Pitot[Data.Pitot.size()][NumberRecords];
-  AnalogData Analog[Data.Analog.size()][NumberRecords];
-  Voltage SbusVoltage[Data.SbusVoltage.size()][NumberRecords];
-  Voltage PwmVoltage[Data.PwmVoltage.size()][NumberRecords];
+  // /* parse binary files into data structures */
+  double* Time_s = new double [NumberRecords];
+  Voltage* InputVoltage = new Voltage [NumberRecords];
+  Voltage* RegulatedVoltage = new Voltage [NumberRecords];
+  Mpu9250Data* Mpu9250 = new Mpu9250Data [NumberRecords];
+  Bme280Data* Bme280 = new Bme280Data [NumberRecords];
+  Mpu9250Data** Mpu9250Ext = new Mpu9250Data* [Data.Mpu9250Ext.size()];
+  for (size_t i=0; i < Data.Mpu9250Ext.size(); i++) {
+    Mpu9250Ext[i] = new Mpu9250Data [NumberRecords];
+  }
+  Bme280Data** Bme280Ext = new Bme280Data* [Data.Bme280Ext.size()];
+  for (size_t i=0; i < Data.Bme280Ext.size(); i++) {
+    Bme280Ext[i] = new Bme280Data [NumberRecords];
+  }
+  SbusRxData** SbusRx = new SbusRxData* [Data.SbusRx.size()];
+  for (size_t i=0; i < Data.SbusRx.size(); i++) {
+    SbusRx[i] = new SbusRxData [NumberRecords];
+  }
+  GpsData** Gps = new GpsData* [Data.Gps.size()];
+  for (size_t i=0; i < Data.Gps.size(); i++) {
+    Gps[i] = new GpsData [NumberRecords];
+  }
+  PitotData** Pitot = new PitotData* [Data.Pitot.size()];
+  for (size_t i=0; i < Data.Pitot.size(); i++) {
+    Pitot[i] = new PitotData [NumberRecords];
+  }
+  AnalogData** Analog = new AnalogData* [Data.Analog.size()];
+  for (size_t i=0; i < Data.Analog.size(); i++) {
+    Analog[i] = new AnalogData [NumberRecords];
+  }
+  Voltage** SbusVoltage = new Voltage* [Data.SbusVoltage.size()];
+  for (size_t i=0; i < Data.SbusVoltage.size(); i++) {
+    SbusVoltage[i] = new Voltage [NumberRecords];
+  }
+  Voltage** PwmVoltage = new Voltage* [Data.PwmVoltage.size()];
+  for (size_t i=0; i < Data.PwmVoltage.size(); i++) {
+    PwmVoltage[i] = new Voltage [NumberRecords];
+  }
 
   for (size_t i=0; i < NumberRecords; i++) {
     memcpy(&Time_s[i],FileBuffer[i],sizeof(Time_s[i]));
@@ -129,18 +153,23 @@ int main(int argc, char* argv[]) {
   }
 
   /* save data into HDF5 */
-  float data1D[NumberRecords];
-  float data3D[NumberRecords][3];
-  float data5D[NumberRecords][5];
-
-  double data1Dd[NumberRecords];
-  double data3Dd[NumberRecords][3];
-
-  uint8_t data1Du8[NumberRecords];
-
-  uint16_t data1Du16[NumberRecords];
-
-  uint32_t data1Du32[NumberRecords];
+  float* data1D = new float [NumberRecords];
+  float** data3D = new float* [NumberRecords];
+  for (size_t i=0; i < NumberRecords; i++) {
+    data3D[i] = new float [3];
+  }
+  float** data5D = new float* [NumberRecords];
+  for (size_t i=0; i < NumberRecords; i++) {
+    data5D[i] = new float [5];
+  }  
+  double* data1Dd = new double [NumberRecords];
+  double** data3Dd = new double* [NumberRecords];
+  for (size_t i=0; i < NumberRecords; i++) {
+    data3Dd[i] = new double [3];
+  }
+  uint8_t* data1Du8 = new uint8_t [NumberRecords];
+  uint16_t* data1Du16 = new uint16_t [NumberRecords];
+  uint32_t* data1Du32 = new uint32_t [NumberRecords];
 
   /* FMU data: time, input voltage, and regulated voltage */
   Logger.WriteData("/Fmu","Time_s",Time_s,"Time, s",NumberRecords,1);
