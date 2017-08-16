@@ -154,19 +154,10 @@ int main(int argc, char* argv[]) {
 
   /* save data into HDF5 */
   float* data1D = new float [NumberRecords];
-  float** data3D = new float* [NumberRecords];
-  for (size_t i=0; i < NumberRecords; i++) {
-    data3D[i] = new float [3];
-  }
-  float** data5D = new float* [NumberRecords];
-  for (size_t i=0; i < NumberRecords; i++) {
-    data5D[i] = new float [5];
-  }  
+  float* data3D = new float [3*NumberRecords];
+  float* data5D = new float [5*NumberRecords];
   double* data1Dd = new double [NumberRecords];
-  double** data3Dd = new double* [NumberRecords];
-  for (size_t i=0; i < NumberRecords; i++) {
-    data3Dd[i] = new double [3];
-  }
+  double* data3Dd = new double [3*NumberRecords];
   uint8_t* data1Du8 = new uint8_t [NumberRecords];
   uint16_t* data1Du16 = new uint16_t [NumberRecords];
   uint32_t* data1Du32 = new uint32_t [NumberRecords];
@@ -183,24 +174,30 @@ int main(int argc, char* argv[]) {
   Logger.WriteData("/Fmu","RegulatedVoltage_V",data1D,"Regulated voltage, V",NumberRecords,1);
 
   /* MPU-9250 data: accel, gyro, mag, and temperature */
+  size_t m = 0;
   for (size_t k=0; k < NumberRecords; k++) {
-    data3D[k][0] = Mpu9250[k].Accel_mss(0,0);
-    data3D[k][1] = Mpu9250[k].Accel_mss(1,0);
-    data3D[k][2] = Mpu9250[k].Accel_mss(2,0);
+    data3D[m] = Mpu9250[k].Accel_mss(0,0);
+    data3D[m+1] = Mpu9250[k].Accel_mss(1,0);
+    data3D[m+2] = Mpu9250[k].Accel_mss(2,0);
+    m = m + 3;
   }
-  Logger.WriteData("/Fmu/Mpu9250","Accel_mss",data3D[0],"X, Y, Z accelerometer translated to aircraft body axis system, m/s/s",NumberRecords,3);
+  Logger.WriteData("/Fmu/Mpu9250","Accel_mss",data3D,"X, Y, Z accelerometer translated to aircraft body axis system, m/s/s",NumberRecords,3);
+  m = 0;
   for (size_t k=0; k < NumberRecords; k++) {
-    data3D[k][0] = Mpu9250[k].Gyro_rads(0,0);
-    data3D[k][1] = Mpu9250[k].Gyro_rads(1,0);
-    data3D[k][2] = Mpu9250[k].Gyro_rads(2,0);
+    data3D[m] = Mpu9250[k].Gyro_rads(0,0);
+    data3D[m+1] = Mpu9250[k].Gyro_rads(1,0);
+    data3D[m+2] = Mpu9250[k].Gyro_rads(2,0);
+    m = m + 3;
   }
-  Logger.WriteData("/Fmu/Mpu9250","Gyro_rads",data3D[0],"X, Y, Z gyro translated to aircraft body axis system, rad/s",NumberRecords,3);
+  Logger.WriteData("/Fmu/Mpu9250","Gyro_rads",data3D,"X, Y, Z gyro translated to aircraft body axis system, rad/s",NumberRecords,3);
+  m = 0;
   for (size_t k=0; k < NumberRecords; k++) {
-    data3D[k][0] = Mpu9250[k].Mag_uT(0,0);
-    data3D[k][1] = Mpu9250[k].Mag_uT(1,0);
-    data3D[k][2] = Mpu9250[k].Mag_uT(2,0);
+    data3D[m] = Mpu9250[k].Mag_uT(0,0);
+    data3D[m+1] = Mpu9250[k].Mag_uT(1,0);
+    data3D[m+2] = Mpu9250[k].Mag_uT(2,0);
+    m = m + 3;
   }
-  Logger.WriteData("/Fmu/Mpu9250","Mag_uT",data3D[0],"X, Y, Z magnetometer translated to aircraft body axis system, uT",NumberRecords,3);
+  Logger.WriteData("/Fmu/Mpu9250","Mag_uT",data3D,"X, Y, Z magnetometer translated to aircraft body axis system, uT",NumberRecords,3);
   for (size_t k=0; k < NumberRecords; k++) {
     data1D[k] = Mpu9250[k].Temp_C;
   }
@@ -223,24 +220,30 @@ int main(int argc, char* argv[]) {
   /* External MPU-9250 */
   for (size_t l=0; l < Data.Mpu9250Ext.size(); l++) {
     string GroupName = "/Mpu9250_" + to_string(l);
+    m = 0;
     for (size_t k=0; k < NumberRecords; k++) {
-      data3D[k][0] = Mpu9250Ext[l][k].Accel_mss(0,0);
-      data3D[k][1] = Mpu9250Ext[l][k].Accel_mss(1,0);
-      data3D[k][2] = Mpu9250Ext[l][k].Accel_mss(2,0);
+      data3D[m] = Mpu9250Ext[l][k].Accel_mss(0,0);
+      data3D[m+1] = Mpu9250Ext[l][k].Accel_mss(1,0);
+      data3D[m+2] = Mpu9250Ext[l][k].Accel_mss(2,0);
+      m = m + 3;
     }
-    Logger.WriteData(GroupName,"Accel_mss",data3D[0],"X, Y, Z accelerometer translated to aircraft body axis system, m/s/s",NumberRecords,3);
+    Logger.WriteData(GroupName,"Accel_mss",data3D,"X, Y, Z accelerometer translated to aircraft body axis system, m/s/s",NumberRecords,3);
+    m = 0;
     for (size_t k=0; k < NumberRecords; k++) {
-      data3D[k][0] = Mpu9250Ext[l][k].Gyro_rads(0,0);
-      data3D[k][1] = Mpu9250Ext[l][k].Gyro_rads(1,0);
-      data3D[k][2] = Mpu9250Ext[l][k].Gyro_rads(2,0);
+      data3D[m] = Mpu9250Ext[l][k].Gyro_rads(0,0);
+      data3D[m+1] = Mpu9250Ext[l][k].Gyro_rads(1,0);
+      data3D[m+2] = Mpu9250Ext[l][k].Gyro_rads(2,0);
+      m = m + 3;
     }
-    Logger.WriteData(GroupName,"Gyro_rads",data3D[0],"X, Y, Z gyro translated to aircraft body axis system, rad/s",NumberRecords,3);
+    Logger.WriteData(GroupName,"Gyro_rads",data3D,"X, Y, Z gyro translated to aircraft body axis system, rad/s",NumberRecords,3);
+    m = 0;
     for (size_t k=0; k < NumberRecords; k++) {
-      data3D[k][0] = Mpu9250Ext[l][k].Mag_uT(0,0);
-      data3D[k][1] = Mpu9250Ext[l][k].Mag_uT(1,0);
-      data3D[k][2] = Mpu9250Ext[l][k].Mag_uT(2,0);
+      data3D[m] = Mpu9250Ext[l][k].Mag_uT(0,0);
+      data3D[m+1] = Mpu9250Ext[l][k].Mag_uT(1,0);
+      data3D[m+2] = Mpu9250Ext[l][k].Mag_uT(2,0);
+      m = m + 3;
     }
-    Logger.WriteData(GroupName,"Mag_uT",data3D[0],"X, Y, Z magnetometer translated to aircraft body axis system, uT",NumberRecords,3);
+    Logger.WriteData(GroupName,"Mag_uT",data3D,"X, Y, Z magnetometer translated to aircraft body axis system, uT",NumberRecords,3);
     for (size_t k=0; k < NumberRecords; k++) {
       data1D[k] = Mpu9250Ext[l][k].Temp_C;
     }
@@ -287,22 +290,26 @@ int main(int argc, char* argv[]) {
       data1D[k] = SbusRx[l][k].RSSI;
     }
     Logger.WriteData(GroupName,"RSSI",data1D,"RSSI value",NumberRecords,1);
+    m = 0;
     for (size_t k=0; k < NumberRecords; k++) {
-      data5D[k][0] = SbusRx[l][k].Inceptors(0,0);
-      data5D[k][1] = SbusRx[l][k].Inceptors(1,0);
-      data5D[k][2] = SbusRx[l][k].Inceptors(2,0);
-      data5D[k][3] = SbusRx[l][k].Inceptors(3,0);
-      data5D[k][4] = SbusRx[l][k].Inceptors(4,0);
+      data5D[m] = SbusRx[l][k].Inceptors(0,0);
+      data5D[m+1] = SbusRx[l][k].Inceptors(1,0);
+      data5D[m+2] = SbusRx[l][k].Inceptors(2,0);
+      data5D[m+3] = SbusRx[l][k].Inceptors(3,0);
+      data5D[m+4] = SbusRx[l][k].Inceptors(4,0);
+      m = m + 5;
     }
-    Logger.WriteData(GroupName,"Inceptors",data5D[0],"Aerodynamic inceptors, roll pitch yaw lift thrust, normalized to +/- 1",NumberRecords,5);
+    Logger.WriteData(GroupName,"Inceptors",data5D,"Aerodynamic inceptors, roll pitch yaw lift thrust, normalized to +/- 1",NumberRecords,5);
+    m = 0;
     for (size_t k=0; k < NumberRecords; k++) {
-      data5D[k][0] = SbusRx[l][k].AuxInputs(0,0);
-      data5D[k][1] = SbusRx[l][k].AuxInputs(1,0);
-      data5D[k][2] = SbusRx[l][k].AuxInputs(2,0);
-      data5D[k][3] = SbusRx[l][k].AuxInputs(3,0);
-      data5D[k][4] = SbusRx[l][k].AuxInputs(4,0);
+      data5D[m] = SbusRx[l][k].AuxInputs(0,0);
+      data5D[m+1] = SbusRx[l][k].AuxInputs(1,0);
+      data5D[m+2] = SbusRx[l][k].AuxInputs(2,0);
+      data5D[m+3] = SbusRx[l][k].AuxInputs(3,0);
+      data5D[m+4] = SbusRx[l][k].AuxInputs(4,0);
+      m = m + 5;
     }
-    Logger.WriteData(GroupName,"AuxInputs",data5D[0],"Auxiliary inputs, normalized to +/- 1",NumberRecords,5);
+    Logger.WriteData(GroupName,"AuxInputs",data5D,"Auxiliary inputs, normalized to +/- 1",NumberRecords,5);
   } 
 
   /* Gps */
@@ -344,24 +351,30 @@ int main(int argc, char* argv[]) {
       data1Du8[k] = Gps[l][k].Sec;
     }
     Logger.WriteData(GroupName,"Sec",data1Du8,"UTC second",NumberRecords,1); 
+    m = 0;
     for (size_t k=0; k < NumberRecords; k++) {
-      data3Dd[k][0] = Gps[l][k].LLA(0,0);
-      data3Dd[k][1] = Gps[l][k].LLA(1,0);
-      data3Dd[k][2] = Gps[l][k].LLA(2,0);
+      data3Dd[m] = Gps[l][k].LLA(0,0);
+      data3Dd[m+1] = Gps[l][k].LLA(1,0);
+      data3Dd[m+2] = Gps[l][k].LLA(2,0);
+      m = m + 3;
     }
-    Logger.WriteData(GroupName,"LLA",data3Dd[0],"Latitude (rad), Longitude (rad), Altitude (m)",NumberRecords,3);
+    Logger.WriteData(GroupName,"LLA",data3Dd,"Latitude (rad), Longitude (rad), Altitude (m)",NumberRecords,3);
+    m = 0;
     for (size_t k=0; k < NumberRecords; k++) {
-      data3Dd[k][0] = Gps[l][k].NEDVelocity_ms(0,0);
-      data3Dd[k][1] = Gps[l][k].NEDVelocity_ms(1,0);
-      data3Dd[k][2] = Gps[l][k].NEDVelocity_ms(2,0);
+      data3Dd[m] = Gps[l][k].NEDVelocity_ms(0,0);
+      data3Dd[m+1] = Gps[l][k].NEDVelocity_ms(1,0);
+      data3Dd[m+2] = Gps[l][k].NEDVelocity_ms(2,0);
+      m = m + 3;
     }
-    Logger.WriteData(GroupName,"NEDVelocity_ms",data3Dd[0],"North, East, Down Velocity, m/s",NumberRecords,3);
+    Logger.WriteData(GroupName,"NEDVelocity_ms",data3Dd,"North, East, Down Velocity, m/s",NumberRecords,3);
+    m = 0;
     for (size_t k=0; k < NumberRecords; k++) {
-      data3Dd[k][0] = Gps[l][k].Accuracy(0,0);
-      data3Dd[k][1] = Gps[l][k].Accuracy(1,0);
-      data3Dd[k][2] = Gps[l][k].Accuracy(2,0);
+      data3Dd[m] = Gps[l][k].Accuracy(0,0);
+      data3Dd[m+1] = Gps[l][k].Accuracy(1,0);
+      data3Dd[m+2] = Gps[l][k].Accuracy(2,0);
+      m = m + 3;
     }
-    Logger.WriteData(GroupName,"Accuracy",data3Dd[0],"Horizontal (m), vertical (m), and speed (m/s) accuracy estimates",NumberRecords,3);
+    Logger.WriteData(GroupName,"Accuracy",data3Dd,"Horizontal (m), vertical (m), and speed (m/s) accuracy estimates",NumberRecords,3);
     for (size_t k=0; k < NumberRecords; k++) {
       data1Dd[k] = Gps[l][k].pDOP;
     }
