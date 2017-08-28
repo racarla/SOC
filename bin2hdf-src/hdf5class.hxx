@@ -11,6 +11,7 @@
 class hdf5class {
   public:
     hdf5class(std::string FileName);
+    void CreateGroup(std::string GroupName);
     void WriteData(std::string GroupName,std::string Name,uint8_t *data,std::string Attr,size_t rows,size_t columns);
     void WriteData(std::string GroupName,std::string Name,uint16_t *data,std::string Attr,size_t rows,size_t columns);
     void WriteData(std::string GroupName,std::string Name,uint32_t *data,std::string Attr,size_t rows,size_t columns);

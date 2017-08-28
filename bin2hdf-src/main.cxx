@@ -384,6 +384,7 @@ int main(int argc, char* argv[]) {
   /* Pitot */
   for (size_t l=0; l < Data.Pitot.size(); l++) {
     string GroupName = "/Pitot_" + to_string(l);
+    Logger.CreateGroup(GroupName);
     for (size_t k=0; k < NumberRecords; k++) {
       data1D[k] = Pitot[l][k].Static.Pressure_Pa;
     }

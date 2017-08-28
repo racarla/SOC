@@ -5,6 +5,18 @@ hdf5class::hdf5class(std::string FileName) {
   file_ = new H5::H5File(FileName.c_str(), H5F_ACC_EXCL);
 }
 
+void hdf5class::CreateGroup(std::string GroupName) {
+  H5::Exception::dontPrint();
+
+  // open group if exists, otherwise create it
+  try {
+    H5::Group LogGroup = file_->openGroup(GroupName.c_str());
+  } catch (...) {
+    H5::Group LogGroup = file_->createGroup(GroupName.c_str());
+  }
+  H5::Group LogGroup = file_->openGroup(GroupName.c_str());
+}
+
 void hdf5class::WriteData(std::string GroupName,std::string Name,uint8_t *data,std::string Attr,size_t rows,size_t columns) {
   H5::Exception::dontPrint();
 
