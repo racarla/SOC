@@ -13,6 +13,8 @@ void LoadConfigFile(std::string ConfigFileName, Fmu FmuRef, FmuData *FmuDataPtr)
   assert(ConfigDom.IsObject());
 
   // Loop through all nodes
+  size_t SbusVoltageSensors = 0;
+  size_t PwmVoltageSensors = 0;
   assert(ConfigDom.HasMember("Nodes"));
   const rapidjson::Value& Nodes = ConfigDom["Nodes"];
   assert(Nodes.IsArray());
@@ -41,6 +43,9 @@ void LoadConfigFile(std::string ConfigFileName, Fmu FmuRef, FmuData *FmuDataPtr)
           if (Sensor["Type"] == "Pitot") {
             FmuDataPtr->Pitot.resize(FmuDataPtr->Pitot.size() + 1);
           }
+          if (Sensor["Type"] == "Pressure") {
+            FmuDataPtr->Pressure.resize(FmuDataPtr->Pressure.size() + 1);
+          }
           if (Sensor["Type"] == "Analog") {
             FmuDataPtr->Analog.resize(FmuDataPtr->Analog.size() + 1);
           }
@@ -49,7 +54,34 @@ void LoadConfigFile(std::string ConfigFileName, Fmu FmuRef, FmuData *FmuDataPtr)
         }
       }
     }
+
+    if (Node.HasMember("Actuators")) {
+      size_t SbusVoltageOnNode = 0;
+      size_t PwmVoltageOnNode = 0;
+      const rapidjson::Value& Effectors = Node["Actuators"];
+      assert(Effectors.IsArray());
+
+      // Loop through all effectors on node
+      for (size_t j=0; j < Effectors.Size(); j++) {
+        const rapidjson::Value& Effector = Effectors[j];
+        if (Effector.HasMember("Type")) {
+          if (Effector["Type"] == "SBUS") {
+            SbusVoltageOnNode = 1;
+          }
+          if (Effector["Type"] == "PWM") {
+            PwmVoltageOnNode = 1;
+          }
+        } else {
+          // error
+        }
+      }
+    SbusVoltageSensors += SbusVoltageOnNode;
+    PwmVoltageSensors += PwmVoltageOnNode;
+    }
   }
+
+  FmuDataPtr->SbusVoltage.resize(SbusVoltageSensors);
+  FmuDataPtr->PwmVoltage.resize(PwmVoltageSensors);
 
   FmuRef.WriteMessage(kConfig,ConfigBuffer.size(),(uint8_t *)ConfigBuffer.c_str());
 }
