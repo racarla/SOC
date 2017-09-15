@@ -41,35 +41,61 @@ bool Fmu::GetSensorData(FmuData *FmuDataPtr) {
   uint8_t Payload[sizeof(FmuDataPtr->Time_s)+2*sizeof(Voltage)+sizeof(Mpu9250Data)+sizeof(Bme280Data)+FmuDataPtr->Mpu9250Ext.size()*sizeof(Mpu9250Data)+FmuDataPtr->Bme280Ext.size()*sizeof(Bme280Data)+FmuDataPtr->SbusRx.size()*sizeof(SbusRxData)+FmuDataPtr->Gps.size()*sizeof(GpsData)+FmuDataPtr->Pitot.size()*sizeof(PitotData)+FmuDataPtr->Analog.size()*sizeof(AnalogData)+FmuDataPtr->SbusVoltage.size()*sizeof(Voltage)+FmuDataPtr->PwmVoltage.size()*sizeof(Voltage)];
   if (ReadMessage(&ReadOperation,&MessageId,&PayloadSize,Payload)) {
     if ((!ReadOperation)&&(MessageId==kData)&&(PayloadSize==sizeof(Payload))) {
+      size_t RxPayloadOffset = 0;
       memcpy(&FmuDataPtr->Time_s,Payload,sizeof(FmuDataPtr->Time_s));
-      memcpy(&FmuDataPtr->InputVoltage,Payload+sizeof(FmuDataPtr->Time_s),sizeof(FmuDataPtr->InputVoltage));
-      memcpy(&FmuDataPtr->RegulatedVoltage,Payload+sizeof(FmuDataPtr->Time_s)+sizeof(FmuDataPtr->InputVoltage),sizeof(FmuDataPtr->RegulatedVoltage));
-      memcpy(&FmuDataPtr->Mpu9250,Payload+sizeof(FmuDataPtr->Time_s)+sizeof(FmuDataPtr->InputVoltage)+sizeof(FmuDataPtr->RegulatedVoltage),sizeof(Mpu9250Data));
-      memcpy(&FmuDataPtr->Bme280,Payload+sizeof(FmuDataPtr->Time_s)+sizeof(FmuDataPtr->InputVoltage)+sizeof(FmuDataPtr->RegulatedVoltage)+sizeof(Mpu9250Data),sizeof(Bme280Data));
+      RxPayloadOffset += sizeof(FmuDataPtr->Time_s);
+      memcpy(&FmuDataPtr->InputVoltage,Payload+RxPayloadOffset,sizeof(FmuDataPtr->InputVoltage));
+      RxPayloadOffset += sizeof(Voltage);
+      memcpy(&FmuDataPtr->RegulatedVoltage,Payload+RxPayloadOffset,sizeof(FmuDataPtr->RegulatedVoltage));
+      RxPayloadOffset += sizeof(Voltage);
+      memcpy(&FmuDataPtr->Mpu9250,Payload+RxPayloadOffset,sizeof(Mpu9250Data));
+      RxPayloadOffset += sizeof(Mpu9250Data);
+      memcpy(&FmuDataPtr->Bme280,Payload+RxPayloadOffset,sizeof(Bme280Data));
+      RxPayloadOffset += sizeof(Bme280Data);
 
+      for (size_t i=0; i < FmuDataPtr->Vn100.size(); i++) {
+        memcpy(&FmuDataPtr->Vn100[i],Payload+RxPayloadOffset,sizeof(Vn100Data));
+        RxPayloadOffset += sizeof(Vn100Data);
+      }
+      for (size_t i=0; i < FmuDataPtr->Vn200.size(); i++) {
+        memcpy(&FmuDataPtr->Vn200[i],Payload+RxPayloadOffset,sizeof(Vn200Data));
+        RxPayloadOffset += sizeof(Vn200Data);
+      }
       for (size_t i=0; i < FmuDataPtr->Mpu9250Ext.size(); i++) {
-        memcpy(&FmuDataPtr->Mpu9250Ext[i],Payload+sizeof(FmuDataPtr->Time_s)+sizeof(FmuDataPtr->InputVoltage)+sizeof(FmuDataPtr->RegulatedVoltage)+sizeof(Mpu9250Data)+sizeof(Bme280Data)+i*sizeof(Mpu9250Data),sizeof(Mpu9250Data));
+        memcpy(&FmuDataPtr->Mpu9250Ext[i],Payload+RxPayloadOffset,sizeof(Mpu9250Data));
+        RxPayloadOffset += sizeof(Mpu9250Data);
       }
       for (size_t i=0; i < FmuDataPtr->Bme280Ext.size(); i++) {
-        memcpy(&FmuDataPtr->Bme280Ext[i],Payload+sizeof(FmuDataPtr->Time_s)+sizeof(FmuDataPtr->InputVoltage)+sizeof(FmuDataPtr->RegulatedVoltage)+sizeof(Mpu9250Data)+sizeof(Bme280Data)+FmuDataPtr->Mpu9250Ext.size()*sizeof(Mpu9250Data)+i*sizeof(Bme280Data),sizeof(Bme280Data));
+        memcpy(&FmuDataPtr->Bme280Ext[i],Payload+RxPayloadOffset,sizeof(Bme280Data));
+        RxPayloadOffset += sizeof(Bme280Data);
       }
       for (size_t i=0; i < FmuDataPtr->SbusRx.size(); i++) {
-        memcpy(&FmuDataPtr->SbusRx[i],Payload+sizeof(FmuDataPtr->Time_s)+sizeof(FmuDataPtr->InputVoltage)+sizeof(FmuDataPtr->RegulatedVoltage)+sizeof(Mpu9250Data)+sizeof(Bme280Data)+FmuDataPtr->Mpu9250Ext.size()*sizeof(Mpu9250Data)+FmuDataPtr->Bme280Ext.size()*sizeof(Bme280Data)+i*sizeof(SbusRxData),sizeof(SbusRxData));
+        memcpy(&FmuDataPtr->SbusRx[i],Payload+RxPayloadOffset,sizeof(SbusRxData));
+        RxPayloadOffset += sizeof(SbusRxData);
       }
       for (size_t i=0; i < FmuDataPtr->Gps.size(); i++) {
-        memcpy(&FmuDataPtr->Gps[i],Payload+sizeof(FmuDataPtr->Time_s)+sizeof(FmuDataPtr->InputVoltage)+sizeof(FmuDataPtr->RegulatedVoltage)+sizeof(Mpu9250Data)+sizeof(Bme280Data)+FmuDataPtr->Mpu9250Ext.size()*sizeof(Mpu9250Data)+FmuDataPtr->Bme280Ext.size()*sizeof(Bme280Data)+FmuDataPtr->SbusRx.size()*sizeof(SbusRxData)+i*sizeof(GpsData),sizeof(GpsData));
+        memcpy(&FmuDataPtr->Gps[i],Payload+RxPayloadOffset,sizeof(GpsData));
+        RxPayloadOffset += sizeof(GpsData);
       }
       for (size_t i=0; i < FmuDataPtr->Pitot.size(); i++) {
-        memcpy(&FmuDataPtr->Pitot[i],Payload+sizeof(FmuDataPtr->Time_s)+sizeof(FmuDataPtr->InputVoltage)+sizeof(FmuDataPtr->RegulatedVoltage)+sizeof(Mpu9250Data)+sizeof(Bme280Data)+FmuDataPtr->Mpu9250Ext.size()*sizeof(Mpu9250Data)+FmuDataPtr->Bme280Ext.size()*sizeof(Bme280Data)+FmuDataPtr->SbusRx.size()*sizeof(SbusRxData)+FmuDataPtr->Gps.size()*sizeof(GpsData)+i*sizeof(PitotData),sizeof(PitotData));
+        memcpy(&FmuDataPtr->Pitot[i],Payload+RxPayloadOffset,sizeof(PitotData));
+        RxPayloadOffset += sizeof(PitotData);
+      }
+      for (size_t i=0; i < FmuDataPtr->Pressure.size(); i++) {
+        memcpy(&FmuDataPtr->Pressure[i],Payload+RxPayloadOffset,sizeof(PressureData));
+        RxPayloadOffset += sizeof(PressureData);
       }
       for (size_t i=0; i < FmuDataPtr->Analog.size(); i++) {
-        memcpy(&FmuDataPtr->Analog[i],Payload+sizeof(FmuDataPtr->Time_s)+sizeof(FmuDataPtr->InputVoltage)+sizeof(FmuDataPtr->RegulatedVoltage)+sizeof(Mpu9250Data)+sizeof(Bme280Data)+FmuDataPtr->Mpu9250Ext.size()*sizeof(Mpu9250Data)+FmuDataPtr->Bme280Ext.size()*sizeof(Bme280Data)+FmuDataPtr->SbusRx.size()*sizeof(SbusRxData)+FmuDataPtr->Gps.size()*sizeof(GpsData)+FmuDataPtr->Pitot.size()*sizeof(PitotData)+i*sizeof(AnalogData),sizeof(AnalogData));
+        memcpy(&FmuDataPtr->Analog[i],Payload+RxPayloadOffset,sizeof(AnalogData));
+        RxPayloadOffset += sizeof(AnalogData);
       }
       for (size_t i=0; i < FmuDataPtr->SbusVoltage.size(); i++) {
-        memcpy(&FmuDataPtr->SbusVoltage[i],Payload+sizeof(FmuDataPtr->Time_s)+sizeof(FmuDataPtr->InputVoltage)+sizeof(FmuDataPtr->RegulatedVoltage)+sizeof(Mpu9250Data)+sizeof(Bme280Data)+FmuDataPtr->Mpu9250Ext.size()*sizeof(Mpu9250Data)+FmuDataPtr->Bme280Ext.size()*sizeof(Bme280Data)+FmuDataPtr->SbusRx.size()*sizeof(SbusRxData)+FmuDataPtr->Gps.size()*sizeof(GpsData)+FmuDataPtr->Pitot.size()*sizeof(PitotData)+FmuDataPtr->Analog.size()*sizeof(AnalogData)+i*sizeof(Voltage),sizeof(Voltage));
+        memcpy(&FmuDataPtr->SbusVoltage[i],Payload+RxPayloadOffset,sizeof(Voltage));
+        RxPayloadOffset += sizeof(Voltage);
       }
       for (size_t i=0; i < FmuDataPtr->PwmVoltage.size(); i++) {
-        memcpy(&FmuDataPtr->PwmVoltage[i],Payload+sizeof(FmuDataPtr->Time_s)+sizeof(FmuDataPtr->InputVoltage)+sizeof(FmuDataPtr->RegulatedVoltage)+sizeof(Mpu9250Data)+sizeof(Bme280Data)+FmuDataPtr->Mpu9250Ext.size()*sizeof(Mpu9250Data)+FmuDataPtr->Bme280Ext.size()*sizeof(Bme280Data)+FmuDataPtr->SbusRx.size()*sizeof(SbusRxData)+FmuDataPtr->Gps.size()*sizeof(GpsData)+FmuDataPtr->Pitot.size()*sizeof(PitotData)+FmuDataPtr->Analog.size()*sizeof(AnalogData)+FmuDataPtr->SbusVoltage.size()*sizeof(Voltage)+i*sizeof(Voltage),sizeof(Voltage));
+        memcpy(&FmuDataPtr->PwmVoltage[i],Payload+RxPayloadOffset,sizeof(Voltage));
+        RxPayloadOffset += sizeof(Voltage);
       }
       return true;
     }

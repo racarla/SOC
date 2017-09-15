@@ -76,6 +76,14 @@ int main(int argc, char* argv[]) {
   Voltage* RegulatedVoltage = new Voltage [NumberRecords];
   Mpu9250Data* Mpu9250 = new Mpu9250Data [NumberRecords];
   Bme280Data* Bme280 = new Bme280Data [NumberRecords];
+  Vn100Data** Vn100 = new Vn100Data* [Data.Vn100.size()];
+  for (size_t i=0; i < Data.Mpu9250Ext.size(); i++) {
+    Vn100[i] = new Vn100Data [NumberRecords];
+  }
+  Vn200Data** Vn200 = new Vn200Data* [Data.Vn200.size()];
+  for (size_t i=0; i < Data.Vn200.size(); i++) {
+    Vn200[i] = new Vn200Data [NumberRecords];
+  }
   Mpu9250Data** Mpu9250Ext = new Mpu9250Data* [Data.Mpu9250Ext.size()];
   for (size_t i=0; i < Data.Mpu9250Ext.size(); i++) {
     Mpu9250Ext[i] = new Mpu9250Data [NumberRecords];
@@ -114,51 +122,60 @@ int main(int argc, char* argv[]) {
   }
 
   for (size_t i=0; i < NumberRecords; i++) {
+    size_t FileBufferLocation = 0;
     memcpy(&Time_s[i],FileBuffer[i],sizeof(Time_s[i]));
-    memcpy(&InputVoltage[i],FileBuffer[i]+sizeof(Time_s[i]),sizeof(InputVoltage[i]));
-    memcpy(&RegulatedVoltage[i],FileBuffer[i]+sizeof(Time_s[i])+sizeof(InputVoltage[i]),sizeof(RegulatedVoltage[i]));
-    memcpy(&Mpu9250[i],FileBuffer[i]+sizeof(Time_s[i])+sizeof(InputVoltage[i])+sizeof(RegulatedVoltage[i]),sizeof(Mpu9250[i]));
-    memcpy(&Bme280[i],FileBuffer[i]+sizeof(Time_s[i])+sizeof(InputVoltage[i])+sizeof(RegulatedVoltage[i])+sizeof(Mpu9250[i]),sizeof(Bme280[i]));
+    FileBufferLocation += sizeof(Time_s[i]);
+    memcpy(&InputVoltage[i],FileBuffer[i]+FileBufferLocation,sizeof(InputVoltage[i]));
+    FileBufferLocation += sizeof(InputVoltage[i]);
+    memcpy(&RegulatedVoltage[i],FileBuffer[i]+FileBufferLocation,sizeof(RegulatedVoltage[i]));
+    FileBufferLocation += sizeof(RegulatedVoltage[i]);
+    memcpy(&Mpu9250[i],FileBuffer[i]+FileBufferLocation,sizeof(Mpu9250[i]));
+    FileBufferLocation += sizeof(Mpu9250[i]);
+    memcpy(&Bme280[i],FileBuffer[i]+FileBufferLocation,sizeof(Bme280[i]));
+    FileBufferLocation += sizeof(Bme280[i]);
+    for (size_t j=0; j < Data.Vn100.size(); j++) {
+      memcpy(&Vn100[j][i],FileBuffer[i]+FileBufferLocation,sizeof(Vn100[j][i]));
+      FileBufferLocation += sizeof(Vn100[j][i]);
+    }
+    for (size_t j=0; j < Data.Vn200.size(); j++) {
+      memcpy(&Vn200[j][i],FileBuffer[i]+FileBufferLocation,sizeof(Vn200[j][i]));
+      FileBufferLocation += sizeof(Vn200[j][i]);
+    }
     for (size_t j=0; j < Data.Mpu9250Ext.size(); j++) {
-      memcpy(&Mpu9250Ext[j][i],FileBuffer[i]+sizeof(Time_s[i])+sizeof(InputVoltage[i])+sizeof(RegulatedVoltage[i])+sizeof(Mpu9250[i])+sizeof(Bme280[i])+j*sizeof(Mpu9250Ext[j][i]),sizeof(Mpu9250Ext[j][i]));
+      memcpy(&Mpu9250Ext[j][i],FileBuffer[i]+FileBufferLocation,sizeof(Mpu9250Ext[j][i]));
+      FileBufferLocation += sizeof(Mpu9250Ext[j][i]);
     }
     for (size_t j=0; j < Data.Bme280Ext.size(); j++) {
-      memcpy(&Bme280Ext[j][i],FileBuffer[i]+sizeof(Time_s[i])+sizeof(InputVoltage[i])+sizeof(RegulatedVoltage[i])+sizeof(Mpu9250[i])+sizeof(Bme280[i])+
-        Data.Mpu9250Ext.size()*sizeof(Mpu9250Data)+j*sizeof(Bme280Ext[j][i]),sizeof(Bme280Ext[j][i]));
+      memcpy(&Bme280Ext[j][i],FileBuffer[i]+FileBufferLocation,sizeof(Bme280Ext[j][i]));
+      FileBufferLocation += sizeof(Bme280Ext[j][i]);
     }
     for (size_t j=0; j < Data.SbusRx.size(); j++) {
-      memcpy(&SbusRx[j][i],FileBuffer[i]+sizeof(Time_s[i])+sizeof(InputVoltage[i])+sizeof(RegulatedVoltage[i])+sizeof(Mpu9250[i])+sizeof(Bme280[i])+
-        Data.Mpu9250Ext.size()*sizeof(Mpu9250Data)+Data.Bme280Ext.size()*sizeof(Bme280Data)+j*sizeof(SbusRx[j][i]),sizeof(SbusRx[j][i]));
+      memcpy(&SbusRx[j][i],FileBuffer[i]+FileBufferLocation,sizeof(SbusRx[j][i]));
+      FileBufferLocation += sizeof(SbusRx[j][i]);
     }
     for (size_t j=0; j < Data.Gps.size(); j++) {
-      memcpy(&Gps[j][i],FileBuffer[i]+sizeof(Time_s[i])+sizeof(InputVoltage[i])+sizeof(RegulatedVoltage[i])+sizeof(Mpu9250[i])+sizeof(Bme280[i])+
-        Data.Mpu9250Ext.size()*sizeof(Mpu9250Data)+Data.Bme280Ext.size()*sizeof(Bme280Data)+Data.SbusRx.size()*sizeof(SbusRxData)+j*sizeof(Gps[j][i]),sizeof(Gps[j][i]));
+      memcpy(&Gps[j][i],FileBuffer[i]+FileBufferLocation,sizeof(Gps[j][i]));
+      FileBufferLocation += sizeof(Gps[j][i]);
     }
     for (size_t j=0; j < Data.Pitot.size(); j++) {
-      memcpy(&Pitot[j][i],FileBuffer[i]+sizeof(Time_s[i])+sizeof(InputVoltage[i])+sizeof(RegulatedVoltage[i])+sizeof(Mpu9250[i])+sizeof(Bme280[i])+
-        Data.Mpu9250Ext.size()*sizeof(Mpu9250Data)+Data.Bme280Ext.size()*sizeof(Bme280Data)+Data.SbusRx.size()*sizeof(SbusRxData)+Data.Gps.size()*sizeof(GpsData)+
-        j*sizeof(Pitot[j][i]),sizeof(Pitot[j][i]));
+      memcpy(&Pitot[j][i],FileBuffer[i]+FileBufferLocation,sizeof(Pitot[j][i]));
+      FileBufferLocation += sizeof(Pitot[j][i]);
     }
     for (size_t j=0; j < Data.Pressure.size(); j++) {
-      memcpy(&Pressure[j][i],FileBuffer[i]+sizeof(Time_s[i])+sizeof(InputVoltage[i])+sizeof(RegulatedVoltage[i])+sizeof(Mpu9250[i])+sizeof(Bme280[i])+
-        Data.Mpu9250Ext.size()*sizeof(Mpu9250Data)+Data.Bme280Ext.size()*sizeof(Bme280Data)+Data.SbusRx.size()*sizeof(SbusRxData)+Data.Gps.size()*sizeof(GpsData)+
-        Data.Pitot.size()*sizeof(PitotData)+j*sizeof(Pressure[j][i]),sizeof(Pressure[j][i]));
+      memcpy(&Pressure[j][i],FileBuffer[i]+FileBufferLocation,sizeof(Pressure[j][i]));
+      FileBufferLocation += sizeof(Pressure[j][i]);
     }
     for (size_t j=0; j < Data.Analog.size(); j++) {
-      memcpy(&Analog[j][i],FileBuffer[i]+sizeof(Time_s[i])+sizeof(InputVoltage[i])+sizeof(RegulatedVoltage[i])+sizeof(Mpu9250[i])+sizeof(Bme280[i])+
-        Data.Mpu9250Ext.size()*sizeof(Mpu9250Data)+Data.Bme280Ext.size()*sizeof(Bme280Data)+Data.SbusRx.size()*sizeof(SbusRxData)+Data.Gps.size()*sizeof(GpsData)+
-        Data.Pitot.size()*sizeof(PitotData)+Data.Pressure.size()*sizeof(PressureData)+j*sizeof(Analog[j][i]),sizeof(Analog[j][i]));
+      memcpy(&Analog[j][i],FileBuffer[i]+FileBufferLocation,sizeof(Analog[j][i]));
+      FileBufferLocation += sizeof(Analog[j][i]);
     }
     for (size_t j=0; j < Data.SbusVoltage.size(); j++) {
-      memcpy(&SbusVoltage[j][i],FileBuffer[i]+sizeof(Time_s[i])+sizeof(InputVoltage[i])+sizeof(RegulatedVoltage[i])+sizeof(Mpu9250[i])+sizeof(Bme280[i])+
-        Data.Mpu9250Ext.size()*sizeof(Mpu9250Data)+Data.Bme280Ext.size()*sizeof(Bme280Data)+Data.SbusRx.size()*sizeof(SbusRxData)+Data.Gps.size()*sizeof(GpsData)+
-        Data.Pitot.size()*sizeof(PitotData)+Data.Pressure.size()*sizeof(PressureData)+Data.Analog.size()*sizeof(AnalogData)+j*sizeof(SbusVoltage[j][i]),sizeof(SbusVoltage[j][i]));
+      memcpy(&SbusVoltage[j][i],FileBuffer[i]+FileBufferLocation,sizeof(SbusVoltage[j][i]));
+      FileBufferLocation += sizeof(SbusVoltage[j][i]);
     }
     for (size_t j=0; j < Data.PwmVoltage.size(); j++) {
-      memcpy(&PwmVoltage[j][i],FileBuffer[i]+sizeof(Time_s[i])+sizeof(InputVoltage[i])+sizeof(RegulatedVoltage[i])+sizeof(Mpu9250[i])+sizeof(Bme280[i])+
-        Data.Mpu9250Ext.size()*sizeof(Mpu9250Data)+Data.Bme280Ext.size()*sizeof(Bme280Data)+Data.SbusRx.size()*sizeof(SbusRxData)+Data.Gps.size()*sizeof(GpsData)+
-        Data.Pitot.size()*sizeof(PitotData)+Data.Pressure.size()*sizeof(PressureData)+Data.Analog.size()*sizeof(AnalogData)+Data.SbusVoltage.size()*sizeof(Voltage)+
-        j*sizeof(PwmVoltage[j][i]),sizeof(PwmVoltage[j][i]));
+      memcpy(&PwmVoltage[j][i],FileBuffer[i]+FileBufferLocation,sizeof(PwmVoltage[j][i]));
+      FileBufferLocation += sizeof(PwmVoltage[j][i]);
     }
   }
 
@@ -226,6 +243,52 @@ int main(int argc, char* argv[]) {
     data1D[k] = Bme280[k].Humidity_RH;
   }
   Logger.WriteData("/Fmu/Bme280","Humidity_RH",data1D,"Percent relative humidity",NumberRecords,1);
+
+  /* VN-100 */
+  for (size_t l=0; l < Data.Vn100.size(); l++) {
+    string GroupName = "/Vn100_" + to_string(l);
+    m = 0;
+    for (size_t k=0; k < NumberRecords; k++) {
+      data3D[m] = Vn100[l][k].Euler_rad(0,0);
+      data3D[m+1] = Vn100[l][k].Euler_rad(1,0);
+      data3D[m+2] = Vn100[l][k].Euler_rad(2,0);
+      m = m + 3;
+    }
+    Logger.WriteData(GroupName,"Euler_rad",data3D,"Yaw, pitch, roll angle from VN-100 AHRS translated to aircraft body axis system, rad",NumberRecords,3);
+    m = 0;
+    for (size_t k=0; k < NumberRecords; k++) {
+      data3D[m] = Vn100[l][k].Accel_mss(0,0);
+      data3D[m+1] = Vn100[l][k].Accel_mss(1,0);
+      data3D[m+2] = Vn100[l][k].Accel_mss(2,0);
+      m = m + 3;
+    }
+    Logger.WriteData(GroupName,"Accel_mss",data3D,"X, Y, Z accelerometer translated to aircraft body axis system, m/s/s",NumberRecords,3);
+    m = 0;
+    for (size_t k=0; k < NumberRecords; k++) {
+      data3D[m] = Vn100[l][k].Gyro_rads(0,0);
+      data3D[m+1] = Vn100[l][k].Gyro_rads(1,0);
+      data3D[m+2] = Vn100[l][k].Gyro_rads(2,0);
+      m = m + 3;
+    }
+    Logger.WriteData(GroupName,"Gyro_rads",data3D,"X, Y, Z gyro translated to aircraft body axis system, rad/s",NumberRecords,3);
+    m = 0;
+    for (size_t k=0; k < NumberRecords; k++) {
+      data3D[m] = Vn100[l][k].Mag_uT(0,0);
+      data3D[m+1] = Vn100[l][k].Mag_uT(1,0);
+      data3D[m+2] = Vn100[l][k].Mag_uT(2,0);
+      m = m + 3;
+    }
+    Logger.WriteData(GroupName,"Mag_uT",data3D,"X, Y, Z magnetometer translated to aircraft body axis system, uT",NumberRecords,3);
+    for (size_t k=0; k < NumberRecords; k++) {
+      data1D[k] = Vn100[l][k].Temp_C;
+    }
+    Logger.WriteData(GroupName,"Temp_C",data1D,"Temperature, C",NumberRecords,1);
+    for (size_t k=0; k < NumberRecords; k++) {
+      data1D[k] = Vn100[l][k].Pressure_Pa;
+    }
+    Logger.WriteData(GroupName,"Pressure_Pa",data1D,"Static pressure, Pa",NumberRecords,1);
+
+  }
 
   /* External MPU-9250 */
   for (size_t l=0; l < Data.Mpu9250Ext.size(); l++) {
