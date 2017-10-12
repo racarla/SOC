@@ -37,9 +37,10 @@ int main(int argc, char* argv[]) {
 
   /* initialize structures */
   FmuData Data;
+  FmuConfig Config;
 
   /* load configuration file */
-  LoadConfigFile(argv[1],&Data);
+  LoadConfigFile(argv[1],&Data,&Config);
 
   /* load the flight data file*/
   FILE *BinaryFile = fopen(argv[2],"rb");
@@ -229,7 +230,7 @@ int main(int argc, char* argv[]) {
 
   /* External MPU-9250 */
   for (size_t l=0; l < Data.Mpu9250Ext.size(); l++) {
-    string GroupName = "/Mpu9250_" + to_string(l);
+    string GroupName = Config.Mpu9250Names[l];
     m = 0;
     for (size_t k=0; k < NumberRecords; k++) {
       data3D[m] = Mpu9250Ext[l][k].Accel_mss(0,0);
@@ -262,7 +263,7 @@ int main(int argc, char* argv[]) {
 
   /* External BME-280 */
   for (size_t l=0; l < Data.Bme280Ext.size(); l++) {
-    string GroupName = "/Bme280_" + to_string(l);
+    string GroupName = Config.Bme280Names[l];
     for (size_t k=0; k < NumberRecords; k++) {
       data1D[k] = Bme280Ext[l][k].Pressure_Pa;
     }
@@ -279,7 +280,7 @@ int main(int argc, char* argv[]) {
 
   /* Sbus RX */
   for (size_t l=0; l < Data.SbusRx.size(); l++) {
-    string GroupName = "/SbusRx_" + to_string(l);
+    string GroupName = Config.SbusRxNames[l];
     for (size_t k=0; k < NumberRecords; k++) {
       data1Du8[k] = SbusRx[l][k].Failsafe;
     }
@@ -324,7 +325,7 @@ int main(int argc, char* argv[]) {
 
   /* Gps */
   for (size_t l=0; l < Data.Gps.size(); l++) {
-    string GroupName = "/Gps_" + to_string(l);
+    string GroupName = Config.GpsNames[l];
     for (size_t k=0; k < NumberRecords; k++) {
       data1Du8[k] = Gps[l][k].Fix;
     }
@@ -393,7 +394,7 @@ int main(int argc, char* argv[]) {
 
   /* Pitot */
   for (size_t l=0; l < Data.Pitot.size(); l++) {
-    string GroupName = "/Pitot_" + to_string(l);
+    string GroupName = Config.PitotNames[l];
     Logger.CreateGroup(GroupName);
     for (size_t k=0; k < NumberRecords; k++) {
       data1D[k] = Pitot[l][k].Static.Pressure_Pa;
@@ -415,7 +416,7 @@ int main(int argc, char* argv[]) {
 
   /* Pressure */
   for (size_t l=0; l < Data.PressureTransducer.size(); l++) {
-    string GroupName = "/PressureTransducer_" + to_string(l);
+    string GroupName = Config.PressureTransducerNames[l];
     for (size_t k=0; k < NumberRecords; k++) {
       data1D[k] = PressureTransducer[l][k].Pressure_Pa;
     }
@@ -428,7 +429,7 @@ int main(int argc, char* argv[]) {
 
   /* Analog */
   for (size_t l=0; l < Data.Analog.size(); l++) {
-    string GroupName = "Analog_" + to_string(l);
+    string GroupName = Config.AnalogNames[l];
     for (size_t k=0; k < NumberRecords; k++) {
       data1D[k] = Analog[l][k].Voltage_V;
     }

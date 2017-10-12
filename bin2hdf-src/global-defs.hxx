@@ -23,15 +23,8 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SO
 
 #include <stdint.h>
 #include <vector>
+#include <string>
 #include <Eigen/Dense>
-
-enum BfsMessage {
-    kConfig,
-    kEffectorAngleCmd,
-    kEffectorDirectCmd,
-    kData,
-    kTelemetry
-};
 
 /* Data */
 struct Mpu9250Data {
@@ -107,6 +100,17 @@ struct FmuData {
   std::vector<AnalogData> Analog; 
   std::vector<Voltage> SbusVoltage;
   std::vector<Voltage> PwmVoltage;
+};
+
+/* Config */
+struct FmuConfig {
+  std::vector<std::string> Mpu9250Names;
+  std::vector<std::string> Bme280Names;
+  std::vector<std::string> SbusRxNames;
+  std::vector<std::string> GpsNames;
+  std::vector<std::string> PitotNames;
+  std::vector<std::string> PressureTransducerNames;
+  std::vector<std::string> AnalogNames;
 };
 
 #endif // GLOBAL_DEFS_HXX_

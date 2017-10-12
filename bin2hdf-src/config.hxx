@@ -14,7 +14,8 @@
 #include <stdexcept>
 #include <fcntl.h>
 #include <unistd.h>
+#include <string>
 
-void LoadConfigFile(std::string ConfigFileName, FmuData *FmuDataPtr);
+void LoadConfigFile(std::string ConfigFileName, FmuData *FmuDataPtr, FmuConfig *FmuConfigPtr);
 
 #endif
