@@ -43,8 +43,8 @@ void LoadConfigFile(std::string ConfigFileName, Fmu FmuRef, FmuData *FmuDataPtr)
           if (Sensor["Type"] == "Pitot") {
             FmuDataPtr->Pitot.resize(FmuDataPtr->Pitot.size() + 1);
           }
-          if (Sensor["Type"] == "Pressure") {
-            FmuDataPtr->Pressure.resize(FmuDataPtr->Pressure.size() + 1);
+          if (Sensor["Type"] == "PressureTransducer") {
+            FmuDataPtr->PressureTransducer.resize(FmuDataPtr->PressureTransducer.size() + 1);
           }
           if (Sensor["Type"] == "Analog") {
             FmuDataPtr->Analog.resize(FmuDataPtr->Analog.size() + 1);

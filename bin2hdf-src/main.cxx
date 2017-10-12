@@ -48,7 +48,7 @@ int main(int argc, char* argv[]) {
   fseek(BinaryFile,0,SEEK_END);
   size_t size = ftell(BinaryFile);
   rewind(BinaryFile);
-  size_t bytes = sizeof(Data.Time_s)+2*sizeof(Voltage)+sizeof(Mpu9250Data)+sizeof(Bme280Data)+Data.Mpu9250Ext.size()*sizeof(Mpu9250Data)+Data.Bme280Ext.size()*sizeof(Bme280Data)+Data.SbusRx.size()*sizeof(SbusRxData)+Data.Gps.size()*sizeof(GpsData)+Data.Pitot.size()*sizeof(PitotData)+Data.Analog.size()*sizeof(AnalogData)+Data.SbusVoltage.size()*sizeof(Voltage)+Data.PwmVoltage.size()*sizeof(Voltage);
+  size_t bytes = sizeof(Data.Time_s)+2*sizeof(Voltage)+sizeof(Mpu9250Data)+sizeof(Bme280Data)+Data.Mpu9250Ext.size()*sizeof(Mpu9250Data)+Data.Bme280Ext.size()*sizeof(Bme280Data)+Data.SbusRx.size()*sizeof(SbusRxData)+Data.Gps.size()*sizeof(GpsData)+Data.Pitot.size()*sizeof(PitotData)+Data.PressureTransducer.size()*sizeof(PressureData)+Data.Analog.size()*sizeof(AnalogData)+Data.SbusVoltage.size()*sizeof(Voltage)+Data.PwmVoltage.size()*sizeof(Voltage);
   size_t NumberRecords = size/bytes;
 
   cout << "File size: " << size << " bytes"<< endl;
@@ -96,9 +96,9 @@ int main(int argc, char* argv[]) {
   for (size_t i=0; i < Data.Pitot.size(); i++) {
     Pitot[i] = new PitotData [NumberRecords];
   }
-  PressureData** Pressure = new PressureData* [Data.Pressure.size()];
-  for (size_t i=0; i < Data.Pressure.size(); i++) {
-    Pressure[i] = new PressureData [NumberRecords];
+  PressureData** PressureTransducer = new PressureData* [Data.PressureTransducer.size()];
+  for (size_t i=0; i < Data.PressureTransducer.size(); i++) {
+    PressureTransducer[i] = new PressureData [NumberRecords];
   }
   AnalogData** Analog = new AnalogData* [Data.Analog.size()];
   for (size_t i=0; i < Data.Analog.size(); i++) {
@@ -139,25 +139,25 @@ int main(int argc, char* argv[]) {
         Data.Mpu9250Ext.size()*sizeof(Mpu9250Data)+Data.Bme280Ext.size()*sizeof(Bme280Data)+Data.SbusRx.size()*sizeof(SbusRxData)+Data.Gps.size()*sizeof(GpsData)+
         j*sizeof(Pitot[j][i]),sizeof(Pitot[j][i]));
     }
-    for (size_t j=0; j < Data.Pressure.size(); j++) {
-      memcpy(&Pressure[j][i],FileBuffer[i]+sizeof(Time_s[i])+sizeof(InputVoltage[i])+sizeof(RegulatedVoltage[i])+sizeof(Mpu9250[i])+sizeof(Bme280[i])+
+    for (size_t j=0; j < Data.PressureTransducer.size(); j++) {
+      memcpy(&PressureTransducer[j][i],FileBuffer[i]+sizeof(Time_s[i])+sizeof(InputVoltage[i])+sizeof(RegulatedVoltage[i])+sizeof(Mpu9250[i])+sizeof(Bme280[i])+
         Data.Mpu9250Ext.size()*sizeof(Mpu9250Data)+Data.Bme280Ext.size()*sizeof(Bme280Data)+Data.SbusRx.size()*sizeof(SbusRxData)+Data.Gps.size()*sizeof(GpsData)+
-        Data.Pitot.size()*sizeof(PitotData)+j*sizeof(Pressure[j][i]),sizeof(Pressure[j][i]));
+        Data.Pitot.size()*sizeof(PitotData)+j*sizeof(PressureTransducer[j][i]),sizeof(PressureTransducer[j][i]));
     }
     for (size_t j=0; j < Data.Analog.size(); j++) {
       memcpy(&Analog[j][i],FileBuffer[i]+sizeof(Time_s[i])+sizeof(InputVoltage[i])+sizeof(RegulatedVoltage[i])+sizeof(Mpu9250[i])+sizeof(Bme280[i])+
         Data.Mpu9250Ext.size()*sizeof(Mpu9250Data)+Data.Bme280Ext.size()*sizeof(Bme280Data)+Data.SbusRx.size()*sizeof(SbusRxData)+Data.Gps.size()*sizeof(GpsData)+
-        Data.Pitot.size()*sizeof(PitotData)+Data.Pressure.size()*sizeof(PressureData)+j*sizeof(Analog[j][i]),sizeof(Analog[j][i]));
+        Data.Pitot.size()*sizeof(PitotData)+Data.PressureTransducer.size()*sizeof(PressureData)+j*sizeof(Analog[j][i]),sizeof(Analog[j][i]));
     }
     for (size_t j=0; j < Data.SbusVoltage.size(); j++) {
       memcpy(&SbusVoltage[j][i],FileBuffer[i]+sizeof(Time_s[i])+sizeof(InputVoltage[i])+sizeof(RegulatedVoltage[i])+sizeof(Mpu9250[i])+sizeof(Bme280[i])+
         Data.Mpu9250Ext.size()*sizeof(Mpu9250Data)+Data.Bme280Ext.size()*sizeof(Bme280Data)+Data.SbusRx.size()*sizeof(SbusRxData)+Data.Gps.size()*sizeof(GpsData)+
-        Data.Pitot.size()*sizeof(PitotData)+Data.Pressure.size()*sizeof(PressureData)+Data.Analog.size()*sizeof(AnalogData)+j*sizeof(SbusVoltage[j][i]),sizeof(SbusVoltage[j][i]));
+        Data.Pitot.size()*sizeof(PitotData)+Data.PressureTransducer.size()*sizeof(PressureData)+Data.Analog.size()*sizeof(AnalogData)+j*sizeof(SbusVoltage[j][i]),sizeof(SbusVoltage[j][i]));
     }
     for (size_t j=0; j < Data.PwmVoltage.size(); j++) {
       memcpy(&PwmVoltage[j][i],FileBuffer[i]+sizeof(Time_s[i])+sizeof(InputVoltage[i])+sizeof(RegulatedVoltage[i])+sizeof(Mpu9250[i])+sizeof(Bme280[i])+
         Data.Mpu9250Ext.size()*sizeof(Mpu9250Data)+Data.Bme280Ext.size()*sizeof(Bme280Data)+Data.SbusRx.size()*sizeof(SbusRxData)+Data.Gps.size()*sizeof(GpsData)+
-        Data.Pitot.size()*sizeof(PitotData)+Data.Pressure.size()*sizeof(PressureData)+Data.Analog.size()*sizeof(AnalogData)+Data.SbusVoltage.size()*sizeof(Voltage)+
+        Data.Pitot.size()*sizeof(PitotData)+Data.PressureTransducer.size()*sizeof(PressureData)+Data.Analog.size()*sizeof(AnalogData)+Data.SbusVoltage.size()*sizeof(Voltage)+
         j*sizeof(PwmVoltage[j][i]),sizeof(PwmVoltage[j][i]));
     }
   }
@@ -414,14 +414,14 @@ int main(int argc, char* argv[]) {
   }
 
   /* Pressure */
-  for (size_t l=0; l < Data.Pressure.size(); l++) {
+  for (size_t l=0; l < Data.PressureTransducer.size(); l++) {
     string GroupName = "/PressureTransducer_" + to_string(l);
     for (size_t k=0; k < NumberRecords; k++) {
-      data1D[k] = Pressure[l][k].Pressure_Pa;
+      data1D[k] = PressureTransducer[l][k].Pressure_Pa;
     }
     Logger.WriteData(GroupName,"Pressure_Pa",data1D,"Pressure, Pa",NumberRecords,1);
     for (size_t k=0; k < NumberRecords; k++) {
-      data1D[k] = Pressure[l][k].Temp_C;
+      data1D[k] = PressureTransducer[l][k].Temp_C;
     }
     Logger.WriteData(GroupName,"Temp_C",data1D,"Temperature, C",NumberRecords,1);
   }

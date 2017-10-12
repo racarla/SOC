@@ -40,6 +40,9 @@ void Datalogger::LogFmuData(FmuData FmuDataRef) {
   for (size_t i=0; i < FmuDataRef.Pitot.size(); i++) {
     fwrite(&FmuDataRef.Pitot[i],sizeof(PitotData),1,LogFile_);
   }  
+  for (size_t i=0; i < FmuDataRef.PressureTransducer.size(); i++) {
+    fwrite(&FmuDataRef.PressureTransducer[i],sizeof(PressureData),1,LogFile_);
+  }
   for (size_t i=0; i < FmuDataRef.Analog.size(); i++) {
     fwrite(&FmuDataRef.Analog[i],sizeof(AnalogData),1,LogFile_);
   }

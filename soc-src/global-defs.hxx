@@ -103,7 +103,7 @@ struct FmuData {
   std::vector<SbusRxData> SbusRx;
   std::vector<GpsData> Gps;
   std::vector<PitotData> Pitot;
-  std::vector<PressureData> Pressure;
+  std::vector<PressureData> PressureTransducer;
   std::vector<AnalogData> Analog; 
   std::vector<Voltage> SbusVoltage;
   std::vector<Voltage> PwmVoltage;
