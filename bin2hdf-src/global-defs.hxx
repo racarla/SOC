@@ -41,19 +41,6 @@ struct Mpu9250Data {
   float Temp_C;                             // Temperature, C  
 };
 
-struct Vn100Data {
-  Eigen::Matrix<float,3,1>Euler_rad;        // yaw, pitch, roll, rad
-  Eigen::Matrix<float,3,1>Accel_mss;        // x,y,z accelerometers, m/s/s
-  Eigen::Matrix<float,3,1>Gyro_rads;        // x,y,z gyros, rad/s
-  Eigen::Matrix<float,3,1>Mag_uT;           // x,y,z magnetometers, uT
-  float Pressure_Pa;                        // Pressure, Pa
-  float Temp_C;                             // Temperature, C  
-};
-
-struct Vn200Data {
-
-};
-
 struct Bme280Data {
   float Pressure_Pa;                        // Pressure, Pa
   float Temp_C;                             // Temperature, C
@@ -111,8 +98,6 @@ struct FmuData {
   Voltage RegulatedVoltage;
   Mpu9250Data Mpu9250;
   Bme280Data Bme280;
-  std::vector<Vn100Data> Vn100;
-  std::vector<Vn200Data> Vn200;
   std::vector<Mpu9250Data> Mpu9250Ext;
   std::vector<Bme280Data> Bme280Ext;
   std::vector<SbusRxData> SbusRx;
