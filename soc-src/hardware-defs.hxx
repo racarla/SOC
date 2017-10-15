@@ -24,6 +24,6 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SO
 #include <termios.h>
 
 const char FmuPort[] = "/dev/ttyO4";
-const speed_t FmuBaud = B921600;
+const speed_t FmuBaud = B1500000;
 
 #endif

@@ -29,6 +29,7 @@ enum BfsMessage {
     kConfig,
     kEffectorAngleCmd,
     kEffectorDirectCmd,
+    kDataRdy,
     kData,
     kTelemetry
 };
