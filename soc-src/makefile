@@ -31,6 +31,9 @@ LFLAGS=
 
 # code to be compiled
 OBJ =\
+navigation.cxx \
+EKF_15state.cxx \
+nav_functions.cxx \
 datalogger.cxx \
 config.cxx \
 fmu.cxx \

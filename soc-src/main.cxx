@@ -18,6 +18,7 @@ DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
+#include "navigation.hxx"
 #include "datalogger.hxx"
 #include "config.hxx"
 #include "fmu.hxx"
@@ -34,9 +35,11 @@ int main(int argc, char* argv[]) {
   /* initialize classes */
   Fmu Sensors;
   Datalogger Log;
+  Navigation NavFilter;
 
   /* initialize structures */
   FmuData Data;
+  NavigationData NavData;
 
   /* load configuration file */
   LoadConfigFile(argv[1],Sensors,&Data);
@@ -44,6 +47,14 @@ int main(int argc, char* argv[]) {
   /* main loop */
   while (1) {
     if (Sensors.GetSensorData(&Data)) {
+
+      // run navigation filter
+      if (!NavFilter.Initialized) {
+        NavFilter.InitializeNavigation(Data);
+      } else {
+        NavFilter.RunNavigation(Data,&NavData);
+        std::cout << NavData.Euler_rad(0,0)*180.0/M_PI << std::endl;
+      }
 
       // data logging
       Log.LogFmuData(Data);
