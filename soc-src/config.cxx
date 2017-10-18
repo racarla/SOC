@@ -43,10 +43,10 @@ void LoadConfigFile(std::string ConfigFileName, Fmu FmuRef, FmuData *FmuDataPtr)
           if (Sensor["Type"] == "Pitot") {
             FmuDataPtr->Pitot.resize(FmuDataPtr->Pitot.size() + 1);
           }
-          if (Sensor["Type"] == "PressureTransducer") {
+          if (Sensor["Type"] == "Press") {
             FmuDataPtr->PressureTransducer.resize(FmuDataPtr->PressureTransducer.size() + 1);
           }
-          if (Sensor["Type"] == "Analog") {
+          if (Sensor["Type"] == "Ain") {
             FmuDataPtr->Analog.resize(FmuDataPtr->Analog.size() + 1);
           }
         } else {
@@ -55,10 +55,10 @@ void LoadConfigFile(std::string ConfigFileName, Fmu FmuRef, FmuData *FmuDataPtr)
       }
     }
 
-    if (Node.HasMember("Actuators")) {
+    if (Node.HasMember("Act")) {
       size_t SbusVoltageOnNode = 0;
       size_t PwmVoltageOnNode = 0;
-      const rapidjson::Value& Effectors = Node["Actuators"];
+      const rapidjson::Value& Effectors = Node["Act"];
       assert(Effectors.IsArray());
 
       // Loop through all effectors on node
