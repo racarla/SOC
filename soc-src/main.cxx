@@ -49,11 +49,12 @@ int main(int argc, char* argv[]) {
     if (Sensors.GetSensorData(&Data)) {
 
       // run navigation filter
-      if (!NavFilter.Initialized) {
-        NavFilter.InitializeNavigation(Data);
-      } else {
-        NavFilter.RunNavigation(Data,&NavData);
-        std::cout << NavData.Euler_rad(0,0)*180.0/M_PI << std::endl;
+      if (Data.Gps.size() > 0) {
+        if (!NavFilter.Initialized) {
+          NavFilter.InitializeNavigation(Data);
+        } else {
+          NavFilter.RunNavigation(Data,&NavData);
+        }
       }
 
       // data logging
