@@ -1,7 +1,7 @@
 
 #include "config.hxx"
 
-void LoadConfigFile(std::string ConfigFileName, Fmu FmuRef, FmuData *FmuDataPtr) {
+void LoadConfigFile(std::string ConfigFileName, Fmu FmuRef, AircraftConfig *AircraftConfigPtr, FmuData *FmuDataPtr) {
   // Load config file
   std::ifstream ConfigFile(ConfigFileName);
   std::string ConfigBuffer((std::istreambuf_iterator<char>(ConfigFile)),std::istreambuf_iterator<char>());
@@ -71,6 +71,7 @@ void LoadConfigFile(std::string ConfigFileName, Fmu FmuRef, FmuData *FmuDataPtr)
           if (Effector["Type"] == "PWM") {
             PwmVoltageOnNode = 1;
           }
+          AircraftConfigPtr->NumberEffectors++;
         } else {
           // error
         }

@@ -16,6 +16,6 @@
 #include <fcntl.h>
 #include <unistd.h>
 
-void LoadConfigFile(std::string ConfigFileName, Fmu FmuRef, FmuData *FmuDataPtr);
+void LoadConfigFile(std::string ConfigFileName, Fmu FmuRef, AircraftConfig *AircraftConfigPtr, FmuData *FmuDataPtr);
 
 #endif

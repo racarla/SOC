@@ -38,11 +38,12 @@ int main(int argc, char* argv[]) {
   Navigation NavFilter;
 
   /* initialize structures */
+  AircraftConfig Config;
   FmuData Data;
   NavigationData NavData;
 
   /* load configuration file */
-  LoadConfigFile(argv[1],Sensors,&Data);
+  LoadConfigFile(argv[1],Sensors,&Config,&Data);
 
   /* main loop */
   while (1) {
@@ -56,6 +57,17 @@ int main(int argc, char* argv[]) {
           NavFilter.RunNavigation(Data,&NavData);
         }
       }
+
+      // control laws
+
+      // send control surface commands
+      std::vector<float> EffectorCmd;
+      EffectorCmd.resize(Config.NumberEffectors);
+      std::vector<uint8_t> EffectorBuffer;
+      EffectorBuffer.resize(EffectorCmd.size()*sizeof(float));
+      EffectorCmd[0] = -0.3;
+      memcpy(EffectorBuffer.data(),EffectorCmd.data(),EffectorBuffer.size());
+      Sensors.WriteMessage(kEffectorAngleCmd,EffectorBuffer.size(),EffectorBuffer.data());
 
       // data logging
       Log.LogFmuData(Data);

@@ -26,12 +26,23 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SO
 #include <Eigen/Dense>
 
 enum BfsMessage {
-    kConfig,
-    kEffectorAngleCmd,
-    kEffectorDirectCmd,
-    kDataRdy,
-    kData,
-    kTelemetry
+  kMode,
+  kConfig,
+  kEffectorAngleCmd,
+  kEffectorDirectCmd,
+  kDataRdy,
+  kData,
+  kTelemetry
+};
+
+enum BfsMode {
+  kStandby,
+  kRun
+};
+
+/* Config */
+struct AircraftConfig {
+  size_t NumberEffectors;
 };
 
 /* Data */
