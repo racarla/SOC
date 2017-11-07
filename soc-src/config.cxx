@@ -23,7 +23,6 @@ void LoadConfigFile(std::string ConfigFileName, Fmu FmuRef, AircraftConfig *Airc
     if (Node.HasMember("Sensors")) {
       const rapidjson::Value& Sensors = Node["Sensors"];
       assert(Sensors.IsArray());
-
       // Loop through all sensors on node
       for (size_t j=0; j < Sensors.Size(); j++) {
         const rapidjson::Value& Sensor = Sensors[j];
@@ -43,10 +42,10 @@ void LoadConfigFile(std::string ConfigFileName, Fmu FmuRef, AircraftConfig *Airc
           if (Sensor["Type"] == "Pitot") {
             FmuDataPtr->Pitot.resize(FmuDataPtr->Pitot.size() + 1);
           }
-          if (Sensor["Type"] == "Press") {
+          if (Sensor["Type"] == "PressureSensor") {
             FmuDataPtr->PressureTransducer.resize(FmuDataPtr->PressureTransducer.size() + 1);
           }
-          if (Sensor["Type"] == "Ain") {
+          if (Sensor["Type"] == "Analog") {
             FmuDataPtr->Analog.resize(FmuDataPtr->Analog.size() + 1);
           }
         } else {
@@ -55,10 +54,10 @@ void LoadConfigFile(std::string ConfigFileName, Fmu FmuRef, AircraftConfig *Airc
       }
     }
 
-    if (Node.HasMember("Act")) {
+    if (Node.HasMember("Effectors")) {
       size_t SbusVoltageOnNode = 0;
       size_t PwmVoltageOnNode = 0;
-      const rapidjson::Value& Effectors = Node["Act"];
+      const rapidjson::Value& Effectors = Node["Effectors"];
       assert(Effectors.IsArray());
 
       // Loop through all effectors on node
@@ -83,6 +82,4 @@ void LoadConfigFile(std::string ConfigFileName, Fmu FmuRef, AircraftConfig *Airc
 
   FmuDataPtr->SbusVoltage.resize(SbusVoltageSensors);
   FmuDataPtr->PwmVoltage.resize(PwmVoltageSensors);
-
-  FmuRef.WriteMessage(kConfig,ConfigBuffer.size(),(uint8_t *)ConfigBuffer.c_str());
 }

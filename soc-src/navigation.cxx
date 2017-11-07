@@ -27,7 +27,7 @@ void Navigation::RunNavigation(const FmuData FmuDataRef, NavigationData *Navigat
 }
 
 void Navigation::GlobalDefsToImu(const FmuData FmuDataRef, IMUdata *ImuDataPtr) {
-  ImuDataPtr->time = FmuDataRef.Time_s;
+  ImuDataPtr->time = FmuDataRef.Time_us/1000000.0L;
 
   ImuDataPtr->p = FmuDataRef.Mpu9250.Gyro_rads(0,0);
   ImuDataPtr->q = FmuDataRef.Mpu9250.Gyro_rads(1,0);

@@ -20,7 +20,7 @@ Datalogger::Datalogger() {
 
 /* Logs the FMU data into the binary file that was created */
 void Datalogger::LogFmuData(FmuData FmuDataRef) {
-  fwrite(&FmuDataRef.Time_s,sizeof(FmuDataRef.Time_s),1,LogFile_);
+  fwrite(&FmuDataRef.Time_us,sizeof(FmuDataRef.Time_us),1,LogFile_);
   fwrite(&FmuDataRef.InputVoltage,sizeof(Voltage),1,LogFile_);
   fwrite(&FmuDataRef.RegulatedVoltage,sizeof(Voltage),1,LogFile_);
   fwrite(&FmuDataRef.Mpu9250,sizeof(Mpu9250Data),1,LogFile_);

@@ -86,7 +86,7 @@ struct Voltage {
 };
 
 struct FmuData {
-  double Time_s;
+  uint64_t Time_us;
   Voltage InputVoltage;
   Voltage RegulatedVoltage;
   Mpu9250Data Mpu9250;
