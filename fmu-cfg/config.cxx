@@ -26,6 +26,17 @@ void LoadConfigFile(std::string ConfigFileName, Fmu FmuRef, AircraftConfig *Airc
   assert(Nodes.IsArray());
   for (size_t i=0; i < Nodes.Size(); i++) {
     const rapidjson::Value& Node = Nodes[i];
+    if (Node.HasMember("Rotation")) {
+      const rapidjson::Value& Rotation = Node["Rotation"];
+      rapidjson::StringBuffer StringBuf;
+      rapidjson::Writer<rapidjson::StringBuffer> writer(StringBuf);
+      Rotation.Accept(writer);
+      std::string OutputString = StringBuf.GetString();
+      std::string ConfigString;
+      ConfigString = "{\"Nodes\":[{\"BfsAddr\":" + std::to_string(Node["BfsAddr"].GetInt()) + ",\"Rotation\":" +  OutputString + "}]}";
+      FmuRef.WriteMessage(kConfig,ConfigString.size(),(uint8_t *)ConfigString.c_str());
+      sleep(10);
+    } 
     if (Node.HasMember("Sensors")) {
       const rapidjson::Value& Sensors = Node["Sensors"];
       assert(Sensors.IsArray());
