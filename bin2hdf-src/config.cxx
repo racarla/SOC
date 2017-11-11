@@ -87,7 +87,7 @@ void LoadConfigFile(std::string ConfigFileName, FmuData *FmuDataPtr, FmuConfig *
             }
             PitotIndex++;
           }
-          if (Sensor["Type"] == "Press") {
+          if (Sensor["Type"] == "PressureSensor") {
             FmuDataPtr->PressureTransducer.resize(FmuDataPtr->PressureTransducer.size() + 1);
             FmuConfigPtr->PressureTransducerNames.resize(FmuConfigPtr->PressureTransducerNames.size() + 1);
             if (Sensor.HasMember("FieldName")) {
@@ -97,7 +97,7 @@ void LoadConfigFile(std::string ConfigFileName, FmuData *FmuDataPtr, FmuConfig *
             }
             PressureTransducerIndex++;
           }
-          if (Sensor["Type"] == "Ain") {
+          if (Sensor["Type"] == "Analog") {
             FmuDataPtr->Analog.resize(FmuDataPtr->Analog.size() + 1);
             FmuConfigPtr->AnalogNames.resize(FmuConfigPtr->AnalogNames.size() + 1);
             if (Sensor.HasMember("FieldName")) {
@@ -112,10 +112,10 @@ void LoadConfigFile(std::string ConfigFileName, FmuData *FmuDataPtr, FmuConfig *
         }
       }
     }
-    if (Node.HasMember("Act")) {
+    if (Node.HasMember("Effector")) {
       size_t SbusVoltageOnNode = 0;
       size_t PwmVoltageOnNode = 0;
-      const rapidjson::Value& Effectors = Node["Act"];
+      const rapidjson::Value& Effectors = Node["Effector"];
       assert(Effectors.IsArray());
 
       // Loop through all effectors on node
