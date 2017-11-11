@@ -112,10 +112,10 @@ void LoadConfigFile(std::string ConfigFileName, FmuData *FmuDataPtr, FmuConfig *
         }
       }
     }
-    if (Node.HasMember("Effector")) {
+    if (Node.HasMember("Effectors")) {
       size_t SbusVoltageOnNode = 0;
       size_t PwmVoltageOnNode = 0;
-      const rapidjson::Value& Effectors = Node["Effector"];
+      const rapidjson::Value& Effectors = Node["Effectors"];
       assert(Effectors.IsArray());
 
       // Loop through all effectors on node
