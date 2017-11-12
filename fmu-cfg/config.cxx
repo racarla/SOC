@@ -16,7 +16,7 @@ void LoadConfigFile(std::string ConfigFileName, Fmu FmuRef, AircraftConfig *Airc
   uint8_t StandbyPayload[1];
   StandbyPayload[0] = (uint8_t) kStandby;
   FmuRef.WriteMessage(kMode,sizeof(StandbyPayload),StandbyPayload);
-  sleep(10);
+  sleep(1);
 
   // Loop through all nodes
   size_t SbusVoltageSensors = 0;
@@ -35,7 +35,7 @@ void LoadConfigFile(std::string ConfigFileName, Fmu FmuRef, AircraftConfig *Airc
       std::string ConfigString;
       ConfigString = "{\"Nodes\":[{\"BfsAddr\":" + std::to_string(Node["BfsAddr"].GetInt()) + ",\"Rotation\":" +  OutputString + "}]}";
       FmuRef.WriteMessage(kConfig,ConfigString.size(),(uint8_t *)ConfigString.c_str());
-      sleep(10);
+      sleep(1);
     } 
     if (Node.HasMember("Sensors")) {
       const rapidjson::Value& Sensors = Node["Sensors"];
@@ -53,7 +53,7 @@ void LoadConfigFile(std::string ConfigFileName, Fmu FmuRef, AircraftConfig *Airc
             std::string ConfigString;
             ConfigString = "{\"Nodes\":[{\"BfsAddr\":" + std::to_string(Node["BfsAddr"].GetInt()) + ",\"Sensors\":[" +  OutputString + "]}]}";
             FmuRef.WriteMessage(kConfig,ConfigString.size(),(uint8_t *)ConfigString.c_str());
-            sleep(10);
+            sleep(1);
           }
           if (Sensor["Type"] == "Bme280") {
             FmuDataPtr->Bme280Ext.resize(FmuDataPtr->Bme280Ext.size() + 1);
@@ -64,7 +64,7 @@ void LoadConfigFile(std::string ConfigFileName, Fmu FmuRef, AircraftConfig *Airc
             std::string ConfigString;
             ConfigString = "{\"Nodes\":[{\"BfsAddr\":" + std::to_string(Node["BfsAddr"].GetInt()) + ",\"Sensors\":[" +  OutputString + "]}]}";
             FmuRef.WriteMessage(kConfig,ConfigString.size(),(uint8_t *)ConfigString.c_str());
-            sleep(10);
+            sleep(1);
           }
           if (Sensor["Type"] == "SbusRx") {
             FmuDataPtr->SbusRx.resize(FmuDataPtr->SbusRx.size() + 1);
@@ -75,7 +75,7 @@ void LoadConfigFile(std::string ConfigFileName, Fmu FmuRef, AircraftConfig *Airc
             std::string ConfigString;
             ConfigString = "{\"Nodes\":[{\"BfsAddr\":" + std::to_string(Node["BfsAddr"].GetInt()) + ",\"Sensors\":[" +  OutputString + "]}]}";
             FmuRef.WriteMessage(kConfig,ConfigString.size(),(uint8_t *)ConfigString.c_str());
-            sleep(10);
+            sleep(1);
           }
           if (Sensor["Type"] == "Gps") {
             FmuDataPtr->Gps.resize(FmuDataPtr->Gps.size() + 1);
@@ -86,7 +86,7 @@ void LoadConfigFile(std::string ConfigFileName, Fmu FmuRef, AircraftConfig *Airc
             std::string ConfigString;
             ConfigString = "{\"Nodes\":[{\"BfsAddr\":" + std::to_string(Node["BfsAddr"].GetInt()) + ",\"Sensors\":[" +  OutputString + "]}]}";
             FmuRef.WriteMessage(kConfig,ConfigString.size(),(uint8_t *)ConfigString.c_str());
-            sleep(10);
+            sleep(1);
           }
           if (Sensor["Type"] == "Pitot") {
             FmuDataPtr->Pitot.resize(FmuDataPtr->Pitot.size() + 1);
@@ -97,7 +97,7 @@ void LoadConfigFile(std::string ConfigFileName, Fmu FmuRef, AircraftConfig *Airc
             std::string ConfigString;
             ConfigString = "{\"Nodes\":[{\"BfsAddr\":" + std::to_string(Node["BfsAddr"].GetInt()) + ",\"Sensors\":[" +  OutputString + "]}]}";
             FmuRef.WriteMessage(kConfig,ConfigString.size(),(uint8_t *)ConfigString.c_str());
-            sleep(10);
+            sleep(1);
           }
           if (Sensor["Type"] == "PressureSensor") {
             FmuDataPtr->PressureTransducer.resize(FmuDataPtr->PressureTransducer.size() + 1);
@@ -108,7 +108,7 @@ void LoadConfigFile(std::string ConfigFileName, Fmu FmuRef, AircraftConfig *Airc
             std::string ConfigString;
             ConfigString = "{\"Nodes\":[{\"BfsAddr\":" + std::to_string(Node["BfsAddr"].GetInt()) + ",\"Sensors\":[" +  OutputString + "]}]}";
             FmuRef.WriteMessage(kConfig,ConfigString.size(),(uint8_t *)ConfigString.c_str());
-            sleep(10);
+            sleep(1);
           }
           if (Sensor["Type"] == "Analog") {
             FmuDataPtr->Analog.resize(FmuDataPtr->Analog.size() + 1);
@@ -119,7 +119,7 @@ void LoadConfigFile(std::string ConfigFileName, Fmu FmuRef, AircraftConfig *Airc
             std::string ConfigString;
             ConfigString = "{\"Nodes\":[{\"BfsAddr\":" + std::to_string(Node["BfsAddr"].GetInt()) + ",\"Sensors\":[" +  OutputString + "]}]}";
             FmuRef.WriteMessage(kConfig,ConfigString.size(),(uint8_t *)ConfigString.c_str());
-            sleep(10);
+            sleep(1);
           }
         } else {
           // error
@@ -137,10 +137,10 @@ void LoadConfigFile(std::string ConfigFileName, Fmu FmuRef, AircraftConfig *Airc
       for (size_t j=0; j < Effectors.Size(); j++) {
         const rapidjson::Value& Effector = Effectors[j];
         if (Effector.HasMember("Type")) {
-          if (Effector["Type"] == "SBUS") {
+          if (Effector["Type"] == "Sbus") {
             SbusVoltageOnNode = 1;
           }
-          if (Effector["Type"] == "PWM") {
+          if (Effector["Type"] == "Pwm") {
             PwmVoltageOnNode = 1;
           }
           AircraftConfigPtr->NumberEffectors++;
@@ -154,7 +154,7 @@ void LoadConfigFile(std::string ConfigFileName, Fmu FmuRef, AircraftConfig *Airc
         std::string ConfigString;
         ConfigString = "{\"Nodes\":[{\"BfsAddr\":" + std::to_string(Node["BfsAddr"].GetInt()) + ",\"Effectors\":[" +  OutputString + "]}]}";
         FmuRef.WriteMessage(kConfig,ConfigString.size(),(uint8_t *)ConfigString.c_str());
-        sleep(10);
+        sleep(1);
       }
     SbusVoltageSensors += SbusVoltageOnNode;
     PwmVoltageSensors += PwmVoltageOnNode;
@@ -167,5 +167,5 @@ void LoadConfigFile(std::string ConfigFileName, Fmu FmuRef, AircraftConfig *Airc
   // Switch FMU to run mode
   StandbyPayload[0] = (uint8_t) kRun;
   FmuRef.WriteMessage(kMode,sizeof(StandbyPayload),StandbyPayload);
-  sleep(10);
+  sleep(1);
 }

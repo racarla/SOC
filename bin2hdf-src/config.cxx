@@ -122,10 +122,10 @@ void LoadConfigFile(std::string ConfigFileName, FmuData *FmuDataPtr, FmuConfig *
       for (size_t j=0; j < Effectors.Size(); j++) {
         const rapidjson::Value& Effector = Effectors[j];
         if (Effector.HasMember("Type")) {
-          if (Effector["Type"] == "SBUS") {
+          if (Effector["Type"] == "Sbus") {
             SbusVoltageOnNode = 1;
           }
-          if (Effector["Type"] == "PWM") {
+          if (Effector["Type"] == "Pwm") {
             PwmVoltageOnNode = 1;
           }
         } else {

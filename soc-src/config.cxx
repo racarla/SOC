@@ -64,10 +64,10 @@ void LoadConfigFile(std::string ConfigFileName, Fmu FmuRef, AircraftConfig *Airc
       for (size_t j=0; j < Effectors.Size(); j++) {
         const rapidjson::Value& Effector = Effectors[j];
         if (Effector.HasMember("Type")) {
-          if (Effector["Type"] == "SBUS") {
+          if (Effector["Type"] == "Sbus") {
             SbusVoltageOnNode = 1;
           }
-          if (Effector["Type"] == "PWM") {
+          if (Effector["Type"] == "Pwm") {
             PwmVoltageOnNode = 1;
           }
           AircraftConfigPtr->NumberEffectors++;
