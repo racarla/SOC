@@ -1,8 +1,14 @@
-/* 
- */
+/*
+Classes and Functions for Excitation Generation
 
-#ifndef EXCITEGEN_INTERFACE_H
-#define EXCITEGEN_INTERFACE_H
+See: LICENSE.md for Copyright and License Agreement
+
+History:
+2017-11-12 - Chris Regan - Created
+*/
+
+#ifndef EXCITEGEN_H
+#define EXCITEGEN_H
 
 #include <math.h>
 #include <eigen3/Eigen/Dense>
@@ -10,46 +16,63 @@
 #define MaxChan 16
 #define MaxElem 30
 
-// Matrix<typename Scalar, int RowsAtCompileTime, int ColsAtCompileTime, int Options = 0, int MaxRowsAtCompileTime = RowsAtCompileTime, int MaxColsAtCompileTime = ColsAtCompileTime>
+// Matrix<typename Scalar, int RowsAtCompiletime, int ColsAtCompiletime, int Options = 0, int MaxRowsAtCompiletime = RowsAtCompiletime, int MaxColsAtCompiletime = ColsAtCompiletime>
 typedef Eigen::Matrix<float, -1, 1, 0, MaxElem, 1> VectorElem;
 typedef Eigen::Matrix<float, -1, -1, 0, MaxChan, MaxElem> MatrixElem;
 typedef Eigen::Matrix<float, -1, 1, 0, MaxChan, 1> VectorExcite;
 
+int ExciteStep(
+  const float &timeCurr_s, const float &timeStart_s,
+  const float &amp_nd,
+  float &excite_nd
+  );
+
+int ExcitePulse(
+  const float &timeCurr_s, const float &timeStart_s, const float &timeDur_s,
+  const float &amp_nd,
+  float &excite_nd
+  );
 
 int ExciteDoublet(
-	const float &TimeCurr_s, const float &TimeStart_s, const float &TimeDur_s,
-	const float &Amp_nd,
-	float &Excite_nd
-	);
+  const float &timeCurr_s, const float &timeStart_s, const float &timeDur_s,
+  const float &amp_nd,
+  float &excite_nd
+  );
 
 int ExciteDoublet121(
-	const float &TimeCurr_s, const float &TimeStart_s, const float &TimeDur_s,
-	const float &Amp_nd,
-	float &Excite_nd
-	);
+  const float &timeCurr_s, const float &timeStart_s, const float &timeDur_s,
+  const float &amp_nd,
+  float &excite_nd
+  );
 
 int ExciteDoublet3211(
-	const float &TimeCurr_s, const float &TimeStart_s, const float &TimeDur_s,
-	const float &Amp_nd,
-	float &Excite_nd
-	);
+  const float &timeCurr_s, const float &timeStart_s, const float &timeDur_s,
+  const float &amp_nd,
+  float &excite_nd
+  );
 
 int ExciteChirp(
-	const float &TimeCurr_s, const float &TimeStart_s, const float &TimeDur_s,
-	const float &FreqStart_rps, const float &FreqEnd_rps, const float &AmpStart_nd, const float &AmpEnd_nd,
-	float &Excite_nd
-	);
+  const float &timeCurr_s, const float &timeStart_s, const float &timeDur_s,
+  const float &freqStart_rps, const float &freqEnd_rps, const float &ampStart_nd, const float &ampEnd_nd,
+  float &excite_nd
+  );
 
-int ExciteOMS(
-	const float &TimeCurr_s, const float &TimeStart_s, const float &TimeDur_s,
-	const VectorElem &FreqVec_rps, const VectorElem &PhaseVec_rad, const VectorElem &AmpVec_nd,
-	float &Excite_nd
-	);
+int ExciteMultiChirp(
+  const float &timeCurr_s, const float &timeStart_s, const float &timeDur_s,
+  const VectorExcite &freqVecStart_rps, const VectorExcite &freqVecEnd_rps, const VectorExcite &ampVecStart_nd, const VectorExcite &ampVecEnd_nd,
+  VectorExcite &exciteVec_nd
+  );
 
-int ExciteMultiOMS(
-	const float &TimeCurr_s, const float &TimeStart_s, const float &TimeDur_s,
-	const MatrixElem &FreqMat_rps, const MatrixElem &PhaseMat_rad, const MatrixElem &AmpMat_nd,
-	VectorExcite &ExciteVec_nd
-	);
+int ExciteOms(
+  const float &timeCurr_s, const float &timeStart_s, const float &timeDur_s,
+  const VectorElem &freqVec_rps, const VectorElem &phaseVec_rad, const VectorElem &ampVec_nd,
+  float &excite_nd
+  );
 
-#endif // EXCITEGEN_INTERFACE_H
+int ExciteMultiOms(
+  const float &timeCurr_s, const float &timeStart_s, const float &timeDur_s,
+  const MatrixElem &freqMat_rps, const MatrixElem &phaseMat_rad, const MatrixElem &ampMat_nd,
+  VectorExcite &exciteVec_nd
+  );
+
+#endif // EXCITEGEN_H

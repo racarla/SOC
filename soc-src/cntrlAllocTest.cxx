@@ -1,5 +1,10 @@
 /*
-// Simple control allocation tester
+Simple control allocation tester
+
+See: LICENSE.md for Copyright and License Agreement
+
+History:
+2017-11-12 - Chris Regan - Created
 */
 
 #include <cstdio>
@@ -18,8 +23,8 @@ int main(void)  /* Program tester */
   MatCntrlEff   cntrlEff; // effectiveness matrix
   VecObj vObj, vErr; // objectives
   VecEff uCmd, uMin, uMax, uPref; // cmd, min, max, prefered effector commands
-  MatObj wObj; // Objective weighting matrix
-  MatEff wEff; // Effector weighting matrix
+  MatObj wtObj; // Objective weighting matrix
+  MatEff wtEff; // Effector weighting matrix
   
   int numObj = 3;
   int numEff = 6;
@@ -31,8 +36,8 @@ int main(void)  /* Program tester */
   uMin.conservativeResize(numEff);
   uMax.conservativeResize(numEff);
   uPref.conservativeResize(numEff);
-  wObj.conservativeResize(numObj, numObj);
-  wEff.conservativeResize(numEff, numEff);
+  wtObj.conservativeResize(numObj, numObj);
+  wtEff.conservativeResize(numEff, numEff);
 
   // Define Problem
   cntrlEff << 7712, -25060,   5603, -7712, -25060, -5603, 
@@ -51,20 +56,20 @@ int main(void)  /* Program tester */
 
   uCmd.Zero(numEff);
 
-  wObj.setIdentity();
-  wEff.setIdentity();
+  wtObj.setIdentity();
+  wtEff.setIdentity();
 
   tStart_tick = std::clock(); // Start the timer
 
   // Call control allocation
   int numIter = 1000;
   for(int i = 0 ; i < numIter ; i++){
-    //ContAllocPseudo(cntrlEff, vObj, uPref, uCmd);
-    //ContAllocPseudoWeighted(cntrlEff, vObj, wObj, wEff, uPref, uCmd);
+    //CntrlAllocPseudo(cntrlEff, vObj, uPref, uCmd);
+    //CntrlAllocPseudoWt(cntrlEff, vObj, wtObj, wtEff, uPref, uCmd);
 
     float gammaEff = .001;
     int numIter = 200;
-    ContAllocFxp(cntrlEff, vObj, uMin, uMax, wObj, wEff, uPref, uCmd, gammaEff, numIter);
+    CntrlAllocFxp(cntrlEff, vObj, uMin, uMax, wtObj, wtEff, uPref, uCmd, gammaEff, numIter);
   }
   tStop_tick = std::clock(); // stop the timer
   tElaps_s = ( tStop_tick - tStart_tick ) / (double) CLOCKS_PER_SEC; // estimate elapsed time

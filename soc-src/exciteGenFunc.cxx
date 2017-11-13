@@ -1,144 +1,184 @@
 /*
- */
+Classes and Functions for Excitation Generation
 
+See: LICENSE.md for Copyright and License Agreement
+
+History:
+2017-11-12 - Chris Regan - Created
+*/
 
 #include "exciteGenFunc.hxx"
 
-int ExciteDoublet(const float &TimeCurr_s, const float &TimeStart_s, const float &TimeDur_s, const float &Amp_nd, float &Excite_nd) {
-	// Doublet 1-1 with 1-pulse TimeDur_s long, total of 2*TimeDur_s excitation
+// Step
+int ExciteStep(const float &timeCurr_s, const float &timeStart_s, const float &amp_nd, float &excite_nd)
+{
+  excite_nd = 0.0;  // [nd], excitation command
 
-	float TimeDur2_s = 2.0 * TimeDur_s;
-	
-	Excite_nd = 0.0;	// [nd], excitation command
-
-	if ((TimeCurr_s >= TimeStart_s) && (TimeCurr_s < TimeStart_s + TimeDur2_s)) {
-		if (TimeCurr_s < TimeStart_s + TimeDur_s) {
-			Excite_nd = Amp_nd;
-			return 1;
-		} else if (TimeCurr_s < TimeStart_s + TimeDur2_s) {
-			Excite_nd = -Amp_nd;
-			return 1;
-		}
-		
-		return 1;
-	}
-
-	return 0;
+  if (timeCurr_s >= timeStart_s) {
+    excite_nd = amp_nd;
+    return 1;
+  }
+  return 0;
 }
 
-int ExciteDoublet121(const float &TimeCurr_s, const float &TimeStart_s, const float &TimeDur_s, const float &Amp_nd, float &Excite_nd) {
-	// Doublet 1-2-1 - 1-pulse TimeDur_s long, total of 4*TimeDur_s excitation
+// Pulse with 1-pulse timeDur_s long
+int ExcitePulse(const float &timeCurr_s, const float &timeStart_s, const float &timeDur_s, const float &amp_nd, float &excite_nd)
+{  
+  excite_nd = 0.0;  // [nd], excitation command
 
-	float TimeDur2_s = 2.0 * TimeDur_s;
-	
-	Excite_nd = 0.0;	// [nd], excitation command
-
-	if ((TimeCurr_s >= TimeStart_s) && (TimeCurr_s < TimeStart_s + 4.0*TimeDur_s)) {
-		if (TimeCurr_s < TimeStart_s + TimeDur_s) {
-			Excite_nd = Amp_nd;
-			return 1;
-		} else if (TimeCurr_s < TimeStart_s + TimeDur_s + TimeDur2_s) {
-			Excite_nd = -Amp_nd;
-			return 1;
-		} else if (TimeCurr_s < TimeStart_s + TimeDur_s + TimeDur2_s + TimeDur_s) {
-			Excite_nd = Amp_nd;
-			return 1;
-		}
-		
-		return 1;
-	}
-
-	return 0;
+  if ((timeCurr_s >= timeStart_s) && (timeCurr_s < timeStart_s + timeDur_s)) {
+    excite_nd = amp_nd;
+    return 1;
+  }
+  return 0;
 }
 
-int ExciteDoublet3211(const float &TimeCurr_s, const float &TimeStart_s, const float &TimeDur_s, const float &Amp_nd, float &Excite_nd) {
-	// Doublet 3-2-1-1 - 1-pulse TimeDur_s long, total of 7*TimeDur_s excitation
+// Doublet 1-1 with 1-pulse timeDur_s long, total of 2*timeDur_s excitation
+int ExciteDoublet(const float &timeCurr_s, const float &timeStart_s, const float &timeDur_s, const float &amp_nd, float &excite_nd)
+{
+  float timeDur2_s = 2.0 * timeDur_s;
+  
+  excite_nd = 0.0;  // [nd], excitation command
 
-	float TimeDur2_s = 2.0 * TimeDur_s;
-	float TimeDur3_s = 3.0 * TimeDur_s;
-	
-	Excite_nd = 0.0;	// [nd], excitation command
-
-	if ((TimeCurr_s >= TimeStart_s) && (TimeCurr_s < TimeStart_s + 7.0*TimeDur_s)) {
-		if (TimeCurr_s < TimeStart_s + TimeDur3_s) {
-			Excite_nd = Amp_nd;
-			return 1;
-		} else if (TimeCurr_s < TimeStart_s + TimeDur3_s + TimeDur2_s) {
-			Excite_nd = -Amp_nd;
-			return 1;
-		} else if (TimeCurr_s < TimeStart_s + TimeDur3_s + TimeDur2_s + TimeDur_s) {
-			Excite_nd = Amp_nd;
-			return 1;
-		} else if (TimeCurr_s < TimeStart_s + TimeDur3_s + TimeDur2_s + TimeDur_s + TimeDur_s) {
-			Excite_nd = -Amp_nd;
-			return 1;
-		}
-		
-		return 1;
-	}
-
-	return 0;
+  if ((timeCurr_s >= timeStart_s) && (timeCurr_s < timeStart_s + timeDur2_s)) {
+    if (timeCurr_s < timeStart_s + timeDur_s) {
+      excite_nd = amp_nd;
+      return 1;
+    } else if (timeCurr_s < timeStart_s + timeDur2_s) {
+      excite_nd = -amp_nd;
+      return 1;
+    }
+    return 1;
+  }
+  return 0;
 }
 
-int ExciteChirp(const float &TimeCurr_s, const float &TimeStart_s, const float &TimeDur_s, const float &FreqStart_rps, const float &FreqEnd_rps, const float &AmpStart_nd, const float &AmpEnd_nd, float &Excite_nd) {
-	// Chirp (Frequency Sweep), linear varying amplitude and frequency
-	
-	float Freq_rps;		// [rps], frequency, linearly changing with time
-	float Amp_nd = 0.0;	// [nd], amplitude, linearly changing with time
+// Doublet 1-2-1 - 1-pulse timeDur_s long, total of 4*timeDur_s excitation
+int ExciteDoublet121(const float &timeCurr_s, const float &timeStart_s, const float &timeDur_s, const float &amp_nd, float &excite_nd)
+{
+  float timeDur2_s = 2.0 * timeDur_s;
+  
+  excite_nd = 0.0;  // [nd], excitation command
 
-	Excite_nd = 0.0;	// [nd], excitation command
-	
-	if ((TimeCurr_s >= TimeStart_s) && (TimeCurr_s <= TimeStart_s + TimeDur_s)) {
-		// linear varying instantanious frequency
-		Freq_rps = FreqStart_rps + (FreqEnd_rps - FreqStart_rps) / (2.0 * TimeDur_s) * (TimeCurr_s - TimeStart_s);
-
-		// linear varying amplitude
-		Amp_nd = AmpStart_nd + (AmpEnd_nd - AmpStart_nd) * (TimeCurr_s - TimeStart_s) / TimeDur_s;
-
-		// chirp Equation
-		Excite_nd = Amp_nd * sin(Freq_rps * (TimeCurr_s - TimeStart_s));
-
-		return 1;
-	}
-
-	return 0;
+  if ((timeCurr_s >= timeStart_s) && (timeCurr_s < timeStart_s + 4.0*timeDur_s)) {
+    if (timeCurr_s < timeStart_s + timeDur_s) {
+      excite_nd = amp_nd;
+      return 1;
+    } else if (timeCurr_s < timeStart_s + timeDur_s + timeDur2_s) {
+      excite_nd = -amp_nd;
+      return 1;
+    } else if (timeCurr_s < timeStart_s + timeDur_s + timeDur2_s + timeDur_s) {
+      excite_nd = amp_nd;
+      return 1;
+    }
+    return 1;
+  }
+  return 0;
 }
 
-int ExciteOMS(const float &TimeCurr_s, const float &TimeStart_s, const float &TimeDur_s, const VectorElem &FreqVec_rps, const VectorElem &PhaseVec_rad, const VectorElem &AmpVec_nd, float &Excite_nd) {
-	// Optimal MultiSine
-	int numElem = FreqVec_rps.size();	// Length of input vectors
-	Excite_nd = 0.0;	// [nd], excitation command
+// Doublet 3-2-1-1 - 1-pulse timeDur_s long, total of 7*timeDur_s excitation
+int ExciteDoublet3211(const float &timeCurr_s, const float &timeStart_s, const float &timeDur_s, const float &amp_nd, float &excite_nd)
+{
+  float timeDur2_s = 2.0 * timeDur_s;
+  float timeDur3_s = 3.0 * timeDur_s;
+  
+  excite_nd = 0.0;  // [nd], excitation command
 
-	float scale = sqrt(1.0 / numElem);
-
-	if ((TimeCurr_s >= TimeStart_s) && (TimeCurr_s <= TimeStart_s + TimeDur_s)) {
-		// Loop over each element
-		for (int iElem = 0; iElem < numElem; iElem++) {
-			Excite_nd += scale * AmpVec_nd[iElem] * cos(FreqVec_rps[iElem] * (TimeCurr_s - TimeStart_s) + PhaseVec_rad[iElem]);
-		}
-
-		return 1;
-	}
-
-	return 0;
+  if ((timeCurr_s >= timeStart_s) && (timeCurr_s < timeStart_s + 7.0*timeDur_s)) {
+    if (timeCurr_s < timeStart_s + timeDur3_s) {
+      excite_nd = amp_nd;
+      return 1;
+    } else if (timeCurr_s < timeStart_s + timeDur3_s + timeDur2_s) {
+      excite_nd = -amp_nd;
+      return 1;
+    } else if (timeCurr_s < timeStart_s + timeDur3_s + timeDur2_s + timeDur_s) {
+      excite_nd = amp_nd;
+      return 1;
+    } else if (timeCurr_s < timeStart_s + timeDur3_s + timeDur2_s + timeDur_s + timeDur_s) {
+      excite_nd = -amp_nd;
+      return 1;
+    }
+    return 1;
+  }
+  return 0;
 }
 
+// Chirp (frequency Sweep), linear varying amplitude and frequency
+int ExciteChirp(const float &timeCurr_s, const float &timeStart_s, const float &timeDur_s, const float &freqStart_rps, const float &freqEnd_rps, const float &ampStart_nd, const float &ampEnd_nd, float &excite_nd)
+{
+  float freq_rps;    // [rps], frequency, linearly changing with time
+  float amp_nd = 0.0;  // [nd], amplitude, linearly changing with time
 
-int ExciteMultiOMS(const float &TimeCurr_s, const float &TimeStart_s, const float &TimeDur_s, const MatrixElem &FreqMat_rps, const MatrixElem &PhaseMat_rad, const MatrixElem &AmpMat_nd, VectorExcite &ExciteVec_nd) {
-	// Multichannel Optimal MultiSine
-	int numChan = FreqMat_rps.rows(); // Number of channels
-	
-	ExciteVec_nd.fill(0.0);	// [nd], excitation vector command
+  excite_nd = 0.0;  // [nd], excitation command
+  
+  if ((timeCurr_s >= timeStart_s) && (timeCurr_s <= timeStart_s + timeDur_s)) {
+    // linear varying instantanious frequency
+    freq_rps = freqStart_rps + (freqEnd_rps - freqStart_rps) / (2.0 * timeDur_s) * (timeCurr_s - timeStart_s);
 
-	int exciteFlag = 0;
+    // linear varying amplitude
+    amp_nd = ampStart_nd + (ampEnd_nd - ampStart_nd) * (timeCurr_s - timeStart_s) / timeDur_s;
 
-	// Loop over each channel
-	for (int iChan = 0; iChan < numChan; iChan++) {
+    // chirp Equation
+    excite_nd = amp_nd * sin(freq_rps * (timeCurr_s - timeStart_s));
 
-		exciteFlag = ExciteOMS(TimeCurr_s, TimeStart_s, TimeDur_s,
-			FreqMat_rps.row(iChan), PhaseMat_rad.row(iChan), AmpMat_nd.row(iChan),
-			ExciteVec_nd(iChan));
-	}
+    return 1;
+  }
+  return 0;
+}
 
-	return exciteFlag;
+// Mulitchannel Chirp (frequency Sweep), linear varying amplitude and frequency
+int ExciteMultiChirp(const float &timeCurr_s, const float &timeStart_s, const float &timeDur_s, const VectorExcite &freqVecStart_rps, const VectorExcite &freqVecEnd_rps, const VectorExcite &ampVecStart_nd, const VectorExcite &ampVecEnd_nd, VectorExcite &exciteVec_nd)
+{
+  int numChan = freqVecStart_rps.size(); // Number of channels
+  
+  exciteVec_nd.fill(0.0);  // [nd], excitation vector command
+
+  int exciteFlag = 0;
+
+  // Loop over each channel
+  for (int iChan = 0 ; iChan < numChan ; iChan++) {
+
+    exciteFlag = ExciteChirp(timeCurr_s, timeStart_s, timeDur_s,
+      freqVecStart_rps(iChan), freqVecEnd_rps(iChan), ampVecStart_nd(iChan), ampVecEnd_nd(iChan),
+      exciteVec_nd(iChan));
+  }
+  return exciteFlag;
+
+}
+
+// Optimal MultiSine
+int ExciteOms(const float &timeCurr_s, const float &timeStart_s, const float &timeDur_s, const VectorElem &freqVec_rps, const VectorElem &phaseVec_rad, const VectorElem &ampVec_nd, float &excite_nd)
+{
+  int numElem = freqVec_rps.size();  // Length of input vectors
+  excite_nd = 0.0;  // [nd], excitation command
+
+  float scale = sqrt(1.0 / numElem);
+
+  if ((timeCurr_s >= timeStart_s) && (timeCurr_s <= timeStart_s + timeDur_s)) {
+    // Loop over each element
+    for (int iElem = 0 ; iElem < numElem ; iElem++) {
+      excite_nd += scale * ampVec_nd[iElem] * cos(freqVec_rps[iElem] * (timeCurr_s - timeStart_s) + phaseVec_rad[iElem]);
+    }
+    return 1;
+  }
+  return 0;
+}
+
+// Multichannel Optimal MultiSine
+int ExciteMultiOms(const float &timeCurr_s, const float &timeStart_s, const float &timeDur_s, const MatrixElem &freqMat_rps, const MatrixElem &phaseMat_rad, const MatrixElem &ampMat_nd, VectorExcite &exciteVec_nd)
+{
+  int numChan = freqMat_rps.rows(); // Number of channels
+  
+  exciteVec_nd.fill(0.0);  // [nd], excitation vector command
+
+  int exciteFlag = 0;
+
+  // Loop over each channel
+  for (int iChan = 0; iChan < numChan; iChan++) {
+
+    exciteFlag = ExciteOms(timeCurr_s, timeStart_s, timeDur_s,
+      freqMat_rps.row(iChan), phaseMat_rad.row(iChan), ampMat_nd.row(iChan),
+      exciteVec_nd(iChan));
+  }
+  return exciteFlag;
 }

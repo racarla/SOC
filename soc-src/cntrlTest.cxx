@@ -1,12 +1,12 @@
 /*
-Simple excitation generation tester
+Simple control system tester
 
 See: LICENSE.md for Copyright and License Agreement
 
 History:
-Chris Regan
-2017-11-12 - Chris Regan - Defined cntrlPIDamp class and methods
-
+2017-11-12 - Chris Regan - Defined CntrlPiDamp class and methods
+2017-11-12 - Chris Regan - Defined CntrlPid class and methods
+2017-11-12 - Chris Regan - Defined CntrlDamp class and methods
 */
 
 #include <iostream>
@@ -32,14 +32,14 @@ int main(void)  /* Program tester */
   float cmdRng[2] = {-0.5, 0.5};
 
 
-  cntrlPID testPID1;
-  testPID1.setParam(kP, kI, kD, cmdRng[0], cmdRng[1]);
+  CntrlPid testPid1;
+  testPid1.SetParam(kP, kI, kD, cmdRng[0], cmdRng[1]);
 
-  cntrlPID testPID2;
-  testPID2.setParam(kP, kI, kD, cmdRng[0], cmdRng[1]);
+  CntrlPid testPid2;
+  testPid2.SetParam(kP, kI, kD, cmdRng[0], cmdRng[1]);
 
-  cntrlPIDamp testPIDamp;
-  testPIDamp.setParam(kP, kI, kDamp, cmdRng[0], cmdRng[1]);
+  CntrlPiDamp testPiDamp;
+  testPiDamp.SetParam(kP, kI, kDamp, cmdRng[0], cmdRng[1]);
 
   float ref = 1.0;
   float meas = 0.0;
@@ -53,31 +53,31 @@ int main(void)  /* Program tester */
     TimeCurr_s = (float) iIter * TimeStep_s;
 
     if (TimeCurr_s <= timeInit_s) {
-      testPID1.runMode = 0;
+      testPid1.runMode = Standby;
 
     } else if (TimeCurr_s <= timeEngage_s) {
-      testPID1.runMode = 2;
+      testPid1.runMode = Init;
 
     } else if (TimeCurr_s <= timeHold_s) {
-      testPID1.runMode = 3;
+      testPid1.runMode = Engage;
       
     } else if (TimeCurr_s <= TimeReset_s) {
-      testPID1.runMode = 1;
-      testPIDamp.iErr = 0; // Should have no effect on PID
-      testPID2.iErr = 0; // Should have no effect on PID
+      testPid1.runMode = Hold;
+      testPiDamp.iErr = 0; // Should have no effect on Pid
+      testPid2.iErr = 0; // Should have no effect on Pid
       
     } else if (TimeCurr_s <= TimeEnd_s) {
-      testPID1.runMode = -1;
+      testPid1.runMode = Reset;
     }
 
     meas += measStep;
 
-    float cmdPID = testPID1.compute(ref, meas, TimeStep_s);
-    int runMode = testPID1.runMode;
-    float intErr = testPID1.iErr;
+    float cmdPid = testPid1.Compute(ref, meas, TimeStep_s);
+    int runMode = testPid1.runMode;
+    float intErr = testPid1.iErr;
 
-    float cmdPIDamp = testPIDamp.compute(ref, meas, dMeas, TimeStep_s);
+    float cmdPiDamp = testPiDamp.Compute(ref, meas, dMeas, TimeStep_s);
 
-    std::cout << TimeCurr_s << "\t" << runMode << "\t" << ref <<"\t" << meas << "\t" << (ref-meas) << "\t" << cmdPID   << "\t" << intErr << std::endl;
+    std::cout << TimeCurr_s << "\t" << runMode << "\t" << ref <<"\t" << meas << "\t" << (ref-meas) << "\t" << cmdPid   << "\t" << intErr << std::endl;
   }
 }

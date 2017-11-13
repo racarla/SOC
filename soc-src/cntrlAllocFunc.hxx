@@ -1,8 +1,14 @@
 /*
+Classes and Functions for Control Allocation
+
+See: LICENSE.md for Copyright and License Agreement
+
+History:
+2017-11-12 - Chris Regan - Created
 */
 
-#ifndef CNTRLALLOC_INTERFACE_H
-#define CNTRLALLOC_INTERFACE_H
+#ifndef CNTRLALLOC_H
+#define CNTRLALLOC_H
 
 #include <eigen3/Eigen/Dense>
 
@@ -26,46 +32,49 @@ typedef Eigen::Matrix<float, -1, -1, 0, MaxSolvObj, MaxSolvEff> MatSolv;
 typedef Eigen::Matrix<float, -1, 1, 0, MaxSolvObj, 1> VecSolvObj;
 typedef Eigen::Matrix<float, -1, 1, 0, MaxSolvEff, 1> VecSolvEff;
 
+// Enumerated list of Control Allocation Methods
+enum CntrlAllocMethod { Pseudo = 10, PseudoWt = 15, PseudoRedis = 20, PseudoRedisScale = 25, Fxp = 50, Molp = 60, Moqp = 70, Sqp = 75};
 
-void ControlAlloc(
-  const MatCntrlEff &cntrlEff, const VecObj &vObj, const VecEff &uMin, const VecEff &uMax, const MatObj &wObj, const MatEff &wEff, const VecEff &uPref,
+// 
+void CntrlAlloc(
+  const MatCntrlEff &cntrlEff, const VecObj &vObj, const VecEff &uMin, const VecEff &uMax, const MatObj &wtObj, const MatEff &wtEff, const VecEff &uPref,
   VecEff &uCmd,
-  int method);
+  CntrlAllocMethod method);
 
 // Allocation Methods
-void ContAllocPseudo(
+void CntrlAllocPseudo(
   const MatCntrlEff &cntrlEff, const VecObj &vObj, const VecEff &uPref,
   VecEff &uCmd);
 
-void ContAllocPseudoWeighted(
-  const MatCntrlEff &cntrlEff, const VecObj &vObj, const MatObj &wObj, const MatEff &wEff, const VecEff &uPref, 
+void CntrlAllocPseudoWt(
+  const MatCntrlEff &cntrlEff, const VecObj &vObj, const MatObj &wtObj, const MatEff &wtEff, const VecEff &uPref, 
   VecEff &uCmd);
 
-void ContAllocFxp(
-  const MatCntrlEff &cntrlEff, const VecObj &vObj, const VecEff &uMin, const VecEff &uMax, const MatObj &wObj, const MatEff &wEff, const VecEff &uPref,
+void CntrlAllocFxp(
+  const MatCntrlEff &cntrlEff, const VecObj &vObj, const VecEff &uMin, const VecEff &uMax, const MatObj &wtObj, const MatEff &wtEff, const VecEff &uPref,
   VecEff &uCmd, 
   float gammaEff = 0.001, int numIter = 200);
 
-void ContAllocPseudoRedis(
-  const MatCntrlEff &cntrlEff, const VecObj &vObj, const VecEff &uMin, const VecEff &uMax, const MatObj &wObj, const MatEff &wEff, const VecEff &uPref,
+void CntrlAllocPseudoRedis(
+  const MatCntrlEff &cntrlEff, const VecObj &vObj, const VecEff &uMin, const VecEff &uMax, const MatObj &wtObj, const MatEff &wtEff, const VecEff &uPref,
   VecEff &uCmd);
 
-void ContAllocPseudoRedisScale(
-  const MatCntrlEff &cntrlEff, const VecObj &vObj, const VecEff &uMin, const VecEff &uMax, const MatObj &wObj, const MatEff &wEff, const VecEff &uPref,
+void CntrlAllocPseudoRedisScale(
+  const MatCntrlEff &cntrlEff, const VecObj &vObj, const VecEff &uMin, const VecEff &uMax, const MatObj &wtObj, const MatEff &wtEff, const VecEff &uPref,
   VecEff &uCmd);
 
-void ContAllocMOLP(
-  const MatCntrlEff &cntrlEff, const VecObj &vObj, const VecEff &uMin, const VecEff &uMax, const MatObj &wObj, const MatEff &wEff, const VecEff &uPref,
+void CntrlAllocMolp(
+  const MatCntrlEff &cntrlEff, const VecObj &vObj, const VecEff &uMin, const VecEff &uMax, const MatObj &wtObj, const MatEff &wtEff, const VecEff &uPref,
   VecEff &uCmd,
   float gammaEff = 0.001);
 
-void ContAllocMOQP(
-  const MatCntrlEff &cntrlEff, const VecObj &vObj, const VecEff &uMin, const VecEff &uMax, const MatObj &wObj, const MatEff &wEff, const VecEff &uPref,
+void CntrlAllocMoqp(
+  const MatCntrlEff &cntrlEff, const VecObj &vObj, const VecEff &uMin, const VecEff &uMax, const MatObj &wtObj, const MatEff &wtEff, const VecEff &uPref,
   VecEff &uCmd,
   float gammaEff = 0.001);
 
-void ContAllocSQP(
-  const MatCntrlEff &cntrlEff, const VecObj &vObj, const VecEff &uMin, const VecEff &uMax, const MatObj &wObj, const MatEff &wEff, const VecEff &uPref,
+void CntrlAllocSqp(
+  const MatCntrlEff &cntrlEff, const VecObj &vObj, const VecEff &uMin, const VecEff &uMax, const MatObj &wtObj, const MatEff &wtEff, const VecEff &uPref,
   VecEff &uCmd);
 
 
@@ -133,4 +142,4 @@ void ExpandVecElem(
   VecEff &VExp);
 
 
-#endif // CNTRLALLOC_INTERFACE_H
+#endif // CNTRLALLOC_H

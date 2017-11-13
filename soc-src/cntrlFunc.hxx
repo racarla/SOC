@@ -1,52 +1,74 @@
 /*
-Class definitions for Control Functions
+Classes and functions for Control Functions
 
 See: LICENSE.md for Copyright and License Agreement
 
 History:
-Chris Regan
-2017-11-12 - Chris Regan - Defined cntrlPIDamp class and methods
-
+2017-11-12 - Chris Regan - Defined CntrlPiDamp class and methods
+2017-11-12 - Chris Regan - Defined CntrlPid class and methods
+2017-11-12 - Chris Regan - Defined CntrlDamp class and methods
 */
 
 #ifndef CNTRLFUNC_HXX_
 #define CNTRLFUNC_HXX_
 
-// Define cntrlPID Class
-class cntrlPID {
+enum CntrlOpMode {Reset = -1, Standby = 0, Hold = 1, Init = 2, Engage = 3};
+
+// Define CntrlPid Class
+class CntrlPid {
 private:
 	float kP, kI, kD, cmdMin, cmdMax;
 	float ref, meas, dt;
 	float cmd;
 
-	float initState(float cmd, float err, float dErr);
-	float calcCmd(float err, float iErr, float dErr);
+	float InitState(float cmd, float err, float dErr);
+	float CalcCmd(float err, float iErr, float dErr);
 
 public:
-	int runMode;
+	CntrlOpMode runMode;
 	float iErr;
 	float errPrev;
 
-	void setParam(float kP_, float kI_, float kD_, float cmdMin_, float cmdMax_);
-	float compute(float ref, float meas, float dt);
+	CntrlPid();
+	void SetParam(float kP_, float kI_, float kD_, float cmdMin_, float cmdMax_);
+	float Compute(float ref, float meas, float dt);
 };
 
-// Define cntrlPIDamp Class
-class cntrlPIDamp {
+// Define CntrlPiDamp Class
+class CntrlPiDamp {
 private:
 	float kP, kI, kDamp, cmdMin, cmdMax;
 	float ref, meas, dMeas, dt;
 	float cmd;
 
-	float initState(float cmd, float err, float dErr);
-	float calcCmd(float err, float iErr, float dErr);
+	float InitState(float cmd, float err, float dErr);
+	float CalcCmd(float err, float iErr, float dErr);
 
 public:
-	int runMode;
+	CntrlOpMode runMode;
 	float iErr;
 
-	void setParam(float kP_, float kI_, float kDamp_, float cmdMin_, float cmdMax_);
-	float compute(float ref, float meas, float dMeas, float dt);
+	CntrlPiDamp();
+	void SetParam(float kP_, float kI_, float kDamp_, float cmdMin_, float cmdMax_);
+	float Compute(float ref, float meas, float dMeas, float dt);
+};
+
+
+// Define CntrlDamp Class
+class CntrlDamp {
+private:
+	float kDamp, cmdMin, cmdMax;
+	float dMeas;
+	float cmd;
+
+	float CalcCmd(float dMeas);
+
+public:
+	CntrlOpMode runMode;
+
+	CntrlDamp();
+	void SetParam(float kDamp_, float cmdMin_, float cmdMax_);
+	float Compute(float dMeas);
 };
 
 #endif // CNTRLFUNC_HXX_

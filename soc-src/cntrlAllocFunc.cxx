@@ -1,62 +1,62 @@
 /*
-Control Allocation and Mixer Functions
-Chris Regan
-rega0051@umn.edu
+Classes and Functions for Control Allocation
 
-  purpose: functions available for the Controller's Allocation
+See: LICENSE.md for Copyright and License Agreement
+
+History:
+2017-11-12 - Chris Regan - Created
 */
-
 
 #include "cntrlAllocFunc.hxx"
 
 
-void ControlAlloc(const MatCntrlEff &cntrlEff, const VecObj &vObj, const VecEff &uMin, const VecEff &uMax, const MatObj &wObj, const MatEff &wEff, const VecEff &uPref, VecEff &uCmd, int method)
+void CntrlAlloc(const MatCntrlEff &cntrlEff, const VecObj &vObj, const VecEff &uMin, const VecEff &uMax, const MatObj &wtObj, const MatEff &wtEff, const VecEff &uPref, VecEff &uCmd, int method)
 {
 
   switch(method) {
-  case 60:
-    //ContAllocSQP(cntrlEff, vObj, uMin, uMax, wObj, wEff, uPref, uCmd);
-    break;
-  case 50:
-    //ContAllocMOQP(cntrlEff, vObj, uMin, uMax, wObj, wEff, uPref, uCmd);
-    break;
-  case 40:
-    //ContAllocFxp(cntrlEff, vObj, uMin, uMax, wObj, wEff, uPref, uCmd);
-    break;
-  case 30:
-    //ContAllocMOLP(cntrlEff, vObj, uMin, uMax, wObj, wEff, uPref, uCmd);
-    break;
-  case 25:
-    //ContAllocPseudoRedisScale(cntrlEff, vObj, uMin, uMax, wObj, wEff, uPref, uCmd);
-    break;
-  case 20:
-    //ContAllocPseudoRedis(cntrlEff, vObj, uMin, uMax, wObj, wEff, uPref, uCmd);
-    break;
-  case 10:
-    ContAllocPseudoWeighted(cntrlEff, vObj, wObj, wEff, uPref, uCmd);
-    break;
-  default:
-    ContAllocPseudo(cntrlEff, vObj, uPref, uCmd);
-    break;
+    case Pseudo:
+      CntrlAllocPseudo(cntrlEff, vObj, uPref, uCmd);
+      break;
+    case PseudoWt:
+      CntrlAllocPseudoWt(cntrlEff, vObj, wtObj, wtEff, uPref, uCmd);
+      break;
+    case PseudoRedis:
+      //CntrlAllocPseudoRedis(cntrlEff, vObj, uMin, uMax, wtObj, wtEff, uPref, uCmd);
+      break;
+    case PseudoRedisScale:
+      //CntrlAllocPseudoRedisScale(cntrlEff, vObj, uMin, uMax, wtObj, wtEff, uPref, uCmd);
+      break;
+    case Fxp:
+      //CntrlAllocFxp(cntrlEff, vObj, uMin, uMax, wtObj, wtEff, uPref, uCmd);
+      break;
+    case Molp:
+      //CntrlAllocMolp(cntrlEff, vObj, uMin, uMax, wtObj, wtEff, uPref, uCmd);
+      break;
+    case Moqp:
+      //CntrlAllocMoqp(cntrlEff, vObj, uMin, uMax, wtObj, wtEff, uPref, uCmd);
+      break;
+    case Sqp:
+      //CntrlAllocSqp(cntrlEff, vObj, uMin, uMax, wtObj, wtEff, uPref, uCmd);
+      break;
   }
   
   // Saturate to control constraints
     Saturate(uMin, uMax, uCmd);
 }
 
-// Control Allocation Methods
+// Cntrl Allocation Methods
 // inputs: cntrlEff - surface effectiveness matrix
 //         vObj - desired objective
 //         uMin - lower bound for effectors
 //         uMax - upper bound for effectors
-//         wObj - objective weighting matrix
-//         wEff - effector weighting matrix
+//         wtObj - objective weighting matrix
+//         wtEff - effector weighting matrix
 //         uPref - "prefered" effector allocation
 //         numRow - number of rows in cntrlEff
 //         numCol - number of columns in cntrlEff   
 // outputs: uCmd - effector commands signal
 
-void ContAllocPseudo(const MatCntrlEff &cntrlEff, const VecObj &vObj, const VecEff &uPref, VecEff &uCmd)
+void CntrlAllocPseudo(const MatCntrlEff &cntrlEff, const VecObj &vObj, const VecEff &uPref, VecEff &uCmd)
 {
   // Pseudo-Inverse control allocation
   VecObj b;
@@ -72,27 +72,27 @@ void ContAllocPseudo(const MatCntrlEff &cntrlEff, const VecObj &vObj, const VecE
   uCmd = x + uPref;
 }
 
-void ContAllocPseudoWeighted(const MatCntrlEff &cntrlEff, const VecObj &vObj, const MatObj &wObj, const MatEff &wEff, const VecEff &uPref, VecEff &uCmd)
+void CntrlAllocPseudoWt(const MatCntrlEff &cntrlEff, const VecObj &vObj, const MatObj &wtObj, const MatEff &wtEff, const VecEff &uPref, VecEff &uCmd)
 {
   // Pseudo-Inverse control allocation method with Weightings
   MatCntrlEff A;
   VecObj b;
   VecEff x;
   
-  // A = wObj * cntrlEff / wEff
-  A = wObj * cntrlEff * wEff.inverse();
+  // A = wtObj * cntrlEff / wtEff
+  A = wtObj * cntrlEff * wtEff.inverse();
 
-  // b = wObj * (vObj - cntrlEff * uPref)
-  b = wObj * (vObj - cntrlEff * uPref);
+  // b = wtObj * (vObj - cntrlEff * uPref)
+  b = wtObj * (vObj - cntrlEff * uPref);
   
   // Complete the Weighted Pseudo-Inverse
   SolvPinvSVD(A, b, x);
 
-  // uCmd = inv(wEff) * pinv_sol(A, b) + uPref
-  uCmd = (wEff.inverse() * x) + uPref;
+  // uCmd = inv(wtEff) * pinv_sol(A, b) + uPref
+  uCmd = (wtEff.inverse() * x) + uPref;
 }
 
-void ContAllocFxp(const MatCntrlEff &cntrlEff, const VecObj &vObj, const VecEff &uMin, const VecEff &uMax, const MatObj &wObj, const MatEff &wEff, const VecEff &uPref, VecEff &uCmd, float gammaEff, int numIter)
+void CntrlAllocFxp(const MatCntrlEff &cntrlEff, const VecObj &vObj, const VecEff &uMin, const VecEff &uMax, const MatObj &wtObj, const MatEff &wtEff, const VecEff &uPref, VecEff &uCmd, float gammaEff, int numIter)
 {
   // fixed-point optimization control allocation method
   MatEff H, G, I;
@@ -121,15 +121,15 @@ void ContAllocFxp(const MatCntrlEff &cntrlEff, const VecObj &vObj, const VecEff 
   xMax = uMax - uPref;
   
   // Common Parameter, temp
-  BzT = cntrlEff.transpose() * wObj.transpose() * wObj;
+  BzT = cntrlEff.transpose() * wtObj.transpose() * wtObj;
   
-  // H = (1 - gammaEff) * (cntrlEff' * wObj * cntrlEff) + gammaEff * wEff
-  H = (1 - gammaEff) * (BzT * cntrlEff) + gammaEff * wEff.transpose() * wEff;
+  // H = (1 - gammaEff) * (cntrlEff' * wtObj * cntrlEff) + gammaEff * wtEff
+  H = (1 - gammaEff) * (BzT * cntrlEff) + gammaEff * wtEff.transpose() * wtEff;
   
   // w = 1/norm(H) <- frobenious norm
   float w = 1.0 / H.norm();
   
-  // Fv = (1 - gammaEff) * (w * cntrlEff' * wObj) * vObj
+  // Fv = (1 - gammaEff) * (w * cntrlEff' * wtObj) * vObj
   Fv = (1 - gammaEff) * (w * BzT * vObj);
 
   // G = w*H - I(numEff,numEff)
@@ -148,7 +148,7 @@ void ContAllocFxp(const MatCntrlEff &cntrlEff, const VecObj &vObj, const VecEff 
   uCmd = uCmd + uPref;
 }
 
-/*void ContAllocPseudoRedis(const MatCntrlEff &cntrlEff, const VecObj &vObj, const VecEff &uMin, const VecEff &uMax, const MatObj &wObj, const MatEff &wEff, const VecEff &uPref, VecEff &uCmd)
+/*void CntrlAllocPseudoRedis(const MatCntrlEff &cntrlEff, const VecObj &vObj, const VecEff &uMin, const VecEff &uMax, const MatObj &wtObj, const MatEff &wtEff, const VecEff &uPref, VecEff &uCmd)
 {
   // Redistributed pseduo-inverse control allocation method
   int iObj, iEff, iIter;
@@ -203,7 +203,7 @@ void ContAllocFxp(const MatCntrlEff &cntrlEff, const VecObj &vObj, const VecEff 
   }
 }*/
 
-/*void ContAllocPseudoRedisScale(const MatCntrlEff &cntrlEff, const VecObj &vObj, const VecEff &uMin, const VecEff &uMax, const MatObj &wObj, const MatEff &wEff, const VecEff &uPref, VecEff &uCmd)
+/*void CntrlAllocPseudoRedisScale(const MatCntrlEff &cntrlEff, const VecObj &vObj, const VecEff &uMin, const VecEff &uMax, const MatObj &wtObj, const MatEff &wtEff, const VecEff &uPref, VecEff &uCmd)
 {
   // redistributed pseduo-inverse control allocation method with control surface scaling
   int iObj, iEff, iIter;
@@ -299,7 +299,7 @@ void ContAllocFxp(const MatCntrlEff &cntrlEff, const VecObj &vObj, const VecEff 
   }
 }*/
 
-/*void ContAllocMOLP(const MatCntrlEff &cntrlEff, const VecObj &vObj, const VecEff &uMin, const VecEff &uMax, const MatObj &wObj, const MatEff &wEff, const VecEff &uPref, VecEff &uCmd, float gammaEff)
+/*void CntrlAllocMOLP(const MatCntrlEff &cntrlEff, const VecObj &vObj, const VecEff &uMin, const VecEff &uMax, const MatObj &wtObj, const MatEff &wtEff, const VecEff &uPref, VecEff &uCmd, float gammaEff)
 {
   // linear mixed optimization control allocation method
   int iObj, iEff;
@@ -378,7 +378,7 @@ void ContAllocFxp(const MatCntrlEff &cntrlEff, const VecObj &vObj, const VecEff 
   //e = ePlus - eMinus;
 }*/
 
-/*void ContAllocMOQP(const MatCntrlEff &cntrlEff, const VecObj &vObj, const VecEff &uMin, const VecEff &uMax, const MatObj &wObj, const MatEff &wEff, const VecEff &uPref, VecEff &uCmd, float gammaEff)
+/*void CntrlAllocMOQP(const MatCntrlEff &cntrlEff, const VecObj &vObj, const VecEff &uMin, const VecEff &uMax, const MatObj &wtObj, const MatEff &wtEff, const VecEff &uPref, VecEff &uCmd, float gammaEff)
 {
   // quadratic mixed optimization control allocation method
   // Size of cntrlEff
@@ -395,11 +395,11 @@ void ContAllocFxp(const MatCntrlEff &cntrlEff, const VecObj &vObj, const VecEff 
   float gammaEffSqrt = gammaEff.sqrt();
 
   // Change Variables
-  A << wObj * cntrlEff,
-       gammaEffSqrt * wEff; // A = [wObj * cntrlEff ; gammaEffSqrt * wEff]
+  A << wtObj * cntrlEff,
+       gammaEffSqrt * wtEff; // A = [wtObj * cntrlEff ; gammaEffSqrt * wtEff]
 
-  b << wObj * vObj,
-       gammaEffSqrt * wEff * uPref; // b = [wObj * vObj ; gammaEffSqrt * wEff * uPref]
+  b << wtObj * vObj,
+       gammaEffSqrt * wtEff * uPref; // b = [wtObj * vObj ; gammaEffSqrt * wtEff * uPref]
 
   // Initialize iEffSat to zeros
   iEffSat.setZero();
@@ -412,7 +412,7 @@ void ContAllocFxp(const MatCntrlEff &cntrlEff, const VecObj &vObj, const VecEff 
 }*/
 
 
-/*void ContAllocSQP(const MatCntrlEff &cntrlEff, const VecObj &vObj, const VecEff &uMin, const VecEff &uMax, const MatObj &wObj, const MatEff &wEff, const VecEff &uPref, VecEff &uCmd)
+/*void CntrlAllocSQP(const MatCntrlEff &cntrlEff, const VecObj &vObj, const VecEff &uMin, const VecEff &uMax, const MatObj &wtObj, const MatEff &wtEff, const VecEff &uPref, VecEff &uCmd)
 {
   // quadratic sequential optimization control allocation method
   // Size of cntrlEff
@@ -430,11 +430,11 @@ void ContAllocFxp(const MatCntrlEff &cntrlEff, const VecObj &vObj, const VecEff 
   VecEff iEffSat;
 
   // Setup QP Phase1
-  // A1 = wObj * cntrlEff
-  A1 = wObj * cntrlEff;
+  // A1 = wtObj * cntrlEff
+  A1 = wtObj * cntrlEff;
 
-  // b1 = wObj * vObj
-  b1 = wObj * vObj;
+  // b1 = wtObj * vObj
+  b1 = wtObj * vObj;
 
   // Initialize iEffSat to zeros
   iEffSat.setZero();
@@ -450,11 +450,11 @@ void ContAllocFxp(const MatCntrlEff &cntrlEff, const VecObj &vObj, const VecEff 
   
   // Setup QP Phase2
   if(numEff_B >= numObj) {
-    // A2 = wEff
-    A2 = wEff;
+    // A2 = wtEff
+    A2 = wtEff;
     
-    // b2 = wEff * uPref
-    b2 = wEff * uPref;
+    // b2 = wtEff * uPref
+    b2 = wtEff * uPref;
     
     // Solve Phase2
     QuadProgPhase2(A1, b1, A2, b2, uMin, uMax, &iEffSat, &uCmd);
