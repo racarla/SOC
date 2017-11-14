@@ -13,6 +13,21 @@ History:
 
 int main(void)  /* Program tester */
 {
+
+
+ExciteGenDisc TestExc;
+VecChan timeStart_s, timeDur_s, amp_nd;
+
+TestExc.SetParam(Doublet, timeStart_s, timeDur_s, amp_nd);
+
+
+float time_s;
+VecChan excite_nd;
+TestExc.Compute(time_s, excite_nd)
+
+
+
+  
   float timeStart_s = 1.0;
   float timeStep_s = 1.0/10.0;
   float timeCurr_s;
@@ -123,12 +138,12 @@ int main(void)  /* Program tester */
   int numChan = 3;
   numElem = 4;
   MatrixElem freqMat_rps, phaseMat_rad, ampMat_nd;
-  VectorExcite ExciteVec_nd;
+  VectorExcite exciteVec_nd;
 
   freqMat_rps.conservativeResize(numChan, numElem);
   phaseMat_rad.conservativeResize(numChan, numElem);
   ampMat_nd.conservativeResize(numChan, numElem);
-  ExciteVec_nd.conservativeResize(numChan);
+  exciteVec_nd.conservativeResize(numChan);
 
   freqMat_rps << 1.0, 2.0, 3.0, 4.0, 
                  2.0, 3.0, 4.0, 5.0, 
@@ -138,7 +153,7 @@ int main(void)  /* Program tester */
                   0.0, 0.0, 0.0, 0.0;
   ampMat_nd << 1.0, 1.0, 1.0, 1.0,
                1.0, 1.0, 1.0, 1.0,
-               1.0, 1.0, 1.0, 1.0;;
+               1.0, 1.0, 1.0, 1.0;
 
   timeDur_s = 20.0;
   timeEnd_s = 2.0*timeStart_s + timeDur_s;
@@ -156,9 +171,9 @@ int main(void)  /* Program tester */
 
     exciteFlag = ExciteMultiOms(timeCurr_s, timeStart_s, timeDur_s,
       freqMat_rps, phaseMat_rad, ampMat_nd,
-      ExciteVec_nd);
+      exciteVec_nd);
   
-    std::cout << timeCurr_s << "\t" << exciteFlag << "\t" << ExciteVec_nd.transpose() << std::endl;
+    std::cout << timeCurr_s << "\t" << exciteFlag << "\t" << exciteVec_nd.transpose() << std::endl;
   }
 
 }
