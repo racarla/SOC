@@ -8,6 +8,7 @@ History:
 2017-11-15 - Chris Regan - Added Classes and Eigen for full vectorization
 */
 
+#include <iostream>
 #include "exciteGenFunc.hxx"
 
 /* Discrete Excitations */
@@ -16,58 +17,62 @@ ExciteDisc::ExciteDisc(void)
 
 }
 
-void ExciteDisc::SetParamDisc(ExciteDiscType discType_, VecChan timeVecStart_s_, VecChan timeVecDur_s_, VecChan ampVec_nd_)
+void ExciteDisc::SetParamDisc(kExciteDisc discType, VecChan timeVecStart_s, VecChan timeVecOnePulse_s, VecChan ampVec_nd)
 {
-  discType = discType_;
-  numChan = timeVecStart_s_.size();
+  discType_ = discType;
+  numChan_ = timeVecStart_s.size();
 
-  timeVecStart_s = timeVecStart_s_;
-  timeVecDur_s = timeVecDur_s_;
-  ampVec_nd = ampVec_nd_;
+  timeVecStart_s_ = timeVecStart_s;
+  timeVecOnePulse_s_ = timeVecOnePulse_s;
+  ampVec_nd_ = ampVec_nd;
 
-  exciteVec_nd.Zero(numChan);
-  exciteVecFlag.Zero(numChan);
+  timeVecDur_s_.setZero(numChan_);
+
+  for (int iChan = 0; iChan < numChan_; iChan++) {
+    switch (discType_){
+      case Pulse: timeVecDur_s_(iChan) = 1 * timeVecOnePulse_s_(iChan);
+      case Doublet: timeVecDur_s_(iChan) = 2 * timeVecOnePulse_s_(iChan);
+      case Doublet121: timeVecDur_s_(iChan) = 4 * timeVecOnePulse_s_(iChan);
+      case Doublet3211: timeVecDur_s_(iChan) = 7 * timeVecOnePulse_s_(iChan);
+    }
+  }
+std::cout << "TEST" << std::endl;
+
 }
 
 int ExciteDisc::ComputeDisc(float timeCurr_s, VecChan &exciteVec_nd)
 {
   float time_s, timeDur_s;
+  VecChanInt exciteVecFlag;
 
-  for (int iChan = 0; iChan < numChan; iChan++) {
-    timeDur_s = timeVecDur_s[iChan];
-    time_s = timeCurr_s - timeVecStart_s[iChan];
+  exciteVec_nd.setZero(numChan_);
+  exciteVecFlag.setZero(numChan_);
 
-    exciteVec_nd[iChan] = 0.0;
+  for (int iChan = 0; iChan < numChan_; iChan++) {
+    timeDur_s = timeVecDur_s_(iChan);
+    time_s = timeCurr_s - timeVecStart_s_(iChan);
 
-    float timeEnd_s = 0.0;
-    switch (discType){
-      case Pulse: timeEnd_s = 1*timeDur_s;
-      case Doublet: timeEnd_s = 2*timeDur_s;
-      case Doublet121: timeEnd_s = 4*timeDur_s;
-      case Doublet3211: timeEnd_s = 7*timeDur_s;
-    }
+    if ((time_s >= 0) && (time_s < timeDur_s)) {
 
-    if ((time_s >= 0) && (time_s < timeEnd_s)) {
-
-      switch (discType){
+      switch (discType_){
         case Pulse:
-          exciteVec_nd[iChan] = SigPulse(time_s, timeDur_s, ampVec_nd[iChan]);
+          exciteVec_nd(iChan) = SigPulse(time_s, timeVecOnePulse_s_(iChan), ampVec_nd_(iChan));
           break;
 
         case Doublet:
-          exciteVec_nd[iChan] = SigDoublet(time_s, timeDur_s, ampVec_nd[iChan]);
+          exciteVec_nd(iChan) = SigDoublet(time_s, timeVecOnePulse_s_(iChan), ampVec_nd_(iChan));
           break;
 
         case Doublet121:
-          exciteVec_nd[iChan] = SigDoublet121(time_s, timeDur_s, ampVec_nd[iChan]);
+          exciteVec_nd(iChan) = SigDoublet121(time_s, timeVecOnePulse_s_(iChan), ampVec_nd_(iChan));
           break;
 
         case Doublet3211:
-          exciteVec_nd[iChan] = SigDoublet3211(time_s, timeDur_s, ampVec_nd[iChan]);
+          exciteVec_nd(iChan) = SigDoublet3211(time_s, timeVecOnePulse_s_(iChan), ampVec_nd_(iChan));
           break;
       }
 
-      //exciteVecFlag[iChan] = 1;
+      exciteVecFlag(iChan) = 1;
     }
   }
 
@@ -156,42 +161,41 @@ ExciteChirp::ExciteChirp(void)
   
 }
 
-void ExciteChirp::SetParamChirp(ExciteChirpType chirpType_, VecChan timeVecStart_s_, VecChan timeVecDur_s_, VecChan freqVecStart_rps_, VecChan freqVecEnd_rps_, VecChan ampVecStart_nd_, VecChan ampVecEnd_nd_)
+void ExciteChirp::SetParamChirp(kExciteChirp chirpType, VecChan timeVecStart_s, VecChan timeVecDur_s, VecChan freqVecStart_rps, VecChan freqVecEnd_rps, VecChan ampVecStart_nd, VecChan ampVecEnd_nd)
 {
-  chirpType = chirpType_;
-  numChan = timeVecStart_s_.size();
+  chirpType_ = chirpType;
+  numChan_ = timeVecStart_s.size();
 
-  timeVecStart_s = timeVecStart_s_;
-  timeVecDur_s = timeVecDur_s_;
-  freqVecStart_rps = freqVecStart_rps_;
-  freqVecEnd_rps = freqVecEnd_rps_;
-  ampVecStart_nd = ampVecStart_nd_;
-  ampVecEnd_nd = ampVecEnd_nd_;
-
-  exciteVec_nd.Zero(numChan);
-  exciteVecFlag.Zero(numChan);
+  timeVecStart_s_ = timeVecStart_s;
+  timeVecDur_s_ = timeVecDur_s;
+  freqVecStart_rps_ = freqVecStart_rps;
+  freqVecEnd_rps_ = freqVecEnd_rps;
+  ampVecStart_nd_ = ampVecStart_nd;
+  ampVecEnd_nd_ = ampVecEnd_nd;
 }
 
 int ExciteChirp::ComputeChirp(float timeCurr_s, VecChan &exciteVec_nd)
 {
   float time_s, timeDur_s;
+  VecChanInt exciteVecFlag;
 
-  for (int iChan = 0; iChan < numChan; iChan++) {
-    timeDur_s = timeVecDur_s[iChan];
-    time_s = timeCurr_s - timeVecStart_s[iChan];
-    
-    exciteVec_nd[iChan] = 0.0;
+  exciteVec_nd.setZero(numChan_);
+  exciteVecFlag.setZero(numChan_);
+
+  for (int iChan = 0; iChan < numChan_; iChan++) {
+    timeDur_s = timeVecDur_s_(iChan);
+    time_s = timeCurr_s - timeVecStart_s_(iChan);
 
     if ((time_s >= 0) && (time_s < timeDur_s)) {
 
-    switch (chirpType){
+    switch (chirpType_){
       case Linear:
-        exciteVec_nd[iChan] = SigChirpLinear(time_s, timeDur_s, freqVecStart_rps[iChan], freqVecEnd_rps[iChan], ampVecStart_nd[iChan], ampVecEnd_nd[iChan]);
+        exciteVec_nd(iChan) = SigChirpLinear(time_s, timeDur_s, freqVecStart_rps_(iChan), freqVecEnd_rps_(iChan), ampVecStart_nd_(iChan), ampVecEnd_nd_(iChan));
 
         break;
       }
 
-      //exciteVecFlag[iChan] = 1;
+      exciteVecFlag(iChan) = 1;
     }
   }
 
@@ -220,44 +224,43 @@ ExciteMultisine::ExciteMultisine(void)
   
 }
 
-void ExciteMultisine::SetParamMultisine(ExciteMultisineType multiSineType_, VecChan timeVecStart_s_, VecChan timeVecDur_s_, MatChanElem freqMat_rps_, MatChanElem phaseMat_rad_, MatChanElem ampMat_nd_)
+void ExciteMultisine::SetParamMultisine(kExciteMultisine multiSineType, VecChan timeVecStart_s, VecChan timeVecDur_s, MatChanElem freqMat_rps, MatChanElem phaseMat_rad, MatChanElem ampMat_nd)
 {
-  multiSineType = multiSineType_;
-  numChan = timeVecStart_s_.size();
+  multiSineType_ = multiSineType;
+  numChan_ = timeVecStart_s.size();
 
-  timeVecStart_s = timeVecStart_s_;
-  timeVecDur_s = timeVecDur_s_;
-  freqMat_rps = freqMat_rps_;
-  phaseMat_rad = phaseMat_rad_;
-  ampMat_nd = ampMat_nd_;
-
-  exciteVec_nd.Zero(numChan);
-  exciteVecFlag.Zero(numChan);
+  timeVecStart_s_ = timeVecStart_s;
+  timeVecDur_s_ = timeVecDur_s;
+  freqMat_rps_ = freqMat_rps;
+  phaseMat_rad_ = phaseMat_rad;
+  ampMat_nd_ = ampMat_nd;
 }
 
 int ExciteMultisine::ComputeMultisine(float timeCurr_s, VecChan &exciteVec_nd)
 {
   float time_s, timeDur_s;
+  VecChanInt exciteVecFlag;
 
-  for (int iChan = 0; iChan < numChan; iChan++) {
-    timeDur_s = timeVecDur_s[iChan];
-    time_s = timeCurr_s - timeVecStart_s[iChan];
+  exciteVec_nd.setZero(numChan_);
+  exciteVecFlag.setZero(numChan_);
 
-    exciteVec_nd[iChan] = 0.0;
+  for (int iChan = 0; iChan < numChan_; iChan++) {
+    timeDur_s = timeVecDur_s_(iChan);
+    time_s = timeCurr_s - timeVecStart_s_(iChan);
 
     if ((time_s >= 0) && (time_s < timeDur_s)) {
 
-      switch (multiSineType){
+      switch (multiSineType_){
         case OMS:
-          VecElem freqList_rps = freqMat_rps.row(iChan);
-          VecElem phaseList_rad = phaseMat_rad.row(iChan);
-          VecElem ampList_nd = ampMat_nd.row(iChan);
+          VecElem freqList_rps = freqMat_rps_.row(iChan);
+          VecElem phaseList_rad = phaseMat_rad_.row(iChan);
+          VecElem ampList_nd = ampMat_nd_.row(iChan);
 
           exciteVec_nd(iChan) = SigMultisineOms(time_s, freqList_rps, phaseList_rad, ampList_nd);
           break;
       }
 
-      //exciteVecFlag[iChan] = 1;
+      exciteVecFlag(iChan) = 1;
     }
   }
 

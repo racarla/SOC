@@ -28,21 +28,23 @@ void disc(void)  /* Program tester */
   float timeStep_s = 1.0/10.0;
 
   VecChan timeStart_s(numChan); 
-  VecChan timeDur_s(numChan);
+  VecChan timeOnePulse_s(numChan);
   VecChan amp_nd(numChan);
   VecChan excite_nd(numChan);
   int exciteFlag;
 
   timeStart_s << 1.0;
-  timeDur_s << 1.0;
+  timeOnePulse_s << 1.0;
   amp_nd << 1.0;
 
+std::cout << timeOnePulse_s << std::endl;
+
   ExciteDisc TestExcDoublet;
-  TestExcDoublet.SetParamDisc(Doublet3211, timeStart_s, timeDur_s, amp_nd);
+  TestExcDoublet.SetParamDisc(Doublet3211, timeStart_s, timeOnePulse_s, amp_nd);
   
 
   // Doublets
-  float timeEnd_s = 2.0*timeStart_s.maxCoeff() + 7.0*timeDur_s.maxCoeff();
+  float timeEnd_s = 2.0*timeStart_s.maxCoeff() + 7.0*timeOnePulse_s.maxCoeff();
 
   int numIter = (int) (timeEnd_s / timeStep_s); // Number of Iterations
 
