@@ -15,9 +15,9 @@ CC_CONFIG = arm-linux-gnueabihf-g++ -std=c++0x
 CC_BIN2HDF = g++ -std=c++0x
 
 # src
-SRC_FLIGHT = soc-src
-SRC_CONFIG = fmu-cfg
-SRC_BIN2HDF = bin2hdf-src
+DIR_FLIGHT = soc-src
+DIR_CONFIG = fmu-cfg
+DIR_BIN2HDF = bin2hdf-src
 
 # includes
 IFLAGS_FLIGHT = -Isoc-includes
@@ -29,43 +29,48 @@ LFLAGS_FLIGHT =
 LFLAGS_CONFIG =
 LFLAGS_BIN2HDF = -lz -lm -lhdf5_cpp -lhdf5_serial -L/usr/lib/x86_64-linux-gnu
 
-# code to be compiled
-OBJ_FLIGHT =\
-$(SRC_FLIGHT)/navigation.cxx \
-$(SRC_FLIGHT)/EKF_15state.cxx \
-$(SRC_FLIGHT)/nav_functions.cxx \
-$(SRC_FLIGHT)/datalogger.cxx \
-$(SRC_FLIGHT)/config.cxx \
-$(SRC_FLIGHT)/fmu.cxx \
-$(SRC_FLIGHT)/main.cxx
+# source code to be compiled
+SRC_FLIGHT =\
+$(DIR_FLIGHT)/navigation.cxx \
+$(DIR_FLIGHT)/EKF_15state.cxx \
+$(DIR_FLIGHT)/nav_functions.cxx \
+$(DIR_FLIGHT)/datalogger.cxx \
+$(DIR_FLIGHT)/config.cxx \
+$(DIR_FLIGHT)/fmu.cxx \
+$(DIR_FLIGHT)/main.cxx
 
-OBJ_CONFIG =\
-$(SRC_CONFIG)/config.cxx \
-$(SRC_CONFIG)/fmu.cxx \
-$(SRC_CONFIG)/main.cxx
+SRC_CONFIG =\
+$(DIR_CONFIG)/config.cxx \
+$(DIR_CONFIG)/fmu.cxx \
+$(DIR_CONFIG)/main.cxx
 
-OBJ_BIN2HDF =\
-$(SRC_BIN2HDF)/hdf5class.cxx \
-$(SRC_BIN2HDF)/config.cxx \
-$(SRC_BIN2HDF)/main.cxx
+SRC_BIN2HDF =\
+$(DIR_BIN2HDF)/hdf5class.cxx \
+$(DIR_BIN2HDF)/config.cxx \
+$(DIR_BIN2HDF)/main.cxx
 
 
-# rules
+# Create lists of object code
+OBJ_FLIGHT = $(SRC_FLIGHT:%.cxx=%.o)
+OBJ_CONFIG = $(SRC_CONFIG:%.cxx=%.o)
+OBJ_BIN2HDF = $(SRC_BIN2HDF:%.cxx=%.o)
+
+
+# Build rules
 all: flightcode config bin2hdf display
 
-flightcode: $(OBJ_FLIGHT)
+flightcode: $(SRC_FLIGHT)
 	@ echo "Building flightcode ..."	
-	$(CC_FLIGHT) $(IFLAGS_FLIGHT) -o $@ $^ $(LFLAGS_FLIGHT) $(CFLAGS_FLIGHT)
+	$(CC_FLIGHT) $(CFLAGS_FLIGHT) $(IFLAGS_FLIGHT) -o $@ $? $(LFLAGS_FLIGHT)
 
-config: $(OBJ_CONFIG)
+config: $(SRC_CONFIG)
 	@ echo "Building config ..."	
-	$(CC_CONFIG) $(IFLAGS_CONFIG) -o $@ $^ $(LFLAGS_CONFIG) $(CFLAGS_CONFIG)
+	$(CC_CONFIG) $(CFLAGS_CONFIG) $(IFLAGS_CONFIG) -o $@ $? $(LFLAGS_CONFIG)
 
-bin2hdf: $(OBJ_BIN2HDF)
+bin2hdf: $(SRC_BIN2HDF)
 	@ echo "Building bin2hdf ..."	
-	$(CC_BIN2HDF) $(IFLAGS_BIN2HDF) $^ -o $@ $(LFLAGS_BIN2HDF) $(CFLAGS_BIN2HDF)
+	$(CC_BIN2HDF) $(CFLAGS_BIN2HDF) $(IFLAGS_BIN2HDF) -o $@ $? $(LFLAGS_BIN2HDF)
 	
-
 clean:
 	-rm flightcode config bin2hdf
 
