@@ -25,21 +25,21 @@ int main(void)  /* Program tester */
   float TimeCurr_s;
 
 
-  float kP = 0.1;
-  float kI = 1.0;
-  float kD = 0.0;
-  float kDamp = -0.0;
+  float KP = 0.1;
+  float KI = 1.0;
+  float KD = 0.0;
+  float KDamp = -0.0;
   float cmdRng[2] = {-0.5, 0.5};
 
 
   CntrlPid testPid1;
-  testPid1.SetParam(kP, kI, kD, cmdRng[0], cmdRng[1]);
+  testPid1.Init(KP, KI, KD, cmdRng[0], cmdRng[1]);
 
   CntrlPid testPid2;
-  testPid2.SetParam(kP, kI, kD, cmdRng[0], cmdRng[1]);
+  testPid2.Init(KP, KI, KD, cmdRng[0], cmdRng[1]);
 
   CntrlPiDamp testPiDamp;
-  testPiDamp.SetParam(kP, kI, kDamp, cmdRng[0], cmdRng[1]);
+  testPiDamp.Init(KP, KI, KDamp, cmdRng[0], cmdRng[1]);
 
   float ref = 1.0;
   float meas = 0.0;
@@ -53,28 +53,28 @@ int main(void)  /* Program tester */
     TimeCurr_s = (float) iIter * TimeStep_s;
 
     if (TimeCurr_s <= timeInit_s) {
-      testPid1.runMode = Standby;
+      testPid1.runMode_ = kCntrlStandby;
 
     } else if (TimeCurr_s <= timeEngage_s) {
-      testPid1.runMode = Init;
+      testPid1.runMode_ = kCntrlInit;
 
     } else if (TimeCurr_s <= timeHold_s) {
-      testPid1.runMode = Engage;
+      testPid1.runMode_ = kCntrlEngage;
       
     } else if (TimeCurr_s <= TimeReset_s) {
-      testPid1.runMode = Hold;
-      testPiDamp.iErr = 0; // Should have no effect on Pid
-      testPid2.iErr = 0; // Should have no effect on Pid
+      testPid1.runMode_ = kCntrlHold;
+      testPiDamp.iErr_ = 0; // Should have no effect on Pid
+      testPid2.iErr_ = 0; // Should have no effect on Pid
       
     } else if (TimeCurr_s <= TimeEnd_s) {
-      testPid1.runMode = Reset;
+      testPid1.runMode_ = kCntrlReset;
     }
 
     meas += measStep;
 
     float cmdPid = testPid1.Compute(ref, meas, TimeStep_s);
-    int runMode = testPid1.runMode;
-    float intErr = testPid1.iErr;
+    int runMode = testPid1.runMode_;
+    float intErr = testPid1.iErr_;
 
     float cmdPiDamp = testPiDamp.Compute(ref, meas, dMeas, TimeStep_s);
 

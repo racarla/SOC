@@ -24,25 +24,22 @@ int main(void) {
 void disc(void)  /* Program tester */
 {
 
-  int numChan = 1;
+  uint8_t numChan = 1;
   float timeStep_s = 1.0/10.0;
 
   VecChan timeStart_s(numChan); 
   VecChan timeOnePulse_s(numChan);
   VecChan amp_nd(numChan);
   VecChan excite_nd(numChan);
-  int exciteFlag;
+  bool exciteFlag;
 
   timeStart_s << 1.0;
   timeOnePulse_s << 1.0;
   amp_nd << 1.0;
 
-std::cout << timeOnePulse_s << std::endl;
-
   ExciteDisc TestExcDoublet;
-  TestExcDoublet.SetParamDisc(Doublet3211, timeStart_s, timeOnePulse_s, amp_nd);
+  TestExcDoublet.Init(kDoublet3211, timeStart_s, timeOnePulse_s, amp_nd);
   
-
   // Doublets
   float timeEnd_s = 2.0*timeStart_s.maxCoeff() + 7.0*timeOnePulse_s.maxCoeff();
 
@@ -54,7 +51,7 @@ std::cout << timeOnePulse_s << std::endl;
   for(int iIter = 0 ; iIter < numIter ; iIter++){
     timeCurr_s = (float) iIter * timeStep_s;
 
-    exciteFlag = TestExcDoublet.ComputeDisc(timeCurr_s, excite_nd);
+    exciteFlag = TestExcDoublet.Compute(timeCurr_s, excite_nd);
   
     std::cout << timeCurr_s << "\t" << exciteFlag<< "\t" << excite_nd.transpose() << std::endl;
   }
@@ -64,7 +61,7 @@ void chirp(void)
 {
 
   // Chirp
-  int numChan = 2;
+  uint8_t numChan = 2;
   float timeStep_s = 1.0/50.0;
 
   VecChan timeStart_s(numChan);
@@ -74,7 +71,7 @@ void chirp(void)
   VecChan ampStart_nd(numChan);
   VecChan ampEnd_nd(numChan);
   VecChan excite_nd(numChan);
-  int exciteFlag;
+  bool exciteFlag;
 
   timeStart_s << 1.0, 1.0;
   timeDur_s << 20.0, 20.0;
@@ -85,7 +82,7 @@ void chirp(void)
 
 
   ExciteChirp TestExcChirp;
-  TestExcChirp.SetParamChirp(Linear, timeStart_s, timeDur_s, freqStart_rps, freqEnd_rps, ampStart_nd, ampEnd_nd);
+  TestExcChirp.Init(kLinear, timeStart_s, timeDur_s, freqStart_rps, freqEnd_rps, ampStart_nd, ampEnd_nd);
 
 
   // Time Vectors
@@ -99,7 +96,7 @@ void chirp(void)
   for(int iIter = 0 ; iIter < numIter ; iIter++){
     timeCurr_s = (float) iIter * timeStep_s;
 
-    exciteFlag = TestExcChirp.ComputeChirp(timeCurr_s, excite_nd);
+    exciteFlag = TestExcChirp.Compute(timeCurr_s, excite_nd);
   
     std::cout << timeCurr_s << "\t" << exciteFlag<< "\t" << excite_nd.transpose() << std::endl;
   }
@@ -110,8 +107,8 @@ void oms(void)
 
 // Multichannel OMS
 
-  int numChan = 3;
-  int numElem = 4;
+  uint8_t numChan = 3;
+  uint8_t numElem = 4;
   float timeStep_s = 1.0/10.0;
 
   VecChan timeStart_s(numChan);
@@ -120,7 +117,7 @@ void oms(void)
   MatChanElem phase_rad(numChan, numElem);
   MatChanElem amp_nd(numChan, numElem);
   VecChan excite_nd(numChan);
-  int exciteFlag;
+  bool exciteFlag;
 
   timeStart_s << 1.0, 1.0, 1.0;
   timeDur_s << 20.0, 20.0, 20.0;
@@ -138,7 +135,7 @@ void oms(void)
 
 
   ExciteMultisine TestExcOms;
-  TestExcOms.SetParamMultisine(OMS, timeStart_s, timeDur_s, freq_rps, phase_rad, amp_nd);
+  TestExcOms.Init(kOMS, timeStart_s, timeDur_s, freq_rps, phase_rad, amp_nd);
 
   // Time Vectors
   float timeEnd_s = 2.0*timeStart_s.maxCoeff() + timeDur_s.maxCoeff();
@@ -151,7 +148,7 @@ void oms(void)
   for(int iIter = 0 ; iIter < numIter ; iIter++){
     timeCurr_s = (float) iIter * timeStep_s;
 
-    exciteFlag = TestExcOms.ComputeMultisine(timeCurr_s, excite_nd);
+    exciteFlag = TestExcOms.Compute(timeCurr_s, excite_nd);
   
     std::cout << timeCurr_s << "\t" << exciteFlag<< "\t" << excite_nd.transpose() << std::endl;
   }

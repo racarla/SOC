@@ -10,10 +10,12 @@ History:
 #ifndef CNTRLALLOC_H
 #define CNTRLALLOC_H
 
-#include <eigen3/Eigen/Dense>
+#include <Eigen/Dense>
 
 #define MaxObj 5
 #define MaxEff 16
+
+#include <stdint.h>
 
 // Matrix<typename Scalar, int RowsAtCompileTime, int ColsAtCompileTime, int Options = 0, int MaxRowsAtCompileTime = RowsAtCompileTime, int MaxColsAtCompileTime = ColsAtCompileTime>
 typedef Eigen::Matrix<float, -1, -1, 0, MaxObj, MaxEff> MatCntrlEff;
@@ -23,7 +25,7 @@ typedef Eigen::Matrix<float, -1, -1, 0, MaxObj, MaxObj> MatObj;
 typedef Eigen::Matrix<float, -1, -1, 0, MaxEff, MaxEff> MatEff;
 typedef Eigen::Matrix<float, -1, -1, 0, MaxEff, MaxObj> MatCntrlEffT;
 
-typedef Eigen::Matrix<int, -1, 1, 0, MaxEff, 1> VecEffInt;
+typedef Eigen::Matrix<uint8_t, -1, 1, 0, MaxEff, 1> VecEffInt;
 
 #define MaxSolvObj MaxObj
 #define MaxSolvEff MaxEff
@@ -33,7 +35,7 @@ typedef Eigen::Matrix<float, -1, 1, 0, MaxSolvObj, 1> VecSolvObj;
 typedef Eigen::Matrix<float, -1, 1, 0, MaxSolvEff, 1> VecSolvEff;
 
 // Enumerated list of Control Allocation Methods
-enum CntrlAllocMethod { Pseudo = 10, PseudoWt = 15, PseudoRedis = 20, PseudoRedisScale = 25, Fxp = 50, Molp = 60, Moqp = 70, Sqp = 75};
+enum CntrlAllocMethod { kPseudo = 10, kPseudoWt = 15, kPseudoRedis = 20, kPseudoRedisScale = 25, kFxp = 50, kMolp = 60, kMoqp = 70, kSqp = 75};
 
 // 
 void CntrlAlloc(
@@ -53,7 +55,7 @@ void CntrlAllocPseudoWt(
 void CntrlAllocFxp(
   const MatCntrlEff &cntrlEff, const VecObj &vObj, const VecEff &uMin, const VecEff &uMax, const MatObj &wtObj, const MatEff &wtEff, const VecEff &uPref,
   VecEff &uCmd, 
-  float gammaEff = 0.001, int numIter = 200);
+  float gammaEff = 0.001, uint8_t numIter = 200);
 
 void CntrlAllocPseudoRedis(
   const MatCntrlEff &cntrlEff, const VecObj &vObj, const VecEff &uMin, const VecEff &uMax, const MatObj &wtObj, const MatEff &wtEff, const VecEff &uPref,
@@ -117,11 +119,11 @@ void Saturate(
   const VecEff &uMin, const VecEff &uMax,
   VecEff &uCmd);
 
-int SaturateIndex(
+uint8_t SaturateIndex(
   const VecEff &uMin, const VecEff &uMax,
   VecEff &uCmd, VecEffInt &iEffSat);
 
-int FindFree(
+uint8_t FindFree(
   const VecEffInt &iEffSat,
   VecEffInt &iEffFree);
 

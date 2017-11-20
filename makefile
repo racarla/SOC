@@ -37,7 +37,15 @@ $(DIR_FLIGHT)/nav_functions.cxx \
 $(DIR_FLIGHT)/datalogger.cxx \
 $(DIR_FLIGHT)/config.cxx \
 $(DIR_FLIGHT)/fmu.cxx \
+$(DIR_FLIGHT)/missionMgr.cxx \
 $(DIR_FLIGHT)/main.cxx
+
+# $(DIR_FLIGHT)/cntrlMgr.cxx \
+# $(DIR_FLIGHT)/cntrlFunc.cxx \
+# $(DIR_FLIGHT)/exciteMgr.cxx \
+# $(DIR_FLIGHT)/exciteGenFunc.cxx \
+# $(DIR_FLIGHT)/cntrlAllocMgr.cxx \
+# $(DIR_FLIGHT)/cntrlAllocFunc.cxx \
 
 SRC_CONFIG =\
 $(DIR_CONFIG)/config.cxx \

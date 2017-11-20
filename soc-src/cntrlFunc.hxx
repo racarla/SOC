@@ -12,63 +12,104 @@ History:
 #ifndef CNTRLFUNC_HXX_
 #define CNTRLFUNC_HXX_
 
-enum CntrlOpMode {Reset = -1, Standby = 0, Hold = 1, Init = 2, Engage = 3};
+#include <math.h>
 
-// Define CntrlPid Class
-class CntrlPid {
-private:
-  float kP, kI, kD, cmdMin, cmdMax;
-  float ref, meas, dt;
-  float cmd;
+const double kD2R = M_PI / 180.0;
 
-  float InitState(float cmd, float err, float dErr);
-  float CalcCmd(float err, float iErr, float dErr);
+enum CntrlMode {kCntrlReset = -1, kCntrlStandby = 0, kCntrlHold = 1, kCntrlInit = 2, kCntrlEngage = 3};
 
+// Define CntrlManual Class
+class CntrlManual {
 public:
-  CntrlOpMode runMode;
-  float iErr;
-  float errPrev;
+  CntrlMode runMode_;
 
-  CntrlPid();
-  void SetParam(float kP_, float kI_, float kD_, float cmdMin_, float cmdMax_);
-  float Compute(float ref, float meas, float dt);
-};
+  CntrlManual();
+  ~CntrlManual() {};
+  void Init(float refMin, float refMax, float cmdMin, float cmdMax);
+  float Compute(float ref);
 
-// Define CntrlPiDamp Class
-class CntrlPiDamp {
 private:
-  float kP, kI, kDamp, cmdMin, cmdMax;
-  float ref, meas, dMeas, dt;
-  float cmd;
+  float refMin_, refMax_, cmdMin_, cmdMax_;
 
-  float InitState(float cmd, float err, float dErr);
-  float CalcCmd(float err, float iErr, float dErr);
-
-public:
-  CntrlOpMode runMode;
-  float iErr;
-
-  CntrlPiDamp();
-  void SetParam(float kP_, float kI_, float kDamp_, float cmdMin_, float cmdMax_);
-  float Compute(float ref, float meas, float dMeas, float dt);
+  float CalcCmd(float ref);
 };
 
 
 // Define CntrlDamp Class
 class CntrlDamp {
-private:
-  float kDamp, cmdMin, cmdMax;
-  float dMeas;
-  float cmd;
-
-  float CalcCmd(float dMeas);
-
 public:
-  CntrlOpMode runMode;
+  CntrlMode runMode_;
 
   CntrlDamp();
-  void SetParam(float kDamp_, float cmdMin_, float cmdMax_);
-  float Compute(float dMeas);
+  ~CntrlDamp() {};
+  void Init(float KD, float refMin, float refMax, float cmdMin, float cmdMax);
+  float Compute(float ref, float dMeas);
+
+private:
+  float refMin_, refMax_, cmdMin_, cmdMax_;
+  float KD_;
+
+  float CalcCmd(float err, float dErr);
+};
+
+
+// Define CntrlPi Class
+class CntrlPi {
+public:
+  CntrlMode runMode_;
+  float iErr_;
+
+  CntrlPi();
+  ~CntrlPi() {};
+  void Init(float KP, float KI, float refMin, float refMax, float cmdMin, float cmdMax);
+  float Compute(float ref, float meas, float dt_s);
+
+private:
+  float refMin_, refMax_, cmdMin_, cmdMax_;
+  float KP_, KI_;
+
+  void InitState(float cmd, float err);
+  float CalcCmd(float err);
+};
+
+
+// Define CntrlPiDamp Class
+class CntrlPiDamp {
+public:
+  CntrlMode runMode_;
+  float iErr_;
+
+  CntrlPiDamp();
+  ~CntrlPiDamp() {};
+  void Init(float KP, float KI, float KD, float refMin, float refMax, float cmdMin, float cmdMax);
+  float Compute(float ref, float meas, float dMeas, float dt_s);
+
+private:
+  float refMin_, refMax_, cmdMin_, cmdMax_;
+  float KP_, KI_, KD_;
+
+  void InitState(float cmd, float err, float dErr);
+  float CalcCmd(float err, float dErr);
+};
+
+
+// Define CntrlPid Class
+class CntrlPid {
+public:
+  CntrlMode runMode_;
+  float iErr_, errPrev_;
+
+  CntrlPid();
+  ~CntrlPid() {};
+  void Init(float KP, float KI, float KD, float refMin, float refMax, float cmdMin, float cmdMax);
+  float Compute(float ref, float meas, float dt_s);
+
+private:
+  float refMin_, refMax_, cmdMin_, cmdMax_;
+  float KP_, KI_, KD_;
+
+  void InitState(float cmd, float err, float dErr);
+  float CalcCmd(float err, float dErr);
 };
 
 #endif // CNTRLFUNC_HXX_

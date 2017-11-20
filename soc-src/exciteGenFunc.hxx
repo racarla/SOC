@@ -11,7 +11,8 @@ History:
 #ifndef EXCITEGEN_H
 #define EXCITEGEN_H
 
-#include <eigen3/Eigen/Dense>
+#include <stdint.h>
+#include <Eigen/Dense>
 
 #define MaxChan 16
 #define MaxElem 30
@@ -20,33 +21,29 @@ History:
 typedef Eigen::Matrix<float, -1, 1, 0, MaxElem, 1> VecElem;
 typedef Eigen::Matrix<float, -1, -1, 0, MaxChan, MaxElem> MatChanElem;
 typedef Eigen::Matrix<float, -1, 1, 0, MaxChan, 1> VecChan;
-typedef Eigen::Matrix<int, -1, 1, 0, MaxChan, 1> VecChanInt;
+typedef Eigen::Matrix<int, -1, 1, 0, MaxChan, 1> VecChanBool;
 
 
-enum kExciteDisc {Pulse = 0, Doublet = 1, Doublet121 = 2, Doublet3211 = 3};
-enum kExciteChirp {Linear = 1};
-enum kExciteMultisine {OMS = 1};
+enum ExciteDiscType {kPulse = 0, kDoublet = 1, kDoublet121 = 2, kDoublet3211 = 3};
+enum ExciteChirpType {kLinear = 1};
+enum ExciteMultisineType {kOMS = 1};
+
 
 /* Discrete Excitations */
 class ExciteDisc {
  public:
   float timeCurr_s_;
 
-  // Constructor
-  ExciteDisc();
-  void SetParamDisc(kExciteDisc discType, VecChan timeVecStart_s, VecChan timeVecOnePulse_s, VecChan ampVec_nd);
-  int ComputeDisc(float timeCurr_s, VecChan &exciteVec_nd);
+  ExciteDisc() {}; // Constructor
+  ~ExciteDisc() {}; // Destructor
+  void Init(ExciteDiscType discType, VecChan timeVecStart_s, VecChan timeVecOnePulse_s, VecChan ampVec_nd);
+  bool Compute(float timeCurr_s, VecChan &exciteVec_nd);
 
  private:
   VecChan timeVecStart_s_, timeVecOnePulse_s_, timeVecDur_s_, ampVec_nd_;
-  int numChan_;
+  uint8_t numChan_;
 
-  kExciteDisc discType_;
-
-  float SigPulse(float &time_s, float &timeOnePulse_s, float &amp_nd);
-  float SigDoublet(float &time_s, float &timeOnePulse_s, float &amp_nd);
-  float SigDoublet121(float &time_s, float &timeOnePulse_s, float &amp_nd);
-  float SigDoublet3211(float &time_s, float &timeOnePulse_s, float &amp_nd);
+  ExciteDiscType discType_;
 };
 
 
@@ -55,18 +52,17 @@ class ExciteChirp {
  public:
   float timeCurr_s_;
 
-  ExciteChirp();
-  void SetParamChirp(kExciteChirp chirpType, VecChan timeVecStart_s, VecChan timeVecDur_s, VecChan freqVecStart_rps, VecChan freqVecEnd_rps, VecChan ampVecStart_nd, VecChan ampVecEnd_nd);
-  int ComputeChirp(float timeCurr_s, VecChan &excite_nd);
+  ExciteChirp() {}; // Constructor
+  ~ExciteChirp() {}; // Destructor
+  void Init(ExciteChirpType chirpType, VecChan timeVecStart_s, VecChan timeVecDur_s, VecChan freqVecStart_rps, VecChan freqVecEnd_rps, VecChan ampVecStart_nd, VecChan ampVecEnd_nd);
+  bool Compute(float timeCurr_s, VecChan &excite_nd);
 
  private:
   VecChan timeVecStart_s_, timeVecDur_s_;
   VecChan freqVecStart_rps_, freqVecEnd_rps_, ampVecStart_nd_, ampVecEnd_nd_;
-  int numChan_;
+  uint8_t numChan_;
 
-  kExciteChirp chirpType_;
-
-  float SigChirpLinear(float &time_s, float &timeDur_s, float &freqStart_rps, float &freqEnd_rps, float &ampStart_nd, float &ampEnd_rad);
+  ExciteChirpType chirpType_;
 };
 
 
@@ -75,20 +71,28 @@ class ExciteMultisine {
  public:
   float timeCurr_s_;
 
-  kExciteMultisine multiSineType_;
+  ExciteMultisineType multiSineType_;
 
-  ExciteMultisine();
-  void SetParamMultisine(kExciteMultisine multiSineType, VecChan timeVecStart_s, VecChan timeVecDur_s, MatChanElem freqMat_rps, MatChanElem phaseMat_rad, MatChanElem ampMat_nd);
-  int ComputeMultisine(float timeCurr_s, VecChan &exciteVec_nd);
+  ExciteMultisine() {}; // Constructor
+  ~ExciteMultisine() {}; // Destructor
+  void Init(ExciteMultisineType multiSineType, VecChan timeVecStart_s, VecChan timeVecDur_s, MatChanElem freqMat_rps, MatChanElem phaseMat_rad, MatChanElem ampMat_nd);
+  bool Compute(float timeCurr_s, VecChan &exciteVec_nd);
 
  private:
   VecChan timeVecStart_s_, timeVecDur_s_;
   MatChanElem freqMat_rps_, phaseMat_rad_, ampMat_nd_;
-  int numChan_;
-
-  float SigMultisineOms(float &time_s, VecElem &freqList_rps, VecElem &phaseList_rad, VecElem &ampList_nd);
+  uint8_t numChan_;
 
 };
+
+
+/* Single Channel Exication Signal Generators */
+float SigPulse(float &time_s, float &timeOnePulse_s, float &amp_nd);
+float SigDoublet(float &time_s, float &timeOnePulse_s, float &amp_nd);
+float SigDoublet121(float &time_s, float &timeOnePulse_s, float &amp_nd);
+float SigDoublet3211(float &time_s, float &timeOnePulse_s, float &amp_nd);
+float SigChirpLinear(float &time_s, float &timeDur_s, float &freqStart_rps, float &freqEnd_rps, float &ampStart_nd, float &ampEnd_rad);
+float SigMultisineOms(float &time_s, VecElem &freqList_rps, VecElem &phaseList_rad, VecElem &ampList_nd);
 
 
 #endif // EXCITEGEN_H

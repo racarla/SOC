@@ -16,28 +16,18 @@ History:
 
 int main(void)  /* Program tester */
 {
+  uint8_t numObj = 3;
+  uint8_t numEff = 6;
+
   // Setup Timer
   std::clock_t tStart_tick, tStop_tick;
   double tElaps_s;
 
-  MatCntrlEff   cntrlEff; // effectiveness matrix
-  VecObj vObj, vErr; // objectives
-  VecEff uCmd, uMin, uMax, uPref; // cmd, min, max, prefered effector commands
-  MatObj wtObj; // Objective weighting matrix
-  MatEff wtEff; // Effector weighting matrix
-  
-  int numObj = 3;
-  int numEff = 6;
-
-  cntrlEff.conservativeResize(numObj, numEff);
-  vObj.conservativeResize(numObj);
-  vErr.conservativeResize(numObj);
-  uCmd.conservativeResize(numEff);
-  uMin.conservativeResize(numEff);
-  uMax.conservativeResize(numEff);
-  uPref.conservativeResize(numEff);
-  wtObj.conservativeResize(numObj, numObj);
-  wtEff.conservativeResize(numEff, numEff);
+  MatCntrlEff cntrlEff(numObj, numEff); // effectiveness matrix
+  VecObj vObj(numObj), vErr(numObj); // objectives
+  VecEff uCmd(numEff), uMin(numEff), uMax(numEff), uPref(numEff); // cmd, min, max, prefered effector commands
+  MatObj wtObj(numObj, numObj); // Objective weighting matrix
+  MatEff wtEff(numEff, numEff); // Effector weighting matrix
 
   // Define Problem
   cntrlEff << 7712, -25060,   5603, -7712, -25060, -5603, 
@@ -68,7 +58,7 @@ int main(void)  /* Program tester */
     //CntrlAllocPseudoWt(cntrlEff, vObj, wtObj, wtEff, uPref, uCmd);
 
     float gammaEff = .001;
-    int numIter = 200;
+    uint8_t numIter = 200;
     CntrlAllocFxp(cntrlEff, vObj, uMin, uMax, wtObj, wtEff, uPref, uCmd, gammaEff, numIter);
   }
   tStop_tick = std::clock(); // stop the timer

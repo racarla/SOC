@@ -121,7 +121,7 @@ struct FmuData {
 
 struct NavigationData {
   double Time_s;                            // [sec], timestamp of NAV filter
-  Eigen::Matrix<double,3,1> LLA;            // Latitude (rad), Longitude (rad), Altitude (m)
+  Eigen::Matrix<double,3,1>LLA;             // Latitude (rad), Longitude (rad), Altitude (m)
   Eigen::Matrix<double,3,1>NEDVelocity_ms;  // NED Velocity, m/s
   Eigen::Matrix<double,3,1>Euler_rad;       // Euler angles, rad
   Eigen::Matrix<double,4,1>Quaternion;      // Quaternion estimate

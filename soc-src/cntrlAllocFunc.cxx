@@ -10,32 +10,32 @@ History:
 #include "cntrlAllocFunc.hxx"
 
 
-void CntrlAlloc(const MatCntrlEff &cntrlEff, const VecObj &vObj, const VecEff &uMin, const VecEff &uMax, const MatObj &wtObj, const MatEff &wtEff, const VecEff &uPref, VecEff &uCmd, int method)
+void CntrlAlloc(const MatCntrlEff &cntrlEff, const VecObj &vObj, const VecEff &uMin, const VecEff &uMax, const MatObj &wtObj, const MatEff &wtEff, const VecEff &uPref, VecEff &uCmd, uint8_t method)
 {
 
   switch(method) {
-    case Pseudo:
+    case kPseudo:
       CntrlAllocPseudo(cntrlEff, vObj, uPref, uCmd);
       break;
-    case PseudoWt:
+    case kPseudoWt:
       CntrlAllocPseudoWt(cntrlEff, vObj, wtObj, wtEff, uPref, uCmd);
       break;
-    case PseudoRedis:
+    case kPseudoRedis:
       //CntrlAllocPseudoRedis(cntrlEff, vObj, uMin, uMax, wtObj, wtEff, uPref, uCmd);
       break;
-    case PseudoRedisScale:
+    case kPseudoRedisScale:
       //CntrlAllocPseudoRedisScale(cntrlEff, vObj, uMin, uMax, wtObj, wtEff, uPref, uCmd);
       break;
-    case Fxp:
+    case kFxp:
       //CntrlAllocFxp(cntrlEff, vObj, uMin, uMax, wtObj, wtEff, uPref, uCmd);
       break;
-    case Molp:
+    case kMolp:
       //CntrlAllocMolp(cntrlEff, vObj, uMin, uMax, wtObj, wtEff, uPref, uCmd);
       break;
-    case Moqp:
+    case kMoqp:
       //CntrlAllocMoqp(cntrlEff, vObj, uMin, uMax, wtObj, wtEff, uPref, uCmd);
       break;
-    case Sqp:
+    case kSqp:
       //CntrlAllocSqp(cntrlEff, vObj, uMin, uMax, wtObj, wtEff, uPref, uCmd);
       break;
   }
@@ -92,7 +92,7 @@ void CntrlAllocPseudoWt(const MatCntrlEff &cntrlEff, const VecObj &vObj, const M
   uCmd = (wtEff.inverse() * x) + uPref;
 }
 
-void CntrlAllocFxp(const MatCntrlEff &cntrlEff, const VecObj &vObj, const VecEff &uMin, const VecEff &uMax, const MatObj &wtObj, const MatEff &wtEff, const VecEff &uPref, VecEff &uCmd, float gammaEff, int numIter)
+void CntrlAllocFxp(const MatCntrlEff &cntrlEff, const VecObj &vObj, const VecEff &uMin, const VecEff &uMax, const MatObj &wtObj, const MatEff &wtEff, const VecEff &uPref, VecEff &uCmd, float gammaEff, uint8_t numIter)
 {
   // fixed-point optimization control allocation method
   MatEff H, G, I;
@@ -102,8 +102,8 @@ void CntrlAllocFxp(const MatCntrlEff &cntrlEff, const VecObj &vObj, const VecEff
   VecEff xMin, xMax;
 
   // Resize and initialize Vectors and Matrices
-  int numObj = cntrlEff.rows();
-  int numEff = cntrlEff.cols();
+  uint8_t numObj = cntrlEff.rows();
+  uint8_t numEff = cntrlEff.cols();
 
   H.conservativeResize(numEff, numEff);
   G.conservativeResize(numEff, numEff);
@@ -136,7 +136,7 @@ void CntrlAllocFxp(const MatCntrlEff &cntrlEff, const VecObj &vObj, const VecEff
   G = (w * H) - I;
   
   // Loop a set number of times
-  for(int iIter=0 ; iIter < numIter ; iIter++) {
+  for(uint8_t iIter=0 ; iIter < numIter ; iIter++) {
     // Compute next point without considering the constraints.
     uCmd = Fv - G * uCmd;
     
@@ -151,10 +151,10 @@ void CntrlAllocFxp(const MatCntrlEff &cntrlEff, const VecObj &vObj, const VecEff
 /*void CntrlAllocPseudoRedis(const MatCntrlEff &cntrlEff, const VecObj &vObj, const VecEff &uMin, const VecEff &uMax, const MatObj &wtObj, const MatEff &wtEff, const VecEff &uPref, VecEff &uCmd)
 {
   // Redistributed pseduo-inverse control allocation method
-  int iObj, iEff, iIter;
+  uint8_t iObj, iEff, iIter;
   float tmp;
-  int inadm;
-  int numEffFree;
+  uint8_t inadm;
+  uint8_t numEffFree;
   
   MatCntrlEff BFree;
   VecObj vObjResid;
@@ -162,8 +162,8 @@ void CntrlAllocFxp(const MatCntrlEff &cntrlEff, const VecObj &vObj, const VecEff
   VecEffInt iEffSat, iEffFree;
   
   // Resize and initialize Vectors and Matrices
-  int numObj = cntrlEff.rows();
-  int numEff = cntrlEff.cols();
+  uint8_t numObj = cntrlEff.rows();
+  uint8_t numEff = cntrlEff.cols();
 
   BFree.conservativeResize(numObj, numEff);
 
@@ -176,7 +176,7 @@ void CntrlAllocFxp(const MatCntrlEff &cntrlEff, const VecObj &vObj, const VecEff
   // Initialize iEffSat = 0
   //VecEff iEffSate.Zero(numEff);
 
-  int numIter = numEff;
+  uint8_t numIter = numEff;
   for(iIter = 0 ; iIter < numIter ; iIter++){
     
     // Find the "Free" Effectors
@@ -196,7 +196,7 @@ void CntrlAllocFxp(const MatCntrlEff &cntrlEff, const VecObj &vObj, const VecEff
 
     ExpandVecElem(pFree, iEffFree, uCmd);
 
-    int numSat = SaturateIndex(uMin, uMax, uCmd, iEffSat);
+    uint8_t numSat = SaturateIndex(uMin, uMax, uCmd, iEffSat);
 
     if((numEffFree < numObj) & (numSat == 0)) return;
     
@@ -206,11 +206,11 @@ void CntrlAllocFxp(const MatCntrlEff &cntrlEff, const VecObj &vObj, const VecEff
 /*void CntrlAllocPseudoRedisScale(const MatCntrlEff &cntrlEff, const VecObj &vObj, const VecEff &uMin, const VecEff &uMax, const MatObj &wtObj, const MatEff &wtEff, const VecEff &uPref, VecEff &uCmd)
 {
   // redistributed pseduo-inverse control allocation method with control surface scaling
-  int iObj, iEff, iIter;
+  uint8_t iObj, iEff, iIter;
   float tmp;
   float clip;
-  int indx_clip;
-  int numEffFree;
+  uint8_t indx_clip;
+  uint8_t numEffFree;
   
   VecEff iEffSat;
   VecEff iEffFree;
@@ -223,8 +223,8 @@ void CntrlAllocFxp(const MatCntrlEff &cntrlEff, const VecObj &vObj, const VecEff
   float uCmdCntr;
   
   // Size of cntrlEff
-  int numEff = cntrlEff.rows();
-  int numObj = cntrlEff.cols();
+  uint8_t numEff = cntrlEff.rows();
+  uint8_t numObj = cntrlEff.cols();
 
   // Initialize iEffSat, Define uCmdRng and uCmdCntr
   for(iEff=0 ; iEff<numEff ; iEff++){
@@ -302,19 +302,19 @@ void CntrlAllocFxp(const MatCntrlEff &cntrlEff, const VecObj &vObj, const VecEff
 /*void CntrlAllocMOLP(const MatCntrlEff &cntrlEff, const VecObj &vObj, const VecEff &uMin, const VecEff &uMax, const MatObj &wtObj, const MatEff &wtEff, const VecEff &uPref, VecEff &uCmd, float gammaEff)
 {
   // linear mixed optimization control allocation method
-  int iObj, iEff;
+  uint8_t iObj, iEff;
   float errMax ;
   
   // Size of cntrlEff
-  int numEff = cntrlEff.rows();
-  int numObj = cntrlEff.cols();
-  int lenNew = 2*(numObj + numEff);
+  uint8_t numEff = cntrlEff.rows();
+  uint8_t numObj = cntrlEff.cols();
+  uint8_t lenNew = 2*(numObj + numEff);
 
   Eigen::Matrix<float, numObj, lenNew> A;
   Eigen::Vector<float, numObj> b;
   Eigen::Vector<float, lenNew> c, x, xMin, xMax;
   
-  Eigen::Vector<int, lenNew> wInit ;
+  Eigen::Vector<uint8_t, lenNew> wInit ;
 
   float tmp = 0.0 ;
 
@@ -382,14 +382,14 @@ void CntrlAllocFxp(const MatCntrlEff &cntrlEff, const VecObj &vObj, const VecEff
 {
   // quadratic mixed optimization control allocation method
   // Size of cntrlEff
-  int numEff = cntrlEff.rows();
-  int numObj = cntrlEff.cols();
-  int lenNew = (numObj + numEff);
+  uint8_t numEff = cntrlEff.rows();
+  uint8_t numObj = cntrlEff.cols();
+  uint8_t lenNew = (numObj + numEff);
 
   // Variables for change of variables
   Eigen::Matrix<float, numObj, lenNew> A;
   Eigen::Vector<float, lenNew> b;
-  Eigen::Vector<int, numEff> iEffSat;
+  Eigen::Vector<uint8_t, numEff> iEffSat;
 
   // Weighting Factor between two objectives
   float gammaEffSqrt = gammaEff.sqrt();
@@ -416,9 +416,9 @@ void CntrlAllocFxp(const MatCntrlEff &cntrlEff, const VecObj &vObj, const VecEff
 {
   // quadratic sequential optimization control allocation method
   // Size of cntrlEff
-  int numEff = cntrlEff.rows();
-  int numObj = cntrlEff.cols();
-  int lenNew = (numObj + numEff);
+  uint8_t numEff = cntrlEff.rows();
+  uint8_t numObj = cntrlEff.cols();
+  uint8_t lenNew = (numObj + numEff);
   
   // Variables for change of variables
   MatCntrlEff A1;
@@ -522,9 +522,9 @@ void SolvPinvQR(const MatSolv &A, const VecSolvObj &b, VecSolvEff &x)
 //                iEffSat =  0 for xMin < x < xMax
 //                iEffSat =  1 for x == xMax
   
-  int iObj, iEff, iIter, iAlpha, iAlphaFree, lambdaNeg, iObj_neg ;
+  uint8_t iObj, iEff, iIter, iAlpha, iAlphaFree, lambdaNeg, iObj_neg ;
   float tmp, alpha;
-  int numEffFree;
+  uint8_t numEffFree;
   
   Eigen::Array<bool, numEff> iEffFree;
 
@@ -534,7 +534,7 @@ void SolvPinvQR(const MatSolv &A, const VecSolvObj &b, VecSolvEff &x)
   VecObj stepDist;
   VecObj lambda;
   
-  int numIter = 2*numEff + 1;
+  uint8_t numIter = 2*numEff + 1;
   
   // Initialize solution residual
   bResid = b - A * x;
@@ -629,9 +629,9 @@ void SolvPinvQR(const MatSolv &A, const VecSolvObj &b, VecSolvEff &x)
 //                iEffSat =  0 for xMin < x < xMax
 //                iEffSat =  1 for x == xMax
 
-  int iObj, iEff, iIter, iAlpha, iEffFree_alpha, lambdaNeg, iObj_neg;
+  uint8_t iObj, iEff, iIter, iAlpha, iEffFree_alpha, lambdaNeg, iObj_neg;
   float tmp, alpha;
-  int numObj_c, numEffFree, numEff_fixed ;
+  uint8_t numObj_c, numEffFree, numEff_fixed ;
   
   VecObj iEffFree;
   VecObj iEffFixed;
@@ -644,7 +644,7 @@ void SolvPinvQR(const MatSolv &A, const VecSolvObj &b, VecSolvEff &x)
   VecObj Lambda;
   float ET; //ET[MAX_M+MAX_N]
   
-  int numIter = 2*numEff + 1;
+  uint8_t numIter = 2*numEff + 1;
   
   
   // Initialize solution residual: bResid = b2 - A2 * x
@@ -790,12 +790,12 @@ void Saturate(const VecEff &uMin, const VecEff &uMax, VecEff &uCmd)
   uCmd = uCmd.cwiseMin(uMax).cwiseMax(uMin);
 }
 
-int SaturateIndex(const VecEff &uMin, const VecEff &uMax, VecEff &uCmd, VecEffInt &iEffSat)
+uint8_t SaturateIndex(const VecEff &uMin, const VecEff &uMax, VecEff &uCmd, VecEffInt &iEffSat)
 {
-  int len = uCmd.size();
-  int numSat = 0;
+  uint8_t len = uCmd.size();
+  uint8_t numSat = 0;
 
-  for(int i = 0 ; i < len ; i++) {
+  for(uint8_t i = 0 ; i < len ; i++) {
     if (uCmd[i] >= uMax[i]) {
       uCmd[i] = uMax[i];
       iEffSat[i] = 1;
@@ -812,12 +812,12 @@ int SaturateIndex(const VecEff &uMin, const VecEff &uMax, VecEff &uCmd, VecEffIn
   return numSat;
 }
 
-int FindFree(const VecEffInt &iEffSat, VecEffInt &iEffFree)
+uint8_t FindFree(const VecEffInt &iEffSat, VecEffInt &iEffFree)
 {
-  int len = iEffSat.size();
-  int num = 0;
+  uint8_t len = iEffSat.size();
+  uint8_t num = 0;
   
-  for(int i = 0 ; i < len ; i++){
+  for(uint8_t i = 0 ; i < len ; i++){
     if (iEffSat[i] == 0) {
       iEffFree[i] = 1;
     } else {
@@ -831,13 +831,13 @@ int FindFree(const VecEffInt &iEffSat, VecEffInt &iEffFree)
 void ShrinkMatColumns(const MatCntrlEff &M, const VecEffInt &elemKeep, MatCntrlEff &MShrink)
 {
   // Copy only colums of a matrix
-  int numRows = M.rows();
-  int numCols = M.cols();
+  uint8_t numRows = M.rows();
+  uint8_t numCols = M.cols();
 
-  int numElemKeep = elemKeep.sum();
+  uint8_t numElemKeep = elemKeep.sum();
 
-  int i = 0;
-  int iKeep = 0;
+  uint8_t i = 0;
+  uint8_t iKeep = 0;
 
   for (i = 0; i < numCols; i++) {
     if( elemKeep[i] == 1 ) {
@@ -852,12 +852,12 @@ void ShrinkMatColumns(const MatCntrlEff &M, const VecEffInt &elemKeep, MatCntrlE
 void ShrinkVecElem(const VecEff &V, const VecEffInt &elemKeep, VecEff &VShrink)
 {
   // Copy only elements of vector
-  int num = V.size();
+  uint8_t num = V.size();
 
-  int numKeep = elemKeep.sum();
+  uint8_t numKeep = elemKeep.sum();
 
-  int i = 0;
-  int iKeep = 0;
+  uint8_t i = 0;
+  uint8_t iKeep = 0;
 
   for (i = 0; i < num; i++) {
     if( elemKeep[i] == 1 ) {
@@ -872,14 +872,14 @@ void ShrinkVecElem(const VecEff &V, const VecEffInt &elemKeep, VecEff &VShrink)
 void ExpandMatColumns(const MatCntrlEff &M, const VecEffInt &elemKeep, MatCntrlEff &MExp)
 {
   // Copy only colums of a matrix
-  int numRows = M.rows();
-  int numCols = M.cols();
+  uint8_t numRows = M.rows();
+  uint8_t numCols = M.cols();
 
   MExp.Zero(numRows, numCols);
 
-  int numExp = elemKeep.size();
+  uint8_t numExp = elemKeep.size();
 
-  int i = 0;
+  uint8_t i = 0;
 
   for (i = 0; i < numExp; i++) {
     if( elemKeep[i] == 1 ) {
@@ -895,13 +895,13 @@ void ExpandMatColumns(const MatCntrlEff &M, const VecEffInt &elemKeep, MatCntrlE
 void ExpandVecElem(const VecEff &V, const VecEffInt &elemKeep, VecEff &VExp)
 {
   // Expand a Vector
-  int num = V.size();
+  uint8_t num = V.size();
 
   VExp.Zero(num);
 
-  int numExp = elemKeep.size();
-  int i = 0;
-  int iGrow;
+  uint8_t numExp = elemKeep.size();
+  uint8_t i = 0;
+  uint8_t iGrow;
 
   for (i = 0; i < numExp; i++) {
     if( elemKeep[i] == 1 ) {

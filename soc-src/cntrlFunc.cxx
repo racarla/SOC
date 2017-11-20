@@ -11,95 +11,233 @@ History:
 
 #include "cntrlFunc.hxx"
 
-// CntrlPid
-// Constructor
-CntrlPid::CntrlPid()
-{
-	runMode = Standby; // Initialize in Standby
-	iErr = 0.0; // Initialize Integrator State
-	errPrev = 0.0; // Set previous error to zero
 
-	cmd = 0.0; // Initialize the command to zero
+// CntrlManual
+// Constructor
+CntrlManual::CntrlManual()
+{
+  runMode_ = kCntrlStandby; // Initialize in Standby
 }
 
 // Set Parameters for the tunable controller
-void CntrlPid::SetParam(float kP_, float kI_, float kD_, float cmdMin_, float cmdMax_)
+void CntrlManual::Init(float refMin, float refMax, float cmdMin, float cmdMax)
 {
-	kP = kP_;
-	kI = kI_;
-	kD = kD_;
+  refMin_ = refMin;
+  refMax_ = refMax; 
 
-	cmdMin = cmdMin_;
-	cmdMax = cmdMax_;
+  cmdMin_ = cmdMin;
+  cmdMax_ = cmdMax;
 }
 
-// PID Controller
-float CntrlPid::Compute(const float ref, const float meas, const float dt)
+// Damper Controller
+float CntrlManual::Compute(float ref)
 {
-	// Compute the Error
-	float err = ref - meas;
-	float dErr = (err - errPrev) / dt; // Derivative of Error
+  float refScale = (refMax_ - refMin_) * ref;
+  float err = refScale - 0.0;
+  float cmd;
 
-	switch(runMode) {
-		case Reset: // Zero the State and Command
-			iErr = 0.0;
-			errPrev = 0.0;
-			cmd = 0.0;
-         	break;
+  switch(runMode_) {
+    case kCntrlReset: // Zero the state and command
 
-  		case Standby: // Do Nothing, State and Command are unchanged
-         	break;
+      cmd = 0.0;
+      runMode_ = kCntrlStandby;
+      break;
 
-		case Hold: // Compute Commands
-			cmd = CntrlPid::CalcCmd(err, iErr, dErr);
-         	break;
+    case kCntrlStandby: // Do Nothing, State and Command unchanged
+      break;
 
-  		case Init: // Initialize State then Compute Commands
-			iErr = CntrlPid::InitState(cmd, err, dErr);
+    case kCntrlHold: // Compute Commands
 
-			cmd = CntrlPid::CalcCmd(err, iErr, dErr);
-         	break;
+      cmd = CalcCmd(err);
+      break;
 
-		case Engage: // Update the State then Compute Commands
-			iErr += (dt * err); // Update the state
+    case kCntrlInit: // Initialize State then Compute Commands
 
-			cmd = CntrlPid::CalcCmd(err, iErr, dErr);
-         	break;
-	}
+      cmd = CalcCmd(err);
+      break;
 
-	return cmd;
+    case kCntrlEngage: // Update the State then Compute Commands
+
+      cmd = CalcCmd(err);
+      break;
+  }
+
+  return cmd;
 }
 
-// Compute the Command for the Pid or PI+Damper controllers
-float CntrlPid::CalcCmd(float err, float iErr, float dErr)
+// Compute the Command for the Damper controller
+float  CntrlManual::CalcCmd(float err)
 {
-	float pCmd = kP * err;
-	float iCmd = kI * iErr;
-	float dCmd = kD * dErr;
-	float cmd = pCmd + iCmd + dCmd;
+  float cmd = err;
 
-	// saturate cmd, set iErr to limit that produces saturated cmd
-	if (cmd <= cmdMin) {
-		cmd = cmdMin;
-		iErr = CntrlPid::InitState(cmd, err, dErr); // Re-compute the integrator state
-	} else if (cmd >= cmdMax) {
-		cmd = cmdMax;
-		iErr = CntrlPid::InitState(cmd, err, dErr); // Re-compute the integrator state
-	}
-	
-	return cmd;
+  // saturate cmd, set iErr to limit that produces saturated cmd
+  if (cmd <= cmdMin_) {
+    cmd = cmdMin_;
+  } else if (cmd >= cmdMax_) {
+    cmd = cmdMax_;
+  }
+
+  return cmd;
 }
 
-// Initialize a PI, Pid, or PI+Damper Controller for near-zero transient
-float CntrlPid::InitState(float cmd, float err, float dErr)
+
+// CntrlDamp
+// Constructor
+CntrlDamp::CntrlDamp()
 {
-	iErr = 0.0;
+  runMode_ = kCntrlStandby; // Initialize in Standby
+}
 
-	if (kI != 0.0) { // Protect for kI == 0
-		iErr = (cmd - (kP * err + kD * dErr)) / kI; // Compute the required state
-	}
+// Set Parameters for the tunable controller
+void CntrlDamp::Init(float KD, float refMin, float refMax, float cmdMin, float cmdMax)
+{
+  KD_ = KD;
 
-	return iErr;
+  refMin_ = refMin;
+  refMax_ = refMax;
+
+  cmdMin_ = cmdMin;
+  cmdMax_ = cmdMax;
+}
+
+// Damper Controller
+float CntrlDamp::Compute(float ref, float dMeas)
+{
+  float refScale = (refMax_ - refMin_) * ref;
+  float err = refScale - 0.0;
+  float dErr = 0.0 - dMeas; // Measurement for the Damper, Note the sign!!
+  float cmd;
+
+  switch(runMode_) {
+    case kCntrlReset: // Zero the state and command
+      cmd = 0.0;
+      runMode_ = kCntrlStandby;
+      break;
+
+    case kCntrlStandby: // Do Nothing, State and Command unchanged
+      break;
+
+    case kCntrlHold: // Compute Commands
+
+      cmd = CalcCmd(err, dErr);
+      break;
+
+    case kCntrlInit: // Initialize State then Compute Commands
+
+      cmd = CalcCmd(err, dErr);
+      break;
+
+    case kCntrlEngage: // Update the State then Compute Commands
+
+      cmd = CalcCmd(err, dErr);
+      break;
+  }
+
+  return cmd;
+}
+
+// Compute the Command
+float CntrlDamp::CalcCmd(float err, float dErr)
+{
+  float cmd = err + KD_ * dErr;
+
+  // saturate cmd, set iErr to limit that produces saturated cmd
+  if (cmd <= cmdMin_) {
+    cmd = cmdMin_;
+  } else if (cmd >= cmdMax_) {
+    cmd = cmdMax_;
+  }
+
+  return cmd;
+}
+
+// CntrlPi
+// Constructor
+CntrlPi::CntrlPi()
+{
+  runMode_ = kCntrlStandby; // Initialize in Standby
+  iErr_ = 0.0; // Initialize the Integrator
+}
+
+// Set Parameters for the tunable controller
+void CntrlPi::Init(float KP, float KI, float refMin, float refMax, float cmdMin, float cmdMax)
+{
+  KP_ = KP;
+  KI_ = KI;
+
+  refMin_ = refMin;
+  refMax_ = refMax; 
+
+  cmdMin_ = cmdMin;
+  cmdMax_ = cmdMax;
+}
+
+// PI Controller
+float CntrlPi::Compute(float ref, float meas, float dt_s)
+{
+  float refScale = (refMax_ - refMin_) * ref; // Scaled reference command
+  float err = refScale - meas; // Compute the Error
+
+  if (dt_s <= 0.0 ) {
+    dt_s = 0.0; // Prevents the Integrator state from changing
+  }
+  float cmd;
+
+  switch(runMode_) {
+    case kCntrlReset: // Zero the state and command
+
+      iErr_ = 0.0;
+      runMode_ = kCntrlStandby;
+      cmd = 0.0;
+      break;
+
+    case kCntrlStandby: // Do Nothing, State and Command unchanged
+      break;
+
+    case kCntrlHold: // Hold Integrator State, Compute Commands
+
+      cmd = CalcCmd(err);
+      break;
+
+    case kCntrlInit: // Initialize State then Compute Commands
+
+      InitState(0.0, err);
+      cmd = CalcCmd(err);
+      break;
+
+    case kCntrlEngage: // Update the State then Compute Commands
+
+      iErr_ += (dt_s * err); // Update the state
+      cmd = CalcCmd(err);
+      break;
+  }
+
+  return cmd;
+}
+
+// Initialize for near-zero transient
+void CntrlPi::InitState(float cmd, float err)
+{
+  if (KI_ != 0.0) { // Protect for KI == 0
+    iErr_ = (cmd - (KP_ * err)) / KI_; // Compute the required state
+  }
+}
+
+// Compute the Command
+float CntrlPi::CalcCmd(float err)
+{
+  float pCmd = KP_ * err;
+  float iCmd = KI_ * iErr_;
+  float cmd = pCmd + iCmd;
+
+  // saturate cmd, set iErr to limit that produces saturated cmd
+  if (cmd <= cmdMin_) {
+    cmd = cmdMin_;
+    InitState(cmd, err); // Re-compute the integrator state
+  } else if (cmd >= cmdMax_) {
+    cmd = cmdMax_;
+    InitState(cmd, err); // Re-compute the integrator state
+  }
 }
 
 
@@ -107,139 +245,196 @@ float CntrlPid::InitState(float cmd, float err, float dErr)
 // Constructor
 CntrlPiDamp::CntrlPiDamp()
 {
-	runMode = Standby; // Initialize in Standby
-	iErr = 0.0; // Initialize the Integrator
-
-	cmd = 0.0; // Initialize the command to zero
+	runMode_ = kCntrlStandby; // Initialize in Standby
+	iErr_ = 0.0; // Initialize the Integrator
 }
 
 // Set Parameters for the tunable controller
-void CntrlPiDamp::SetParam(float kP_, float kI_, float kDamp_, float cmdMin_, float cmdMax_)
+void CntrlPiDamp::Init(float KP, float KI, float KD, float refMin, float refMax, float cmdMin, float cmdMax)
 {
-	kP = kP_;
-	kI = kI_;
-	kDamp = kDamp_;
+	KP_ = KP;
+	KI_ = KI;
+	KD_ = KD;
 
-	cmdMin = cmdMin_;
-	cmdMax = cmdMax_;
+  refMin_ = refMin;
+  refMax_ = refMax; 
+
+	cmdMin_ = cmdMin;
+	cmdMax_ = cmdMax;
 }
 
 // PI Controller plus Damper
-float CntrlPiDamp::Compute(const float ref, const float meas, const float dMeas, const float dt)
+float CntrlPiDamp::Compute(float ref, float meas, float dMeas, float dt_s)
 {
-	float err = ref - meas; // Compute the Error
-	float dErr = dMeas; // Measurement for the Damper
+  float refScale = (refMax_ - refMin_) * ref; // Scaled reference command
+  float err = refScale - meas; // Compute the Error
+	float dErr = 0.0 - dMeas; // Measurement for the Damper, Not the sign!!
 
-	switch(runMode) {
-		case Reset: // Zero the state and command
-			iErr = 0.0;
-			cmd = 0.0;
-         	break;
+  if (dt_s <= 0.0 ) {
+    dt_s = 0.0; // Prevents the Integrator state from changing
+  }
+  float cmd;
 
-  		case Standby: // Do Nothing, State and Command unchanged
-         	break;
+	switch(runMode_) {
+		case kCntrlReset: // Zero the state and command
 
-		case Hold: // Hold Integrator State, Compute Commands
-			cmd = CntrlPiDamp::CalcCmd(err, iErr, dErr);
-         	break;
+			iErr_ = 0.0;
+      runMode_ = kCntrlStandby;
+      cmd = 0.0;
+     	break;
 
-  		case Init: // Initialize State then Compute Commands
-			iErr = CntrlPiDamp::InitState(cmd, err, dErr);
+		case kCntrlStandby: // Do Nothing, State and Command unchanged
+     	break;
 
-			cmd = CntrlPiDamp::CalcCmd(err, iErr, dErr);
-         	break;
+		case kCntrlHold: // Hold Integrator State, Compute Commands
 
-		case Engage: // Update the State then Compute Commands
-			iErr += (dt * err); // Update the state
+      cmd = CalcCmd(err, dErr);
+     	break;
 
-			cmd = CntrlPiDamp::CalcCmd(err, iErr, dErr);
-         	break;
+		case kCntrlInit: // Initialize State then Compute Commands
+
+			InitState(0.0, err, dErr);
+      cmd = CalcCmd(err, dErr);
+     	break;
+
+		case kCntrlEngage: // Update the State then Compute Commands
+
+			iErr_ += (dt_s * err); // Update the state
+			cmd = CalcCmd(err, dErr);
+     	break;
 	}
 
 	return cmd;
 }
 
-// Compute the Command for the Pid or PI+Damper controllers
-float CntrlPiDamp::CalcCmd(float err, float iErr, float dErr)
+// Initialize Controller for near-zero transient
+void CntrlPiDamp::InitState(float cmd, float err, float dErr)
 {
-	float pCmd = kP * err;
-	float iCmd = kI * iErr;
-	float dCmd = kDamp * dErr;
-	float cmd = pCmd + iCmd - dCmd; // NOTE THE SIGN!!
+  if (KI_ != 0.0) { // Protect for KI == 0
+    iErr_ = (cmd - (KP_ * err + KD_ * dErr)) / KI_; // Compute the required state
+  }
+}
+
+// Compute the Command
+float CntrlPiDamp::CalcCmd(float err, float dErr)
+{
+	float pCmd = KP_ * err;
+	float iCmd = KI_ * iErr_;
+	float dCmd = KD_ * dErr;
+	float cmd = pCmd + iCmd + dCmd;
 
 	// saturate cmd, set iErr to limit that produces saturated cmd
-	if (cmd <= cmdMin) {
-		cmd = cmdMin;
-		iErr = CntrlPiDamp::InitState(cmd, err, dErr); // Re-compute the integrator state
-	} else if (cmd >= cmdMax) {
-		cmd = cmdMax;
-		iErr = CntrlPiDamp::InitState(cmd, err, dErr); // Re-compute the integrator state
+	if (cmd <= cmdMin_) {
+		cmd = cmdMin_;
+		InitState(cmd, err, dErr); // Re-compute the integrator state
+	} else if (cmd >= cmdMax_) {
+		cmd = cmdMax_;
+		InitState(cmd, err, dErr); // Re-compute the integrator state
 	}
-	
-	return cmd;
 }
 
-// Initialize a PI, Pid, or PI+Damper Controller for near-zero transient
-float CntrlPiDamp::InitState(float cmd, float err, float dErr)
-{
-	iErr = 0.0;
 
-	if (kI != 0.0) { // Protect for kI == 0
-		iErr = (cmd - (kP * err + kDamp * dErr)) / kI; // Compute the required state
-	}
 
-	return iErr;
-}
-
-// CntrlDamp
+// PID Controller
 // Constructor
-CntrlDamp::CntrlDamp()
+CntrlPid::CntrlPid()
 {
-	runMode = Standby; // Initialize in Standby
-
-	cmd = 0.0; // Initialize the command to zero
+  runMode_ = kCntrlStandby; // Initialize in Standby
+  iErr_ = 0.0; // Initialize Integrator State
+  errPrev_ = 0.0; // Set previous error to zero
 }
 
 // Set Parameters for the tunable controller
-void CntrlDamp::SetParam(float kDamp_, float cmdMin_, float cmdMax_)
+void CntrlPid::Init(float KP, float KI, float KD, float refMin, float refMax, float cmdMin, float cmdMax)
 {
-	kDamp = kDamp_;
+  KP_ = KP;
+  KI_ = KI;
+  KD_ = KD;
 
-	cmdMin = cmdMin_;
-	cmdMax = cmdMax_;
+  refMin_ = refMin;
+  refMax_ = refMax; 
+
+  cmdMin_ = cmdMin;
+  cmdMax_ = cmdMax;
 }
 
-// Damper Controller
-float CntrlDamp::Compute(const float dMeas)
+float CntrlPid::Compute(float ref, float meas, float dt_s)
 {
-	switch(runMode) {
-		case Reset: // Zero the state and command
-			cmd = 0.0;
-         	break;
+  float refScale = (refMax_ - refMin_) * ref; // Scaled reference command
+  float err = refScale - meas; // Compute the Error
 
-  		case Standby: // Do Nothing, State and Command unchanged
-         	break;
+  // Derivative of Error
+  float dErr;
+  if (dt_s > 0.0 ) {
+    dErr = (err - errPrev_) / dt_s;
+  } else {
+    dt_s = 0.0; // Prevents the Integrator state from changing
+    dErr = 0.0;
+  }
 
-		case Engage: // Update the State then Compute Commands
+  float cmd;
 
-			cmd = CntrlDamp::CalcCmd(dMeas);
-         	break;
-	}
+  // Update the previous error state
+  errPrev_ = err;
 
-	return cmd;
+  switch(runMode_) {
+    case kCntrlReset: // Zero the State and Command
+      iErr_ = 0.0;
+      err = 0.0;
+      errPrev_ = 0.0;
+      cmd = 0.0;
+
+      runMode_ = kCntrlStandby;
+      break;
+
+    case kCntrlStandby: // Do Nothing, State and Command are unchanged
+      break;
+
+    case kCntrlHold: // Compute Commands
+
+      cmd = CalcCmd(err, dErr);
+      break;
+
+    case kCntrlInit: // Initialize State then Compute Commands
+
+      InitState(0.0, err, dErr);
+      cmd = CalcCmd(err, dErr);
+      break;
+
+    case kCntrlEngage: // Update the State then Compute Commands
+
+      iErr_ += (dt_s * err); // Update the state
+      cmd = CalcCmd(err, dErr);
+      break;
+  }
+
+  return cmd;
 }
 
-// Compute the Command for the Damper controller
-float CntrlDamp::CalcCmd(float dMeas)
+// Initialize for near-zero transient
+void CntrlPid::InitState(float cmd, float err, float dErr)
 {
-	float cmd = -kDamp * dMeas; // NOTE THE SIGN!!
+  if (KI_ != 0.0) { // Protect for KI == 0
+    iErr_ = (cmd - (KP_ * err + KD_ * dErr)) / KI_; // Compute the required state
+  }
+}
 
-	// saturate cmd, set iErr to limit that produces saturated cmd
-	if (cmd <= cmdMin) {
-		cmd = cmdMin;
-	} else if (cmd >= cmdMax) {
-		cmd = cmdMax;
-	}
-	
-	return cmd;
+// Compute the Command
+float CntrlPid::CalcCmd(float err, float dErr)
+{
+  float pCmd = KP_ * err;
+  float iCmd = KI_ * iErr_;
+  float dCmd = KD_ * dErr;
+  float cmd = pCmd + iCmd + dCmd;
+
+  // saturate cmd, set iErr to limit that produces saturated cmd
+  if (cmd <= cmdMin_) {
+    cmd = cmdMin_;
+    InitState(cmd, err, dErr); // Re-compute the integrator state
+  } else if (cmd >= cmdMax_) {
+    cmd = cmdMax_;
+    InitState(cmd, err, dErr); // Re-compute the integrator state
+  }
+
+  return cmd;
 }
