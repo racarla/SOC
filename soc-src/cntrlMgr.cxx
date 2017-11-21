@@ -12,13 +12,22 @@ History:
 
 void CntrlMgr::Init()
 {
+  CntrlMode cntrlMode_ = kCntrlReset; // Controller mode
+  VecCmd cntrlBaseCmd_, cntrlResCmd_, cntrlCmd_;
+
+  cntrlBaseCmd_.setZero(4);
+  cntrlResCmd_.setZero(4);
+  cntrlCmd_.setZero(4);
+
   CntrlBaseDef();
   CntrlResDef();
 };
 
 
-void CntrlMgr::Mode()
+void CntrlMgr::Mode(CntrlMode cntrlMode)
 {
+  cntrlMode_ = cntrlMode;
+
   switch (cntrlMode_) {
     case kCntrlReset:
       cntrlBaseRoll_.runMode_ = kCntrlEngage;
@@ -78,9 +87,12 @@ void CntrlMgr::Mode()
 }
 
 // Define the Baseline Controller - FIXIT
-VecCmd CntrlMgr::CmdBase(VecCmd refVec, float timeCurr_s)
+VecCmd CntrlMgr::CmdBase(VecCmd refVec, float time_s)
 {
-  float dt_s = timeCurr_s - timePrev_s_;
+  float dt_s = time_s - timePrev_s_;
+
+  // Zero the Command - FIXIT shouldn't be required, variable size
+  cntrlBaseCmd_.setZero(4);
 
   // Run the Controllers
   cntrlBaseCmd_[0] = cntrlBaseRoll_.Compute(refVec[0]);
@@ -92,9 +104,12 @@ VecCmd CntrlMgr::CmdBase(VecCmd refVec, float timeCurr_s)
 }
 
 // Define the Research Controller - FIXIT
-VecCmd CntrlMgr::CmdRes(VecCmd refVec, VecCmd measVec, VecCmd dMeasVec, float timeCurr_s)
+VecCmd CntrlMgr::CmdRes(VecCmd refVec, VecCmd measVec, VecCmd dMeasVec, float time_s)
 {
-  float dt_s = timeCurr_s - timePrev_s_;
+  float dt_s = time_s - timePrev_s_;
+
+  // Zero the Command - FIXIT shouldn't be required, variable size
+  cntrlResCmd_.setZero(4);
 
   // Run the Controllers
   cntrlResCmd_[0] = cntrlResRoll_.Compute(refVec[0], measVec[0], dMeasVec[0], dt_s);
@@ -106,6 +121,10 @@ VecCmd CntrlMgr::CmdRes(VecCmd refVec, VecCmd measVec, VecCmd dMeasVec, float ti
 }
 
 VecCmd CntrlMgr::Cmd() {
+
+  // Zero the Command - FIXIT shouldn't be required, variable size
+  cntrlCmd_.setZero(4);
+
   // Switch the Command output to the Research Controller when engaged
   if (cntrlMode_ == kCntrlEngage)
   {

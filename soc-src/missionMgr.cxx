@@ -20,9 +20,7 @@ void MissionMgr::Init()
 MissionMode MissionMgr::ModeMgr(const FmuData FmuDataRef)
 {
   // Get the current time
-  timeCurr_s_ = FmuDataRef.Time_us * 1e6;
-  if (timeStart_s_ == -1) timeStart_s_ = timeCurr_s_; // Catch the reset frame, dt_s = 0
-  float time_s_ = timeCurr_s_ - timeStart_s_;
+  time_s_ = (float) FmuDataRef.Time_us / 1e6;
   frame_cnt_++;
 
   // Get the Pilot commands associated with mode control
@@ -30,9 +28,9 @@ MissionMode MissionMgr::ModeMgr(const FmuData FmuDataRef)
   uint8_t pilotAuxTestIndx = 1; // AuxInputs associated with Controller Mode Select
   uint8_t pilotAuxTrigIndx = 2; // AuxInputs associated with Controller Mode Select
 
-  float modeSel = FmuDataRef.SbusRx[0].AuxInputs(pilotAuxModeIndx);
-  float testSwitch = FmuDataRef.SbusRx[0].AuxInputs(pilotAuxTestIndx);
-  float testTrig = FmuDataRef.SbusRx[0].AuxInputs(pilotAuxTrigIndx);
+  float modeSel = FmuDataRef.SbusRx[0].AuxInputs[pilotAuxModeIndx];
+  float testSwitch = FmuDataRef.SbusRx[0].AuxInputs[pilotAuxTestIndx];
+  float testTrig = FmuDataRef.SbusRx[0].AuxInputs[pilotAuxTrigIndx];
 
   // Determine Auto Enable State
   if (FmuDataRef.SbusRx[0].AutoEnabled == 1) {
@@ -87,11 +85,11 @@ MissionMode MissionMgr::ModeMgr(const FmuData FmuDataRef)
 
       } else if ((testArm_ == 0) & (testSwitch < -0.5)) {
         indxTest_--;
-        if (indxTest_ <= 1) indxTest_ = 1;
+//        if (indxTest_ <= 1) indxTest_ = 1;
 
       } else if ((testArm_ == 0) & (testSwitch > 0.5))  {
         indxTest_++;
-        if (indxTest_ >= numTest_) indxTest_ = numTest_;
+//        if (indxTest_ >= numTest_) indxTest_ = numTest_;
       }
     } // If Trigger
 
@@ -105,6 +103,7 @@ MissionMode MissionMgr::ModeMgr(const FmuData FmuDataRef)
   missionMode_.frame_cnt = frame_cnt_;   // Mission frame counter
   missionMode_.autoEngage = autoEngage_;   // Mission autoEngage flag
 
+  missionMode_.cntrlMode = cntrlMode_;
   missionMode_.numTest = numTest_; // Number of test points
 
   missionMode_.trigArm = trigArm_;
@@ -121,15 +120,16 @@ MissionMode MissionMgr::ModeMgr(const FmuData FmuDataRef)
 void MissionMgr::Reset()
 {
   // Initialize timers 
-  timeStart_s_ = -1;
-  timeCurr_s_ = timeStart_s_;
-  time_s_ = 0.0;
+  time_s_ = -1;
 
   // Initialize frame counter
   frame_cnt_ = 0;
 
   // Reset the Auto Engagement Flag 
   autoEngage_ = 0;
+
+  // Controller mode
+  cntrlMode_ = kCntrlStandby;
 
   // Reset the Test Point mode control
   indxTrigPersist_ = 0;

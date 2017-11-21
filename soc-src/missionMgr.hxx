@@ -16,7 +16,6 @@ History:
 
 #include "global-defs.hxx"
 #include "cntrlMgr.hxx"
-#include "exciteGenFunc.hxx"
 
 
 
@@ -26,7 +25,7 @@ struct MissionMode {
   int frame_cnt;   // Mission frame counter
 
   bool autoEngage;   // Mission autoEngage flag
-  int8_t cntrlMode;   // Mission controller mode
+  CntrlMode cntrlMode;   // Mission controller mode
 
   bool trigArm; // Arm flag for the trigger
   bool trigEngage; // Engage flag for the trigger
@@ -47,8 +46,8 @@ class MissionMgr {
 
  private:
   MissionMode missionMode_;
-  float timeStart_s_, timeCurr_s_, time_s_;
-  int frameStart_cnt_, frame_cnt_;
+  float time_s_;
+  int frame_cnt_;
 
   bool autoEngage_;     // Mission autoEngage flag
   CntrlMode cntrlMode_; // Controller mode

@@ -12,6 +12,7 @@ History:
 
 #include "cntrlFunc.hxx"
 #include <Eigen/Dense>
+#include <iostream>
 
 
 #define MaxCntrlCmdDim 5
@@ -27,13 +28,13 @@ class CntrlMgr {
   ~CntrlMgr() {};  // Destructor
 
   void Init();     // Initialize controllers and excitations
-  void Mode();     // Control the Mode of all the controllers
+  void Mode(CntrlMode cntrlMode);     // Control the Mode of all the controllers
 
-  VecCmd CmdBase(VecCmd refVec, float timeCurr_s);
-  VecCmd CmdRes(VecCmd refVec, VecCmd measVec, VecCmd dMeasVec, float timeCurr_s);
+  VecCmd CmdBase(VecCmd refVec, float time_s);
+  VecCmd CmdRes(VecCmd refVec, VecCmd measVec, VecCmd dMeasVec, float time_s);
   VecCmd Cmd();      // Compute Controller Commands
  private:
-  float timePrev_s_, timeCurr_s_, dt_s_;
+  float timePrev_s_, time_s_, dt_s_;
 
   CntrlManual cntrlBaseRoll_, cntrlBasePitch_, cntrlBaseYaw_, cntrlBaseSpeed_;
   CntrlPiDamp cntrlResRoll_, cntrlResPitch_, cntrlResYaw_, cntrlResSpeed_;

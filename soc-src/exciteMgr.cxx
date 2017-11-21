@@ -227,7 +227,7 @@ VecCmd ExciteMgr::GetSignal()
 }
 
 
-bool ExciteMgr::Run(bool exciteMode, int indxTest, float timeCurr_s)
+bool ExciteMgr::Run(bool exciteMode, int indxTest, float time_s)
 {
   cmdPitch_ = 0.0;
   cmdRoll_ = 0.0;
@@ -239,83 +239,83 @@ bool ExciteMgr::Run(bool exciteMode, int indxTest, float timeCurr_s)
       case 0:
         break;
       case 1:
-        exciteFlag = exciteTest01_.Compute(timeCurr_s, cmdExcite_);
+        exciteFlag = exciteTest01_.Compute(time_s, cmdExcite_);
         cmdPitch_ = cmdExcite_[0];
         break;
       case 2:
-        exciteFlag = exciteTest02_.Compute(timeCurr_s, cmdExcite_);
+        exciteFlag = exciteTest02_.Compute(time_s, cmdExcite_);
         cmdRoll_ = cmdExcite_[0];
         break;
       case 3:
-        exciteFlag = exciteTest03_.Compute(timeCurr_s, cmdExcite_);
+        exciteFlag = exciteTest03_.Compute(time_s, cmdExcite_);
         cmdYaw_ = cmdExcite_[0];
         break;
       case 4:
-        exciteFlag = exciteTest04_.Compute(timeCurr_s, cmdExcite_);
+        exciteFlag = exciteTest04_.Compute(time_s, cmdExcite_);
         cmdPitch_ = cmdExcite_[0];
         cmdRoll_ = cmdExcite_[1];
         break;
       case 5:
-        exciteFlag = exciteTest05_.Compute(timeCurr_s, cmdExcite_);
+        exciteFlag = exciteTest05_.Compute(time_s, cmdExcite_);
         cmdPitch_ = cmdExcite_[0];
         cmdRoll_ = cmdExcite_[1];
         cmdYaw_ = cmdExcite_[2];
         break;
       case 6:
-        exciteFlag = exciteTest06_.Compute(timeCurr_s, cmdExcite_);
+        exciteFlag = exciteTest06_.Compute(time_s, cmdExcite_);
         cmdPitch_ = cmdExcite_[0];
         break;
       case 7:
-        exciteFlag = exciteTest07_.Compute(timeCurr_s, cmdExcite_);
+        exciteFlag = exciteTest07_.Compute(time_s, cmdExcite_);
         cmdRoll_ = cmdExcite_[0];
         break;
       case 8:
-        exciteFlag = exciteTest08_.Compute(timeCurr_s, cmdExcite_);
+        exciteFlag = exciteTest08_.Compute(time_s, cmdExcite_);
         cmdYaw_ = cmdExcite_[0];
         break;
       case 9:
-        exciteFlag = exciteTest09_.Compute(timeCurr_s, cmdExcite_);
+        exciteFlag = exciteTest09_.Compute(time_s, cmdExcite_);
         cmdPitch_ = cmdExcite_[0];
         cmdRoll_ = cmdExcite_[1];
         break;
       case 10:
-        exciteFlag = exciteTest10_.Compute(timeCurr_s, cmdExcite_);
+        exciteFlag = exciteTest10_.Compute(time_s, cmdExcite_);
         cmdPitch_ = cmdExcite_[0];
         break;
       case 11:
-        exciteFlag = exciteTest11_.Compute(timeCurr_s, cmdExcite_);
+        exciteFlag = exciteTest11_.Compute(time_s, cmdExcite_);
         cmdRoll_ = cmdExcite_[0];
         break;
       case 12:
-        exciteFlag = exciteTest12_.Compute(timeCurr_s, cmdExcite_);
+        exciteFlag = exciteTest12_.Compute(time_s, cmdExcite_);
         cmdYaw_ = cmdExcite_[0];
         break;
       case 13:
-        exciteFlag = exciteTest13_.Compute(timeCurr_s, cmdExcite_);
+        exciteFlag = exciteTest13_.Compute(time_s, cmdExcite_);
         cmdPitch_ = cmdExcite_[0];
         break;
       case 14:
-        exciteFlag = exciteTest14_.Compute(timeCurr_s, cmdExcite_);
+        exciteFlag = exciteTest14_.Compute(time_s, cmdExcite_);
         cmdRoll_ = cmdExcite_[0];
         break;
       case 15:
-        exciteFlag = exciteTest15_.Compute(timeCurr_s, cmdExcite_);
+        exciteFlag = exciteTest15_.Compute(time_s, cmdExcite_);
         cmdYaw_ = cmdExcite_[0];
         break;
       case 16:
-        exciteFlag = exciteTest16_.Compute(timeCurr_s, cmdExcite_);
+        exciteFlag = exciteTest16_.Compute(time_s, cmdExcite_);
         cmdRoll_ = cmdExcite_[0];
         break;
       case 17:
-        exciteFlag = exciteTest17_.Compute(timeCurr_s, cmdExcite_);
+        exciteFlag = exciteTest17_.Compute(time_s, cmdExcite_);
         cmdPitch_ = cmdExcite_[0];
         break;
       case 18:
-        exciteFlag = exciteTest18_.Compute(timeCurr_s, cmdExcite_);
+        exciteFlag = exciteTest18_.Compute(time_s, cmdExcite_);
         cmdRoll_ = cmdExcite_[0];
         break;
       case 19:
-        exciteFlag = exciteTest19_.Compute(timeCurr_s, cmdExcite_);
+        exciteFlag = exciteTest19_.Compute(time_s, cmdExcite_);
         cmdYaw_ = cmdExcite_[0];
         break;
 

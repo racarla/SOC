@@ -14,7 +14,7 @@ History:
 
 #include <math.h>
 
-const double kD2R = M_PI / 180.0;
+const float kD2R = M_PI / 180.0;
 
 enum CntrlMode {kCntrlReset = -1, kCntrlStandby = 0, kCntrlHold = 1, kCntrlInit = 2, kCntrlEngage = 3};
 

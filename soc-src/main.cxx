@@ -56,9 +56,8 @@ int main(int argc, char* argv[]) {
   missionMgr.Init(); // Initialize mission manager
 
   // Define Controller Manager and Controllers
-//  CntrlMgr cntrlMgr;       // Create the Controller Manager
-//  cntrlMgr.CntrlBaseDef(); // Define the Baseline Controller
-//  cntrlMgr.CntrlResDef();  // Define the Baseline Controller
+  CntrlMgr cntrlMgr;       // Create the Controller Manager
+  cntrlMgr.Init(); // Define the Baseline and Research Controller
 
   // Define Excitation Manager and Excitations
 //  ExciteMgr exciteMgr; // Create the Excitation Manager
@@ -109,9 +108,6 @@ int main(int argc, char* argv[]) {
         // Mode Switching
       MissionMode modeMgr = missionMgr.ModeMgr(Data);
 
-      std::cout << modeMgr.time_s << "\t" << modeMgr.autoEngage << "\t" << modeMgr.cntrlMode << "\t" << modeMgr.testEngage << "\t" << modeMgr.indxTest << "\t" << std::endl;
-
-
       // SENSOR PROCESSING
       // navigation filter
       if (Data.Gps.size() > 0) {
@@ -125,9 +121,43 @@ int main(int argc, char* argv[]) {
 
       // CONTROL LAWS
       // execute inner-loop control law
-//      cmdBase = cntrlMgr.ComputeBase(refVec, timeCurr_s)
-//      cmdRes = cntrlMgr.ComputeRes(refVec, measVec, dMeasVec, timeCurr_s);
-//      cmdCntrl = cntrlMgr.Compute();
+
+      cntrlMgr.Mode(modeMgr.cntrlMode); // Transfer the Mission Control mode to the Controller Manager
+
+      VecCmd refVec(4);
+      refVec[0] = Data.SbusRx[0].Inceptors[0];
+      refVec[1] = Data.SbusRx[0].Inceptors[1];
+      refVec[2] = Data.SbusRx[0].Inceptors[2];
+      refVec[3] = Data.SbusRx[0].Inceptors[4];
+
+      VecCmd measVecAngles(4);
+      measVecAngles[0] = NavData.Euler_rad[0];
+      measVecAngles[1] = NavData.Euler_rad[1];
+      measVecAngles[2] = NavData.Euler_rad[2];
+      measVecAngles[3] = 15; // FIXIT - Need filtered airspeed
+
+      VecCmd measVecRates(4);
+      measVecRates[0] = Data.Mpu9250.Gyro_rads[0];
+      measVecRates[1] = Data.Mpu9250.Gyro_rads[1];
+      measVecRates[2] = Data.Mpu9250.Gyro_rads[2];
+      measVecRates[3] = 0; // FIXIT ???
+
+      VecCmd cmdBase = cntrlMgr.CmdBase(refVec, modeMgr.time_s);
+      VecCmd cmdRes = cntrlMgr.CmdRes(refVec, measVecAngles, measVecRates, modeMgr.time_s);
+      VecCmd cmdCntrl = cntrlMgr.Cmd();
+
+// FIXIT - indxTest is not changing as desired. uncommomment limits, allow switching while cntrlMode = 3
+// FIXIT - the failsafe mode leaves the controller engaged, at least need to disengage the excitation
+// FIXIT - Throttle controller??
+// FIXIT - Need airspeed source + filtered
+// FIXIT - Research Yaw controller
+// FIXIT - check reference command limits, manual mode pegs the cmd with really small stick deflections
+
+std::cout << modeMgr.time_s << "\t" << modeMgr.autoEngage << "\t" << modeMgr.cntrlMode << "\t" << modeMgr.testArm << "\t" << modeMgr.testEngage << "\t" << (int) modeMgr.indxTest << "\t";
+
+std::cout << cmdCntrl.transpose() << std::endl;
+
+
 
       // Apply command excitations
 //      excitationFlag = ExciteMgr.Run(missionMgr.exciteMode_, missionMgr.indxTest_, missionMgr.timeCurr_s_);
@@ -149,11 +179,15 @@ int main(int argc, char* argv[]) {
       cmdThrot = cmdCntrl[3] + cmdExcite[3];
 */
       // OUTPUT PROCESSING
+//      std::cout << "OUTPUT PROCESSING" << std::endl;
+Config.NumberEffectors = 7;
       // send control surface commands
       std::vector<float> EffectorCmd;
       EffectorCmd.resize(Config.NumberEffectors);
       std::vector<uint8_t> EffectorBuffer;
       EffectorBuffer.resize(EffectorCmd.size()*sizeof(float));
+
+      EffectorCmd[0] = -3;
 /*
       EffectorCmd[0] = cmdThrot;
       EffectorCmd[1] = cmdElev;

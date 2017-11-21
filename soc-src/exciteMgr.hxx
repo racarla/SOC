@@ -30,7 +30,7 @@ class ExciteMgr {
   ~ExciteMgr() {};  // Destructor
 
   void Init();     // Initialize excitations
-  bool Run(bool exciteMode, int indxTest, float timeCurr_s);
+  bool Run(bool exciteMode, int indxTest, float time_s);
   VecCmd GetSignal();
 
  private:
