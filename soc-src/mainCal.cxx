@@ -43,7 +43,7 @@ int main(int argc, char* argv[]) {
   InclineData IncMeas;
   
   /* load configuration file */
-  LoadConfigFile(argv[1],Sensors,&Config,&Data);
+  LoadConfigFile(argv[1], Sensors, &Config, &Data);
   
   /* Define the Control Effector Vector */
   std::vector<float> EffectorCmd;

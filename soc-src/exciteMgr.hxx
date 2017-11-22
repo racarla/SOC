@@ -14,26 +14,21 @@ History:
 #include <Eigen/Dense>
 #include "exciteGenFunc.hxx"
 
-#define MaxChan 16
-#define MaxElem 30
-
-typedef Eigen::Matrix<float, -1, 1, 0, MaxCntrlCmdDim, 1> VecCmd;
-
-const double kD2R = M_PI / 180.0;
+const float kHz2Rps = 2 * M_PI;
 
 class ExciteMgr {
  public:
-  VecCmd cmdExcite_;
-  float cmdPitch_, cmdRoll_, cmdYaw_, cmdThrottle_;
+  VecChan cmdExcite_;
 
   ExciteMgr() {};   // Constructor
   ~ExciteMgr() {};  // Destructor
 
   void Init();     // Initialize excitations
-  bool Run(bool exciteMode, int indxTest, float time_s);
-  VecCmd GetSignal();
+  VecChan Compute(bool exciteMode, int indxTest, float time_s);
 
  private:
+  float timeEngage_s_;
+
   ExciteMultisine exciteTest01_, exciteTest02_, exciteTest03_, exciteTest04_, exciteTest05_;
   ExciteChirp exciteTest06_, exciteTest07_, exciteTest08_, exciteTest09_;
   ExciteDisc exciteTest10_, exciteTest11_, exciteTest12_;

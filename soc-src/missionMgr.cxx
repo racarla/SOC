@@ -11,6 +11,13 @@ History:
 
 void MissionMgr::Init()
 {
+  // Initialize timers 
+  time_s_ = -1;
+
+  // Initialize frame counter
+  frame_cnt_ = 0;
+
+  indxTest_ = 1;
   numTest_ = 19; // FIXIT - Hardcoded
 
   // Reset the Controllers and Test Points
@@ -33,7 +40,7 @@ MissionMode MissionMgr::ModeMgr(const FmuData FmuDataRef)
   float testTrig = FmuDataRef.SbusRx[0].AuxInputs[pilotAuxTrigIndx];
 
   // Determine Auto Enable State
-  if (FmuDataRef.SbusRx[0].AutoEnabled == 1) {
+  if ((FmuDataRef.SbusRx[0].AutoEnabled == 1) & (FmuDataRef.SbusRx[0].Failsafe == 0)) {
     autoEngage_ = 1;
 
     // Change Controller modes based on cntrlSel Switch Position
@@ -81,15 +88,19 @@ MissionMode MissionMgr::ModeMgr(const FmuData FmuDataRef)
     // If the Trigger has been engaged
     if (trigEngage_ == 1) {
       if ((testArm_ == 1)  & (testSwitch > -0.5) & (testSwitch < 0.5)) {
-        testEngage_ = 1;
+        if (testEngage_== 0) {
+          testEngage_ = 1;
+        } else if (testEngage_ == 1) {
+          testEngage_ = 0;
+        }
 
-      } else if ((testArm_ == 0) & (testSwitch < -0.5)) {
+      } else if ((testSwitch < -0.5) & (testEngage_== 0)) {
         indxTest_--;
-//        if (indxTest_ <= 1) indxTest_ = 1;
+        if (indxTest_ <= 1) indxTest_ = 1;
 
-      } else if ((testArm_ == 0) & (testSwitch > 0.5))  {
+      } else if ((testSwitch > 0.5) & (testEngage_== 0))  {
         indxTest_++;
-//        if (indxTest_ >= numTest_) indxTest_ = numTest_;
+        if (indxTest_ >= numTest_) indxTest_ = numTest_;
       }
     } // If Trigger
 
@@ -119,12 +130,6 @@ MissionMode MissionMgr::ModeMgr(const FmuData FmuDataRef)
 
 void MissionMgr::Reset()
 {
-  // Initialize timers 
-  time_s_ = -1;
-
-  // Initialize frame counter
-  frame_cnt_ = 0;
-
   // Reset the Auto Engagement Flag 
   autoEngage_ = 0;
 
@@ -138,5 +143,4 @@ void MissionMgr::Reset()
 
   testArm_ = 0;
   testEngage_ = 0;
-  indxTest_ = 1;
 }

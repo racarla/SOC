@@ -18,11 +18,18 @@ void CntrlAllocMgr::Init(MatCntrlEff cntrlEff, MatObj wtObj, MatEff wtEff, VecEf
   uMin_ = uMin;
   uMax_ = uMax;
   uPref_ = uPref;
+
+  numObj_ = cntrlEff.cols();
+  numEff_ = cntrlEff.rows();
+
+  VecEff uCmd_(numEff_);
 }
 
-VecEff CntrlAllocMgr::Run(VecObj vObj)
+VecEff CntrlAllocMgr::Compute(VecObj vObj)
 {
-  CntrlAllocPseudoWt(cntrlEff_, vObj, wtObj_, wtEff_, uPref_, uCmd_);
+  uCmd_.setZero(numEff_);
+
+  uCmd_ = CntrlAllocPseudoWt(cntrlEff_, vObj, wtObj_, wtEff_, uPref_);
 
   return uCmd_;
 

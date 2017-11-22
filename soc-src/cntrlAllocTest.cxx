@@ -54,12 +54,12 @@ int main(void)  /* Program tester */
   // Call control allocation
   int numIter = 1000;
   for(int i = 0 ; i < numIter ; i++){
-    //CntrlAllocPseudo(cntrlEff, vObj, uPref, uCmd);
-    //CntrlAllocPseudoWt(cntrlEff, vObj, wtObj, wtEff, uPref, uCmd);
+    //uCmd = CntrlAllocPseudo(cntrlEff, vObj, uPref);
+    uCmd = CntrlAllocPseudoWt(cntrlEff, vObj, wtObj, wtEff, uPref);
 
-    float gammaEff = .001;
-    uint8_t numIter = 200;
-    CntrlAllocFxp(cntrlEff, vObj, uMin, uMax, wtObj, wtEff, uPref, uCmd, gammaEff, numIter);
+    //float gammaEff = .001;
+    //uint8_t numIter = 200;
+    //uCmd = CntrlAllocFxp(cntrlEff, vObj, uMin, uMax, wtObj, wtEff, uPref, gammaEff, numIter);
   }
   tStop_tick = std::clock(); // stop the timer
   tElaps_s = ( tStop_tick - tStart_tick ) / (double) CLOCKS_PER_SEC; // estimate elapsed time

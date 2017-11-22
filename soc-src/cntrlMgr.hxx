@@ -12,8 +12,6 @@ History:
 
 #include "cntrlFunc.hxx"
 #include <Eigen/Dense>
-#include <iostream>
-
 
 #define MaxCntrlCmdDim 5
 

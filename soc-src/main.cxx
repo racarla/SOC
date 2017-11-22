@@ -25,9 +25,9 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SO
 #include "hardware-defs.hxx"
 #include "global-defs.hxx"
 #include "missionMgr.hxx"
-//#include "cntrlMgr.hxx"
-//#include "cntrlAllocMgr.hxx"
-//#include "exciteMgr.hxx"
+#include "cntrlMgr.hxx"
+#include "cntrlAllocMgr.hxx"
+#include "exciteMgr.hxx"
 
 #include <iostream>
 
@@ -48,7 +48,7 @@ int main(int argc, char* argv[]) {
   NavigationData NavData;
 
   /* load configuration file */
-  LoadConfigFile(argv[1], Sensors, &Config,&Data);
+  LoadConfigFile(argv[1], Sensors, &Config, &Data);
 
   // SETUP MISSION
   // Define Mission Manager
@@ -60,19 +60,20 @@ int main(int argc, char* argv[]) {
   cntrlMgr.Init(); // Define the Baseline and Research Controller
 
   // Define Excitation Manager and Excitations
-//  ExciteMgr exciteMgr; // Create the Excitation Manager
-//  exciteMgr.Init();    // Initialize the Excitation Manager
+  ExciteMgr exciteMgr; // Create the Excitation Manager
+  exciteMgr.Init();    // Initialize the Excitation Manager
 
   // Define Control Allocation
-//  CntrlAllocMgr cntrlAllocMgr; // Create the Control Allocator
+  CntrlAllocMgr cntrlAllocMgr; // Create the Control Allocator
 
-//  numObj = 5;
-//  numEff = 7;
+  uint8_t numObj = 3;
+  uint8_t numEff = 6;
 
-//  MatCntrlEff cntrlEff(numObj, numEff); // effectiveness matrix
-//  VecEff uMin(numEff), uMax(numEff), uPref(numEff); // cmd, min, max, prefered effector commands
-//  MatObj wtObj(numObj, numObj); // Objective weighting matrix
-//  MatEff wtEff(numEff, numEff); // Effector weighting matrix
+  MatCntrlEff cntrlEff(numObj, numEff); // effectiveness matrix
+  VecEff uMin(numEff), uMax(numEff), uPref(numEff); // min, max, prefered effector commands
+  MatObj wtObj(numObj, numObj); // Objective weighting matrix
+  MatEff wtEff(numEff, numEff); // Effector weighting matrix
+  VecEff cmdAlloc(numEff); // effector allocator commands
 
   // Control Allocation Definition
   // Surface Order - Elev, Rud, AilL, FlapL, FlapR, AilR
@@ -82,13 +83,13 @@ int main(int argc, char* argv[]) {
   //             0.0000, -82.041, 5.7521, -1.7941,  1.7941,  5.7521; // rad/s per rad
 
   // Objectives Order - Roll Rate, Pitch Rate, Yaw Rate
-//  cntrlEff << 0.0000,  0.0000, 78.235,  33.013, -33.013, -78.235,
-//             -133.69,  0.0000, 0.0000,  0.0000,  0.0000,  0.0000,
-//              0.0000, -82.041, 0.0000,  0.0000,  0.0000,  0.0000; // rad/s per rad
+  cntrlEff << 0.0000,  0.0000, 78.235,  33.013, -33.013, -78.235,
+             -133.69,  0.0000, 0.0000,  0.0000,  0.0000,  0.0000,
+              0.0000, -82.041, 0.0000,  0.0000,  0.0000,  0.0000; // rad/s per rad
 
-//  uMin << -25.0*kD2R, -25.0*kD2R, -25.0*kD2R, -25.0*kD2R, -25.0*kD2R ;
-//  uMax <<  25.0*kD2R,  25.0*kD2R,  25.0*kD2R,  25.0*kD2R,  25.0*kD2R ;
-//  uPref << 0.0,        0.0,        0.0,        0.0,        0.0 ;
+  uMin << -25.0*kD2R, -25.0*kD2R, -25.0*kD2R, -25.0*kD2R, -25.0*kD2R ;
+  uMax <<  25.0*kD2R,  25.0*kD2R,  25.0*kD2R,  25.0*kD2R,  25.0*kD2R ;
+  uPref << 0.0,        0.0,        0.0,        0.0,        0.0 ;
 
 //  MatObj.setIdenty();
 //  MatEff.setIdenty();
@@ -146,49 +147,47 @@ int main(int argc, char* argv[]) {
       VecCmd cmdRes = cntrlMgr.CmdRes(refVec, measVecAngles, measVecRates, modeMgr.time_s);
       VecCmd cmdCntrl = cntrlMgr.Cmd();
 
-// FIXIT - indxTest is not changing as desired. uncommomment limits, allow switching while cntrlMode = 3
+// FIXIT - 
 // FIXIT - the failsafe mode leaves the controller engaged, at least need to disengage the excitation
 // FIXIT - Throttle controller??
 // FIXIT - Need airspeed source + filtered
-// FIXIT - Research Yaw controller
+// FIXIT - Research Yaw controller??
 // FIXIT - check reference command limits, manual mode pegs the cmd with really small stick deflections
 
 std::cout << modeMgr.time_s << "\t" << modeMgr.autoEngage << "\t" << modeMgr.cntrlMode << "\t" << modeMgr.testArm << "\t" << modeMgr.testEngage << "\t" << (int) modeMgr.indxTest << "\t";
 
-std::cout << cmdCntrl.transpose() << std::endl;
+//std::cout << cmdCntrl.transpose() << "\t";
 
 
 
       // Apply command excitations
-//      excitationFlag = ExciteMgr.Run(missionMgr.exciteMode_, missionMgr.indxTest_, missionMgr.timeCurr_s_);
-//      cmdExcite = ExciteMgr.GetSignal();
+      VecChan cmdExcite(4);
+      cmdExcite = exciteMgr.Compute(modeMgr.testEngage, modeMgr.indxTest, modeMgr.time_s);
+std::cout << cmdExcite.transpose() << std::endl;
 
-/*      // Allocate control surfaces / mixer
-      cmdObj[0] = cmdCntrl[0] + cmdExcite[0];
-      cmdObj[1] = cmdCntrl[1] + cmdExcite[1];
-      cmdObj[2] = cmdCntrl[2] + cmdExcite[2];
-      cmdAlloc = cntrlAllocMgr.Run(cmdObj);
+      // Allocate control surfaces / mixer
+      cmdAlloc = cntrlAllocMgr.Compute(cmdCntrl);
 
-      cmdElev = cmdAlloc[0];
-      cmdRud = cmdAlloc[1];
-      cmdAilL = cmdAlloc[2];
-      cmdFlapL = cmdAlloc[3];
-      cmdFlapR = cmdAlloc[4];
-      cmdAilR = cmdAlloc[5];
+      float cmdElev = cmdAlloc[0] + cmdExcite[1];
+      float cmdRud = cmdAlloc[1] + cmdExcite[2];
+      float cmdAilL = cmdAlloc[2] + cmdExcite[0];
+      float cmdFlapL = cmdAlloc[3];
+      float cmdFlapR = cmdAlloc[4];
+      float cmdAilR = cmdAlloc[5] - cmdExcite[0];
 
-      cmdThrot = cmdCntrl[3] + cmdExcite[3];
-*/
+      float cmdThrot = cmdCntrl[3];
+
+std::cout << cmdCntrl.transpose() << "\t";
+
       // OUTPUT PROCESSING
 //      std::cout << "OUTPUT PROCESSING" << std::endl;
-Config.NumberEffectors = 7;
+Config.NumberEffectors = 7; // FIXIT - Shouldn't need this!!
       // send control surface commands
       std::vector<float> EffectorCmd;
       EffectorCmd.resize(Config.NumberEffectors);
       std::vector<uint8_t> EffectorBuffer;
       EffectorBuffer.resize(EffectorCmd.size()*sizeof(float));
 
-      EffectorCmd[0] = -3;
-/*
       EffectorCmd[0] = cmdThrot;
       EffectorCmd[1] = cmdElev;
       EffectorCmd[2] = cmdRud;
@@ -196,9 +195,12 @@ Config.NumberEffectors = 7;
       EffectorCmd[4] = cmdFlapL;
       EffectorCmd[5] = cmdFlapR;
       EffectorCmd[6] = cmdAilR;
-*/
-      memcpy(EffectorBuffer.data(),EffectorCmd.data(),EffectorBuffer.size());
-      Sensors.WriteMessage(kEffectorAngleCmd,EffectorBuffer.size(),EffectorBuffer.data());
+
+      
+std::cout << cmdCntrl.transpose() << "\t";
+
+      memcpy(EffectorBuffer.data(), EffectorCmd.data(), EffectorBuffer.size());
+      Sensors.WriteMessage(kEffectorAngleCmd, EffectorBuffer.size(), EffectorBuffer.data());
 
       // DATA LOG
       Log.LogFmuData(Data);

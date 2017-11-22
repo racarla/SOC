@@ -21,7 +21,6 @@ History:
 typedef Eigen::Matrix<float, -1, 1, 0, MaxElem, 1> VecElem;
 typedef Eigen::Matrix<float, -1, -1, 0, MaxChan, MaxElem> MatChanElem;
 typedef Eigen::Matrix<float, -1, 1, 0, MaxChan, 1> VecChan;
-typedef Eigen::Matrix<int, -1, 1, 0, MaxChan, 1> VecChanBool;
 
 
 enum ExciteDiscType {kPulse = 0, kDoublet = 1, kDoublet121 = 2, kDoublet3211 = 3};
@@ -32,12 +31,12 @@ enum ExciteMultisineType {kOMS = 1};
 /* Discrete Excitations */
 class ExciteDisc {
  public:
-  float timeCurr_s_;
+  float timeExcite_s_;
 
   ExciteDisc() {}; // Constructor
   ~ExciteDisc() {}; // Destructor
   void Init(ExciteDiscType discType, VecChan timeVecStart_s, VecChan timeVecOnePulse_s, VecChan ampVec_nd);
-  bool Compute(float timeCurr_s, VecChan &exciteVec_nd);
+  VecChan Compute(float timeExcite_s);
 
  private:
   VecChan timeVecStart_s_, timeVecOnePulse_s_, timeVecDur_s_, ampVec_nd_;
@@ -50,12 +49,12 @@ class ExciteDisc {
 /* Chirp Excitations */
 class ExciteChirp {
  public:
-  float timeCurr_s_;
+  float timeExcite_s_;
 
   ExciteChirp() {}; // Constructor
   ~ExciteChirp() {}; // Destructor
   void Init(ExciteChirpType chirpType, VecChan timeVecStart_s, VecChan timeVecDur_s, VecChan freqVecStart_rps, VecChan freqVecEnd_rps, VecChan ampVecStart_nd, VecChan ampVecEnd_nd);
-  bool Compute(float timeCurr_s, VecChan &excite_nd);
+  VecChan Compute(float timeExcite_s);
 
  private:
   VecChan timeVecStart_s_, timeVecDur_s_;
@@ -69,14 +68,14 @@ class ExciteChirp {
 /* MultiSine Excitations */
 class ExciteMultisine {
  public:
-  float timeCurr_s_;
+  float timeExcite_s_;
 
   ExciteMultisineType multiSineType_;
 
   ExciteMultisine() {}; // Constructor
   ~ExciteMultisine() {}; // Destructor
   void Init(ExciteMultisineType multiSineType, VecChan timeVecStart_s, VecChan timeVecDur_s, MatChanElem freqMat_rps, MatChanElem phaseMat_rad, MatChanElem ampMat_nd);
-  bool Compute(float timeCurr_s, VecChan &exciteVec_nd);
+  VecChan Compute(float timeExcite_s);
 
  private:
   VecChan timeVecStart_s_, timeVecDur_s_;

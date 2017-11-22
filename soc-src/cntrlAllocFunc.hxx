@@ -38,46 +38,37 @@ typedef Eigen::Matrix<float, -1, 1, 0, MaxSolvEff, 1> VecSolvEff;
 enum CntrlAllocMethod { kPseudo = 10, kPseudoWt = 15, kPseudoRedis = 20, kPseudoRedisScale = 25, kFxp = 50, kMolp = 60, kMoqp = 70, kSqp = 75};
 
 // 
-void CntrlAlloc(
+VecEff CntrlAlloc(
   const MatCntrlEff &cntrlEff, const VecObj &vObj, const VecEff &uMin, const VecEff &uMax, const MatObj &wtObj, const MatEff &wtEff, const VecEff &uPref,
-  VecEff &uCmd,
   CntrlAllocMethod method);
 
 // Allocation Methods
-void CntrlAllocPseudo(
-  const MatCntrlEff &cntrlEff, const VecObj &vObj, const VecEff &uPref,
-  VecEff &uCmd);
+VecEff CntrlAllocPseudo(
+  const MatCntrlEff &cntrlEff, const VecObj &vObj, const VecEff &uPref);
 
-void CntrlAllocPseudoWt(
-  const MatCntrlEff &cntrlEff, const VecObj &vObj, const MatObj &wtObj, const MatEff &wtEff, const VecEff &uPref, 
-  VecEff &uCmd);
+VecEff CntrlAllocPseudoWt(
+  const MatCntrlEff &cntrlEff, const VecObj &vObj, const MatObj &wtObj, const MatEff &wtEff, const VecEff &uPref);
 
-void CntrlAllocFxp(
+VecEff CntrlAllocFxp(
   const MatCntrlEff &cntrlEff, const VecObj &vObj, const VecEff &uMin, const VecEff &uMax, const MatObj &wtObj, const MatEff &wtEff, const VecEff &uPref,
-  VecEff &uCmd, 
   float gammaEff = 0.001, uint8_t numIter = 200);
 
-void CntrlAllocPseudoRedis(
-  const MatCntrlEff &cntrlEff, const VecObj &vObj, const VecEff &uMin, const VecEff &uMax, const MatObj &wtObj, const MatEff &wtEff, const VecEff &uPref,
-  VecEff &uCmd);
+VecEff CntrlAllocPseudoRedis(
+  const MatCntrlEff &cntrlEff, const VecObj &vObj, const VecEff &uMin, const VecEff &uMax, const MatObj &wtObj, const MatEff &wtEff, const VecEff &uPref);
 
-void CntrlAllocPseudoRedisScale(
-  const MatCntrlEff &cntrlEff, const VecObj &vObj, const VecEff &uMin, const VecEff &uMax, const MatObj &wtObj, const MatEff &wtEff, const VecEff &uPref,
-  VecEff &uCmd);
+VecEff CntrlAllocPseudoRedisScale(
+  const MatCntrlEff &cntrlEff, const VecObj &vObj, const VecEff &uMin, const VecEff &uMax, const MatObj &wtObj, const MatEff &wtEff, const VecEff &uPref);
 
-void CntrlAllocMolp(
+VecEff CntrlAllocMolp(
   const MatCntrlEff &cntrlEff, const VecObj &vObj, const VecEff &uMin, const VecEff &uMax, const MatObj &wtObj, const MatEff &wtEff, const VecEff &uPref,
-  VecEff &uCmd,
   float gammaEff = 0.001);
 
-void CntrlAllocMoqp(
+VecEff CntrlAllocMoqp(
   const MatCntrlEff &cntrlEff, const VecObj &vObj, const VecEff &uMin, const VecEff &uMax, const MatObj &wtObj, const MatEff &wtEff, const VecEff &uPref,
-  VecEff &uCmd,
   float gammaEff = 0.001);
 
-void CntrlAllocSqp(
-  const MatCntrlEff &cntrlEff, const VecObj &vObj, const VecEff &uMin, const VecEff &uMax, const MatObj &wtObj, const MatEff &wtEff, const VecEff &uPref,
-  VecEff &uCmd);
+VecEff CntrlAllocSqp(
+  const MatCntrlEff &cntrlEff, const VecObj &vObj, const VecEff &uMin, const VecEff &uMax, const MatObj &wtObj, const MatEff &wtEff, const VecEff &uPref);
 
 
 // Pseudo-Inverse Solvers

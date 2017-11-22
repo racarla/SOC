@@ -18,15 +18,18 @@ History:
 
 class CntrlAllocMgr {
  public:
-  VecObj uCmd_;
+  VecEff uCmd_;
 
   CntrlAllocMgr() {};   // Constructor
   ~CntrlAllocMgr() {};  // Destructor
 
-  void Init();     // Initialize excitations
-  VecEff Run(VecObj vObj);
+  void Init(MatCntrlEff cntrlEff, MatObj wtObj, MatEff wtEff, VecEff uMin, VecEff uMax, VecEff uPref); // Initialize excitations
+  VecEff Compute(VecObj vObj);
 
  private:
+  uint8_t numObj_;
+  uint8_t numEff_;
+
   MatCntrlEff cntrlEff_;
   MatObj wtObj_;
   MatEff wtEff_;

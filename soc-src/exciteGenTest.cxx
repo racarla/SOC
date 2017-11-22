@@ -31,7 +31,6 @@ void disc(void)  /* Program tester */
   VecChan timeOnePulse_s(numChan);
   VecChan amp_nd(numChan);
   VecChan excite_nd(numChan);
-  bool exciteFlag;
 
   timeStart_s << 1.0;
   timeOnePulse_s << 1.0;
@@ -46,14 +45,14 @@ void disc(void)  /* Program tester */
   int numIter = (int) (timeEnd_s / timeStep_s); // Number of Iterations
 
   std::cout << "Doublet" << std::endl;
-  std::cout << "timeCurr_s" << "\t" << "exciteFlag" << "\t" << "excite_nd" << std::endl;
+  std::cout << "timeCurr_s" << "\t" << "excite_nd" << std::endl;
   float timeCurr_s = 0.0;
   for(int iIter = 0 ; iIter < numIter ; iIter++){
     timeCurr_s = (float) iIter * timeStep_s;
 
-    exciteFlag = TestExcDoublet.Compute(timeCurr_s, excite_nd);
+    excite_nd = TestExcDoublet.Compute(timeCurr_s);
   
-    std::cout << timeCurr_s << "\t" << exciteFlag<< "\t" << excite_nd.transpose() << std::endl;
+    std::cout << timeCurr_s << "\t" << excite_nd.transpose() << std::endl;
   }
 }
 
@@ -62,7 +61,7 @@ void chirp(void)
 
   // Chirp
   uint8_t numChan = 2;
-  float timeStep_s = 1.0/50.0;
+  float timeStep_s = 1.0/10.0;
 
   VecChan timeStart_s(numChan);
   VecChan timeDur_s(numChan);
@@ -71,7 +70,6 @@ void chirp(void)
   VecChan ampStart_nd(numChan);
   VecChan ampEnd_nd(numChan);
   VecChan excite_nd(numChan);
-  bool exciteFlag;
 
   timeStart_s << 1.0, 1.0;
   timeDur_s << 20.0, 20.0;
@@ -91,14 +89,14 @@ void chirp(void)
   int numIter = (int) (timeEnd_s / timeStep_s); // Number of Iterations
 
   std::cout << "Linear Chirp" << std::endl;
-  std::cout << "timeCurr_s" << "\t" << "exciteFlag" << "\t" << "excite_nd" << std::endl;
+  std::cout << "timeCurr_s" << "\t" << "excite_nd" << std::endl;
   float timeCurr_s = 0.0;
   for(int iIter = 0 ; iIter < numIter ; iIter++){
     timeCurr_s = (float) iIter * timeStep_s;
 
-    exciteFlag = TestExcChirp.Compute(timeCurr_s, excite_nd);
+    excite_nd = TestExcChirp.Compute(timeCurr_s);
   
-    std::cout << timeCurr_s << "\t" << exciteFlag<< "\t" << excite_nd.transpose() << std::endl;
+    std::cout << timeCurr_s << "\t" << excite_nd.transpose() << std::endl;
   }
 }
 
@@ -117,7 +115,6 @@ void oms(void)
   MatChanElem phase_rad(numChan, numElem);
   MatChanElem amp_nd(numChan, numElem);
   VecChan excite_nd(numChan);
-  bool exciteFlag;
 
   timeStart_s << 1.0, 1.0, 1.0;
   timeDur_s << 20.0, 20.0, 20.0;
@@ -143,14 +140,14 @@ void oms(void)
   int numIter = (int) (timeEnd_s / timeStep_s); // Number of Iterations
 
   std::cout << "MutiChannel OMS" << std::endl;
-  std::cout << "timeCurr_s" << "\t" << "exciteFlag" << "\t" << "excite_nd" << std::endl;
+  std::cout << "timeCurr_s" << "\t" << "excite_nd" << std::endl;
   float timeCurr_s = 0.0;
   for(int iIter = 0 ; iIter < numIter ; iIter++){
     timeCurr_s = (float) iIter * timeStep_s;
 
-    exciteFlag = TestExcOms.Compute(timeCurr_s, excite_nd);
+    excite_nd = TestExcOms.Compute(timeCurr_s);
   
-    std::cout << timeCurr_s << "\t" << exciteFlag<< "\t" << excite_nd.transpose() << std::endl;
+    std::cout << timeCurr_s << "\t" << excite_nd.transpose() << std::endl;
   }
 }
 

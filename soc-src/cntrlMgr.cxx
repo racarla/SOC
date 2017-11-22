@@ -139,23 +139,23 @@ VecCmd CntrlMgr::Cmd() {
 // Baseline Controller Definition
 void CntrlMgr::CntrlBaseDef()
 {
-  // Command Range Limits
+  // Command Range Limits, stick -1 to 1, means ref -60 to 60
   float refRollRng[2] = {-100*kD2R, 100*kD2R};  // Roll rate range [rad/s]
   float refPitchRng[2] = {-50*kD2R, 50*kD2R}; // Pitch rate range [rad/s]
   float refYawRng[2] = {-20*kD2R, 20*kD2R};   // Yaw rate range [rad/s]
-  float refSpeedRng[2] = {0, 30};     // Speed range [m/s]
+  float refThrotRng[2] = {0, 1};     // Throttle range [nd]
 
   // Command Range Limits
-  float cmdRollRng[2] = {-0.5, 0.5};
-  float cmdPitchRng[2] = {-0.5, 0.5};
-  float cmdYawRng[2] = {-0.5, 0.5};
-  float cmdThrotRng[2] = {0, 1};
+  float cmdRollRng[2] = {2*refRollRng[0], 2*refRollRng[1]}; // Roll rate command range [rad/s]
+  float cmdPitchRng[2] = {2*refPitchRng[0], 2*refPitchRng[1]}; // Pitch rate command range [rad/s]
+  float cmdYawRng[2] = {2*refYawRng[0], 2*refYawRng[1]}; // Yaw rate command range [rad/s]
+  float cmdThrotRng[2] = {refThrotRng[0], refThrotRng[1]}; // Throttle command range [nd]
 
   // Initialize Individual Controllers
   cntrlBaseRoll_.Init(refRollRng[0], refRollRng[1], cmdRollRng[0], cmdRollRng[1]);
   cntrlBasePitch_.Init(refPitchRng[0], refPitchRng[1], cmdPitchRng[0], cmdPitchRng[1]);
   cntrlBaseYaw_.Init(refYawRng[0], refYawRng[1], cmdYawRng[0], cmdYawRng[1]);
-  cntrlBaseSpeed_.Init(refSpeedRng[0], refSpeedRng[1], cmdThrotRng[0], cmdThrotRng[1]);
+  cntrlBaseSpeed_.Init(refThrotRng[0], refThrotRng[1], cmdThrotRng[0], cmdThrotRng[1]);
 
   // Set the initial controller mode
   cntrlBaseRoll_.runMode_ = kCntrlInit;
@@ -167,17 +167,17 @@ void CntrlMgr::CntrlBaseDef()
 // Research Control Law
 void CntrlMgr::CntrlResDef()
 {
-  // Command Range Limits
+  // Command Range Limits, stick -1 to 1, means ref -60 to 60
   float refRollRng[2] = {-60*kD2R, 60*kD2R};  // Roll angle range [rad]
   float refPitchRng[2] = {-20*kD2R, 20*kD2R}; // Pitch angle range [rad]
   float refYawRng[2] = {-20*kD2R, 20*kD2R};   // Yaw rate range [rad/s]
   float refSpeedRng[2] = {0, 30};     // Speed range [m/s]
 
   // Command Range Limits
-  float cmdRollRng[2] = {-0.5, 0.5};
-  float cmdPitchRng[2] = {-0.5, 0.5};
-  float cmdYawRng[2] = {-0.5, 0.5};
-  float cmdThrotRng[2] = {0, 1};
+  float cmdRollRng[2] = {2*refRollRng[0], 2*refRollRng[1]};  // Roll rate command range [rad/s]
+  float cmdPitchRng[2] = {2*refPitchRng[0], 2*refPitchRng[1]}; // Pitch rate command range [rad/s]
+  float cmdYawRng[2] = {2*refYawRng[0], 2*refYawRng[1]}; // Yaw rate command range [rad/s]
+  float cmdThrotRng[2] = {0, 1}; // Throttle command range [nd]
 
   // Controller Parameters
   float KpRoll = 0.52, KiRoll = 0.20, KdampRoll = 0.07;

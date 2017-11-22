@@ -9,6 +9,7 @@ History:
 */
 
 #include "exciteGenFunc.hxx"
+#include <iostream>
 
 /* Discrete Excitations */
 void ExciteDisc::Init(ExciteDiscType discType, VecChan timeVecStart_s, VecChan timeVecOnePulse_s, VecChan ampVec_nd)
@@ -33,13 +34,12 @@ void ExciteDisc::Init(ExciteDiscType discType, VecChan timeVecStart_s, VecChan t
 
 }
 
-bool ExciteDisc::Compute(float timeCurr_s, VecChan &exciteVec_nd)
+VecChan ExciteDisc::Compute(float timeCurr_s)
 {
   float time_s, timeDur_s;
-  VecChanBool exciteVecFlag;
 
+  VecChan exciteVec_nd;
   exciteVec_nd.setZero(numChan_);
-  exciteVecFlag.setZero(numChan_);
 
   for (uint8_t iChan = 0; iChan < numChan_; iChan++) {
     timeDur_s = timeVecDur_s_(iChan);
@@ -64,12 +64,10 @@ bool ExciteDisc::Compute(float timeCurr_s, VecChan &exciteVec_nd)
           exciteVec_nd(iChan) = SigDoublet3211(time_s, timeVecOnePulse_s_(iChan), ampVec_nd_(iChan));
           break;
       }
-
-      exciteVecFlag(iChan) = 1;
     }
   }
 
-  return exciteVecFlag.any();
+  return exciteVec_nd;
 }
 
 
@@ -87,13 +85,12 @@ void ExciteChirp::Init(ExciteChirpType chirpType, VecChan timeVecStart_s, VecCha
   ampVecEnd_nd_ = ampVecEnd_nd;
 }
 
-bool ExciteChirp::Compute(float timeCurr_s, VecChan &exciteVec_nd)
+VecChan ExciteChirp::Compute(float timeCurr_s)
 {
   float time_s, timeDur_s;
-  VecChanBool exciteVecFlag;
 
+  VecChan exciteVec_nd;
   exciteVec_nd.setZero(numChan_);
-  exciteVecFlag.setZero(numChan_);
 
   for (uint8_t iChan = 0; iChan < numChan_; iChan++) {
     timeDur_s = timeVecDur_s_(iChan);
@@ -107,12 +104,10 @@ bool ExciteChirp::Compute(float timeCurr_s, VecChan &exciteVec_nd)
 
         break;
       }
-
-      exciteVecFlag(iChan) = 1;
     }
   }
 
-  return exciteVecFlag.any();
+  return exciteVec_nd;
 }
 
 
@@ -129,13 +124,12 @@ void ExciteMultisine::Init(ExciteMultisineType multiSineType, VecChan timeVecSta
   ampMat_nd_ = ampMat_nd;
 }
 
-bool ExciteMultisine::Compute(float timeCurr_s, VecChan &exciteVec_nd)
+VecChan ExciteMultisine::Compute(float timeCurr_s)
 {
   float time_s, timeDur_s;
-  VecChanBool exciteVecFlag;
 
+  VecChan exciteVec_nd;
   exciteVec_nd.setZero(numChan_);
-  exciteVecFlag.setZero(numChan_);
 
   for (uint8_t iChan = 0; iChan < numChan_; iChan++) {
     timeDur_s = timeVecDur_s_(iChan);
@@ -152,12 +146,10 @@ bool ExciteMultisine::Compute(float timeCurr_s, VecChan &exciteVec_nd)
           exciteVec_nd(iChan) = SigMultisineOms(time_s, freqList_rps, phaseList_rad, ampList_nd);
           break;
       }
-
-      exciteVecFlag(iChan) = 1;
     }
   }
 
-  return exciteVecFlag.any();
+  return exciteVec_nd;
 }
 
 
