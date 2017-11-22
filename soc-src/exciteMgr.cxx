@@ -46,7 +46,7 @@ void ExciteMgr::Init()
   phaseMat_rad.conservativeResize(numChan, numElem);
   ampMat_nd.conservativeResize(numChan, numElem);
 
-  freqMat_rps << 1, 10, 20, 30, 40, 50;
+  freqMat_rps << 1, 2, 3, 4, 5, 6;
   phaseMat_rad << 0, 0, 0, 0, 0, 0;
   ampMat_nd.setConstant(numChan, numElem, amp_nd);
 
@@ -106,7 +106,7 @@ void ExciteMgr::Init()
 
   // Excitation 6: Chrip, Elevator
   timeStart_s = 1.0; timeDur_s = 20.0; amp_nd = 4 * kD2R;
-  freqLow_rps = 1 * kHz2Rps; freqHigh_rps = 50 * kHz2Rps;
+  freqLow_rps = 1; freqHigh_rps = 50;
 
   numChan = 1;
 
@@ -127,7 +127,7 @@ void ExciteMgr::Init()
 
   // Excitation 9: Simultaneous Chirp, Elevator (increase freq) and Ailerons (decreasing freq)
   timeStart_s = 1.0; timeDur_s = 20.0; amp_nd = 4 * kD2R;
-  freqLow_rps = 1 * kHz2Rps; freqHigh_rps = 50 * kHz2Rps;
+  freqLow_rps = 1; freqHigh_rps = 50;
 
   numChan = 2;
 
@@ -234,7 +234,7 @@ VecChan ExciteMgr::Compute(bool exciteMode, int indxTest, float time_s)
   VecChan cmdExciteTemp(4);
   cmdExciteTemp.setZero();
   cmdExcite_.setZero();
-  
+
 
   if (exciteMode == 1) {
 

@@ -12,7 +12,7 @@ History:
 #define EXCITEGEN_H
 
 #include <stdint.h>
-#include <Eigen/Dense>
+#include <Eigen/Core>
 
 #define MaxChan 16
 #define MaxElem 30

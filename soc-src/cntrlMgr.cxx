@@ -9,11 +9,23 @@ History:
 
 #include "cntrlMgr.hxx"
 
+CntrlMgr::CntrlMgr()
+{
+  // Create Individual Controllers
+  CntrlManual cntrlBaseRoll_, cntrlBasePitch_, cntrlBaseYaw_, cntrlBaseSpeed_;
+  CntrlPiDamp cntrlResRoll_, cntrlResPitch_, cntrlResYaw_, cntrlResSpeed_;
+
+  CntrlMode cntrlMode_;
+  VecCmd cntrlBaseCmd_, cntrlResCmd_, cntrlCmd_;
+
+  float timePrev_s_;
+};
 
 void CntrlMgr::Init()
 {
-  CntrlMode cntrlMode_ = kCntrlReset; // Controller mode
-  VecCmd cntrlBaseCmd_, cntrlResCmd_, cntrlCmd_;
+  cntrlMode_ = kCntrlReset; // Controller mode
+
+  timePrev_s_ = -1.0;
 
   cntrlBaseCmd_.setZero(4);
   cntrlResCmd_.setZero(4);
@@ -89,7 +101,7 @@ void CntrlMgr::Mode(CntrlMode cntrlMode)
 // Define the Baseline Controller - FIXIT
 VecCmd CntrlMgr::CmdBase(VecCmd refVec, float time_s)
 {
-  float dt_s = time_s - timePrev_s_;
+  timePrev_s_ = time_s;
 
   // Zero the Command - FIXIT shouldn't be required, variable size
   cntrlBaseCmd_.setZero(4);
@@ -106,7 +118,9 @@ VecCmd CntrlMgr::CmdBase(VecCmd refVec, float time_s)
 // Define the Research Controller - FIXIT
 VecCmd CntrlMgr::CmdRes(VecCmd refVec, VecCmd measVec, VecCmd dMeasVec, float time_s)
 {
+  if (timePrev_s_ == -1.0) timePrev_s_ = time_s;
   float dt_s = time_s - timePrev_s_;
+  timePrev_s_ = time_s;
 
   // Zero the Command - FIXIT shouldn't be required, variable size
   cntrlResCmd_.setZero(4);
@@ -139,17 +153,19 @@ VecCmd CntrlMgr::Cmd() {
 // Baseline Controller Definition
 void CntrlMgr::CntrlBaseDef()
 {
-  // Command Range Limits, stick -1 to 1, means ref -60 to 60
-  float refRollRng[2] = {-100*kD2R, 100*kD2R};  // Roll rate range [rad/s]
-  float refPitchRng[2] = {-50*kD2R, 50*kD2R}; // Pitch rate range [rad/s]
-  float refYawRng[2] = {-20*kD2R, 20*kD2R};   // Yaw rate range [rad/s]
-  float refThrotRng[2] = {0, 1};     // Throttle range [nd]
+  // Command Range Limits, stick -1 to 1, converts to ref -100 to 100
+  VecRng refRollRng, refPitchRng, refYawRng, refThrotRng;
+  refRollRng  << -100*kD2R, 100*kD2R;  // Roll rate range [rad/s]
+  refPitchRng << -60*kD2R, 60*kD2R; // Pitch rate range [rad/s]
+  refYawRng   << -30*kD2R, 30*kD2R;   // Yaw rate range [rad/s]
+  refThrotRng << 0, 1;     // Throttle range [nd]
 
-  // Command Range Limits
-  float cmdRollRng[2] = {2*refRollRng[0], 2*refRollRng[1]}; // Roll rate command range [rad/s]
-  float cmdPitchRng[2] = {2*refPitchRng[0], 2*refPitchRng[1]}; // Pitch rate command range [rad/s]
-  float cmdYawRng[2] = {2*refYawRng[0], 2*refYawRng[1]}; // Yaw rate command range [rad/s]
-  float cmdThrotRng[2] = {refThrotRng[0], refThrotRng[1]}; // Throttle command range [nd]
+  // Command Range Limits, limits of the aircraft capability
+  VecRng cmdRollRng, cmdPitchRng, cmdYawRng, cmdThrotRng;
+  cmdRollRng  = refRollRng; // Roll rate command range [rad/s]
+  cmdPitchRng = refPitchRng; // Pitch rate command range [rad/s]
+  cmdYawRng   = refYawRng; // Yaw rate command range [rad/s]
+  cmdThrotRng = refThrotRng; // Throttle command range [nd]
 
   // Initialize Individual Controllers
   cntrlBaseRoll_.Init(refRollRng[0], refRollRng[1], cmdRollRng[0], cmdRollRng[1]);
@@ -167,17 +183,19 @@ void CntrlMgr::CntrlBaseDef()
 // Research Control Law
 void CntrlMgr::CntrlResDef()
 {
-  // Command Range Limits, stick -1 to 1, means ref -60 to 60
-  float refRollRng[2] = {-60*kD2R, 60*kD2R};  // Roll angle range [rad]
-  float refPitchRng[2] = {-20*kD2R, 20*kD2R}; // Pitch angle range [rad]
-  float refYawRng[2] = {-20*kD2R, 20*kD2R};   // Yaw rate range [rad/s]
-  float refSpeedRng[2] = {0, 30};     // Speed range [m/s]
+  // Command Range Limits, stick -1 to 1, converts to ref -60 to 60
+  VecRng refRollRng, refPitchRng, refYawRng, refSpeedRng;
+  refRollRng  << -100*kD2R, 100*kD2R;  // Roll angle range [rad]
+  refPitchRng << -60*kD2R, 60*kD2R; // Pitch angle range [rad]
+  refYawRng   << -30*kD2R, 30*kD2R;   // Yaw rate range [rad/s]
+  refSpeedRng << 0, 30;     // Speed range [m/s]
 
-  // Command Range Limits
-  float cmdRollRng[2] = {2*refRollRng[0], 2*refRollRng[1]};  // Roll rate command range [rad/s]
-  float cmdPitchRng[2] = {2*refPitchRng[0], 2*refPitchRng[1]}; // Pitch rate command range [rad/s]
-  float cmdYawRng[2] = {2*refYawRng[0], 2*refYawRng[1]}; // Yaw rate command range [rad/s]
-  float cmdThrotRng[2] = {0, 1}; // Throttle command range [nd]
+  // Command Range Limits, limits of the aircraft capability
+  VecRng cmdRollRng, cmdPitchRng, cmdYawRng, cmdThrotRng;
+  cmdRollRng  = refRollRng; // Roll rate command range [rad/s]
+  cmdPitchRng = refPitchRng; // Pitch rate command range [rad/s]
+  cmdYawRng   = refYawRng; // Yaw rate command range [rad/s]
+  cmdThrotRng << 0, 1; // Throttle command range [nd]
 
   // Controller Parameters
   float KpRoll = 0.52, KiRoll = 0.20, KdampRoll = 0.07;

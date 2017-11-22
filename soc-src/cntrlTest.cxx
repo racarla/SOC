@@ -29,17 +29,21 @@ int main(void)  /* Program tester */
   float KI = 1.0;
   float KD = 0.0;
   float KDamp = -0.0;
-  float cmdRng[2] = {-0.5, 0.5};
+  float refRng[2] = {-1, 1};
+  float cmdRng[2] = {-1, 1};
 
 
-  CntrlPid testPid1;
-  testPid1.Init(KP, KI, KD, cmdRng[0], cmdRng[1]);
+  CntrlManual testManual;
+  testManual.Init(-1, 1, -1, 1);
 
-  CntrlPid testPid2;
-  testPid2.Init(KP, KI, KD, cmdRng[0], cmdRng[1]);
+  CntrlManual testManual2;
+  testManual2.Init(-2, 2, -2, 2);
 
-  CntrlPiDamp testPiDamp;
-  testPiDamp.Init(KP, KI, KDamp, cmdRng[0], cmdRng[1]);
+  CntrlPiDamp testPiDamp1;
+  testPiDamp1.Init(KP, KI, KDamp, -1, 1, -1, 1);
+
+  CntrlPiDamp testPiDamp2;
+  testPiDamp2.Init(KP, KI, KDamp, -2, 2, -2, 2);
 
   float ref = 1.0;
   float meas = 0.0;
@@ -53,31 +57,33 @@ int main(void)  /* Program tester */
     TimeCurr_s = (float) iIter * TimeStep_s;
 
     if (TimeCurr_s <= timeInit_s) {
-      testPid1.runMode_ = kCntrlStandby;
+      testManual.runMode_ = kCntrlStandby;
 
     } else if (TimeCurr_s <= timeEngage_s) {
-      testPid1.runMode_ = kCntrlInit;
+      testManual.runMode_ = kCntrlInit;
 
     } else if (TimeCurr_s <= timeHold_s) {
-      testPid1.runMode_ = kCntrlEngage;
+      testManual.runMode_ = kCntrlEngage;
       
     } else if (TimeCurr_s <= TimeReset_s) {
-      testPid1.runMode_ = kCntrlHold;
-      testPiDamp.iErr_ = 0; // Should have no effect on Pid
-      testPid2.iErr_ = 0; // Should have no effect on Pid
+      testManual.runMode_ = kCntrlHold;
+      testPiDamp1.iErr_ = 0; // Should have no effect on Pid
+      testPiDamp2.iErr_ = 0; // Should have no effect on Pid
       
     } else if (TimeCurr_s <= TimeEnd_s) {
-      testPid1.runMode_ = kCntrlReset;
+      testManual.runMode_ = kCntrlReset;
     }
 
     meas += measStep;
 
-    float cmdPid = testPid1.Compute(ref, meas, TimeStep_s);
-    int runMode = testPid1.runMode_;
-    float intErr = testPid1.iErr_;
+    float cmdCntrl = testManual.Compute(ref);
 
-    float cmdPiDamp = testPiDamp.Compute(ref, meas, dMeas, TimeStep_s);
+    int runMode = testManual.runMode_;
 
-    std::cout << TimeCurr_s << "\t" << runMode << "\t" << ref <<"\t" << meas << "\t" << (ref-meas) << "\t" << cmdPid   << "\t" << intErr << std::endl;
+    float cmdCntrl2 = testManual2.Compute(ref);
+//    float intErr = testManual2.iErr_;
+
+    std::cout << TimeCurr_s << "\t" << runMode << "\t" << ref <<"\t" << meas << "\t" << (ref-meas) << "\t" << cmdCntrl   << "\t" << std::endl;
+//    std::cout << TimeCurr_s << "\t" << runMode << "\t" << ref <<"\t" << meas << "\t" << (ref-meas) << "\t" << cmdCntrl   << "\t" << intErr << std::endl;
   }
 }

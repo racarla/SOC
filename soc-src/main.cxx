@@ -85,20 +85,18 @@ int main(int argc, char* argv[]) {
   // Objectives Order - Roll Rate, Pitch Rate, Yaw Rate
   cntrlEff << 0.0000,  0.0000, 78.235,  33.013, -33.013, -78.235,
              -133.69,  0.0000, 0.0000,  0.0000,  0.0000,  0.0000,
-              0.0000, -82.041, 0.0000,  0.0000,  0.0000,  0.0000; // rad/s per rad
+              0.0000, -82.041, 0.0000,  0.0000,  0.0000,  0.0000; // rad/s per deg
 
-  uMin << -25.0*kD2R, -25.0*kD2R, -25.0*kD2R, -25.0*kD2R, -25.0*kD2R ;
-  uMax <<  25.0*kD2R,  25.0*kD2R,  25.0*kD2R,  25.0*kD2R,  25.0*kD2R ;
-  uPref << 0.0,        0.0,        0.0,        0.0,        0.0 ;
+  cntrlEff *= kD2R; // Convert to rad/s per rad
 
-//  MatObj.setIdenty();
-//  MatEff.setIdenty();
+  uMin << -25.0*kD2R, -25.0*kD2R, -25.0*kD2R, -25.0*kD2R, -25.0*kD2R, -25.0*kD2R ;
+  uMax <<  25.0*kD2R,  25.0*kD2R,  25.0*kD2R,  25.0*kD2R,  25.0*kD2R,  25.0*kD2R ;
+  uPref << 0.0,        0.0,        0.0,        0.0,        0.0,        0.0;
 
-//  cntrlAllocMgr.Init(cntrlEff, wtObj, wtEff, uMin, uMax, uPref);     // Initialize Control Allocator
+  wtObj.setIdentity();
+  wtEff.setIdentity();
 
-//  VecObj cmdObj(3)
-//  VecEff cmdAlloc(6);
-
+  cntrlAllocMgr.Init(cntrlEff, wtObj, wtEff, uMin, uMax, uPref);     // Initialize Control Allocator
 
   /* main loop */
   while (1) {
@@ -125,6 +123,8 @@ int main(int argc, char* argv[]) {
 
       cntrlMgr.Mode(modeMgr.cntrlMode); // Transfer the Mission Control mode to the Controller Manager
 
+std::cout << modeMgr.time_s << "\t" << modeMgr.autoEngage << "\t" << modeMgr.cntrlMode << "\t" << modeMgr.testArm << "\t" << modeMgr.testEngage << "\t" << (int) modeMgr.indxTest << "\t";
+
       VecCmd refVec(4);
       refVec[0] = Data.SbusRx[0].Inceptors[0];
       refVec[1] = Data.SbusRx[0].Inceptors[1];
@@ -147,26 +147,26 @@ int main(int argc, char* argv[]) {
       VecCmd cmdRes = cntrlMgr.CmdRes(refVec, measVecAngles, measVecRates, modeMgr.time_s);
       VecCmd cmdCntrl = cntrlMgr.Cmd();
 
-// FIXIT - 
+std::cout << refVec.transpose() << "\t";
+std::cout << cmdCntrl.transpose()/kD2R << "\t";
+
 // FIXIT - the failsafe mode leaves the controller engaged, at least need to disengage the excitation
 // FIXIT - Throttle controller??
 // FIXIT - Need airspeed source + filtered
 // FIXIT - Research Yaw controller??
 // FIXIT - check reference command limits, manual mode pegs the cmd with really small stick deflections
 
-std::cout << modeMgr.time_s << "\t" << modeMgr.autoEngage << "\t" << modeMgr.cntrlMode << "\t" << modeMgr.testArm << "\t" << modeMgr.testEngage << "\t" << (int) modeMgr.indxTest << "\t";
-
-//std::cout << cmdCntrl.transpose() << "\t";
-
-
 
       // Apply command excitations
       VecChan cmdExcite(4);
       cmdExcite = exciteMgr.Compute(modeMgr.testEngage, modeMgr.indxTest, modeMgr.time_s);
-std::cout << cmdExcite.transpose() << std::endl;
+//std::cout << cmdExcite.transpose()/kD2R << "\t";
 
       // Allocate control surfaces / mixer
-      cmdAlloc = cntrlAllocMgr.Compute(cmdCntrl);
+      VecCmd objAlloc = cmdCntrl.head(3);
+      cmdAlloc = cntrlAllocMgr.Compute(objAlloc);
+
+//std::cout << cmdAlloc.transpose()/kD2R << "\t";
 
       float cmdElev = cmdAlloc[0] + cmdExcite[1];
       float cmdRud = cmdAlloc[1] + cmdExcite[2];
@@ -177,10 +177,18 @@ std::cout << cmdExcite.transpose() << std::endl;
 
       float cmdThrot = cmdCntrl[3];
 
-std::cout << cmdCntrl.transpose() << "\t";
+VecEff cmdTemp(7);
+cmdTemp[0] = cmdThrot;
+cmdTemp[1] = cmdElev;
+cmdTemp[2] = cmdRud;
+cmdTemp[3] = cmdAilL;
+cmdTemp[4] = cmdFlapL;
+cmdTemp[5] = cmdFlapR;
+cmdTemp[6] = cmdAilR;
+
+std::cout << cmdTemp.transpose()/kD2R << "\t";
 
       // OUTPUT PROCESSING
-//      std::cout << "OUTPUT PROCESSING" << std::endl;
 Config.NumberEffectors = 7; // FIXIT - Shouldn't need this!!
       // send control surface commands
       std::vector<float> EffectorCmd;
@@ -196,8 +204,7 @@ Config.NumberEffectors = 7; // FIXIT - Shouldn't need this!!
       EffectorCmd[5] = cmdFlapR;
       EffectorCmd[6] = cmdAilR;
 
-      
-std::cout << cmdCntrl.transpose() << "\t";
+      // Saturate(uMin, uMax, EffectorCmd);
 
       memcpy(EffectorBuffer.data(), EffectorCmd.data(), EffectorBuffer.size());
       Sensors.WriteMessage(kEffectorAngleCmd, EffectorBuffer.size(), EffectorBuffer.data());
@@ -206,6 +213,8 @@ std::cout << cmdCntrl.transpose() << "\t";
       Log.LogFmuData(Data);
 
       // telemetry
+
+      std::cout << std::endl;
     }
   }
 

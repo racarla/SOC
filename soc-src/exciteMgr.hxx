@@ -11,7 +11,7 @@ History:
 #define EXCITEMGR_HXX_
 
 #include <math.h>
-#include <Eigen/Dense>
+#include <Eigen/Core>
 #include "exciteGenFunc.hxx"
 
 const float kHz2Rps = 2 * M_PI;

@@ -20,7 +20,7 @@ VecEff CntrlAlloc(const MatCntrlEff &cntrlEff, const VecObj &vObj, const VecEff 
       uCmd = CntrlAllocPseudo(cntrlEff, vObj, uPref);
       break;
     case kPseudoWt:
-      uCmd = CntrlAllocPseudoWt(cntrlEff, vObj, wtObj, wtEff, uPref);
+      //uCmd = CntrlAllocPseudoWt(cntrlEff, vObj, wtObj, wtEff, uPref);
       break;
     case kPseudoRedis:
       //uCmd = CntrlAllocPseudoRedis(cntrlEff, vObj, uMin, uMax, wtObj, wtEff, uPref);
@@ -29,7 +29,7 @@ VecEff CntrlAlloc(const MatCntrlEff &cntrlEff, const VecObj &vObj, const VecEff 
       //uCmd = CntrlAllocPseudoRedisScale(cntrlEff, vObj, uMin, uMax, wtObj, wtEff, uPref);
       break;
     case kFxp:
-      //uCmd = CntrlAllocFxp(cntrlEff, vObj, uMin, uMax, wtObj, wtEff, uPref);
+      uCmd = CntrlAllocFxp(cntrlEff, vObj, uMin, uMax, wtObj, wtEff, uPref);
       break;
     case kMolp:
       //uCmd = CntrlAllocMolp(cntrlEff, vObj, uMin, uMax, wtObj, wtEff, uPref);
@@ -79,7 +79,7 @@ VecEff CntrlAllocPseudo(const MatCntrlEff &cntrlEff, const VecObj &vObj, const V
   return uCmd;
 }
 
-VecEff CntrlAllocPseudoWt(const MatCntrlEff &cntrlEff, const VecObj &vObj, const MatObj &wtObj, const MatEff &wtEff, const VecEff &uPref)
+/*VecEff CntrlAllocPseudoWt(const MatCntrlEff &cntrlEff, const VecObj &vObj, const MatObj &wtObj, const MatEff &wtEff, const VecEff &uPref)
 {
   VecEff uCmd;
 
@@ -102,12 +102,12 @@ VecEff CntrlAllocPseudoWt(const MatCntrlEff &cntrlEff, const VecObj &vObj, const
 
   //
   return uCmd;
-}
+}*/
 
 VecEff CntrlAllocFxp(const MatCntrlEff &cntrlEff, const VecObj &vObj, const VecEff &uMin, const VecEff &uMax, const MatObj &wtObj, const MatEff &wtEff, const VecEff &uPref, float gammaEff, uint8_t numIter)
 {
   VecEff uCmd;
-  
+
   // fixed-point optimization control allocation method
   MatEff H, G, I;
   VecEff Fv;
@@ -483,28 +483,28 @@ VecEff CntrlAllocFxp(const MatCntrlEff &cntrlEff, const VecObj &vObj, const VecE
 //         b - desired objective     
 // outputs: x - solution
 
-void SolvPinv(const MatSolv &A, const VecSolvObj &b, VecSolvEff &x)
+/*void SolvPinv(const MatSolv &A, const VecSolvObj &b, VecSolvEff &x)
 {
   // Pseduo-Inverse solver using Normal Equations
   //x = A.transpose() * (A*A.transpose()).inverse() * b; // x = A' * inv(A*A') * b
   x = (A.transpose() * A).inverse() * (A.transpose() * b); // x = inv(A' * A) * (A' * b)
-}
+}*/
 
-void SolvPinvLU(const MatSolv &A, const VecSolvObj &b, VecSolvEff &x)
+/*void SolvPinvLU(const MatSolv &A, const VecSolvObj &b, VecSolvEff &x)
 {
   // Pseduo-Inverse solver using LU decomposition
   // LU Decomposition based linear algebra solver
   //x = A.partialPivLu().solve(b); // Partial Pivot LU, A must be square and Invertable
   x = A.fullPivLu().solve(b); // Full Pivot LU
-}
+}*/
 
-void SolvPinvCholesky(const MatSolv &A, const VecSolvObj &b, VecSolvEff &x)
+/*void SolvPinvCholesky(const MatSolv &A, const VecSolvObj &b, VecSolvEff &x)
 {
   // Pseduo-Inverse solver using Cholesky decomposition
   // Cholesky Decomposition based linear algebra solver
   x = A.ldlt().solve(b); // , A must be Positive or Negative Semidefinite!!
   x = A.llt().solve(b); // , A must be Positive Definite!!
-}
+}*/
 
 void SolvPinvSVD(const MatSolv &A, const VecSolvObj &b, VecSolvEff &x)
 {
@@ -513,14 +513,14 @@ void SolvPinvSVD(const MatSolv &A, const VecSolvObj &b, VecSolvEff &x)
   x = A.jacobiSvd(Eigen::ComputeThinU | Eigen::ComputeThinV).solve(b); // Jacobi SVD solver
 }
 
-void SolvPinvQR(const MatSolv &A, const VecSolvObj &b, VecSolvEff &x)
+/*void SolvPinvQR(const MatSolv &A, const VecSolvObj &b, VecSolvEff &x)
 {
   // Pseduo-Inverse solver using QR decomposition
   // QR Decomposition based linear algebra solver
   //x = A.HouseholderQr().solve(b); // Householder QR solver, fast but can be unstable
   x = A.colPivHouseholderQr().solve(b); // Columnwise Householder QR solver, slower but accurate
   //x = A.FullPivHouseholderQr().solve(b); // Householder QR solver, slowest most stable
-}
+}*/
 
 
 // Quadratic Programming Solvers

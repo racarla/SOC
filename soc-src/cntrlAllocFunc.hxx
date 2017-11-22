@@ -10,7 +10,10 @@ History:
 #ifndef CNTRLALLOC_H
 #define CNTRLALLOC_H
 
-#include <Eigen/Dense>
+#include <Eigen/Core>
+#include <Eigen/SVD>
+#include <Eigen/LU>
+//#include <Eigen/QR>
 
 #define MaxObj 5
 #define MaxEff 16
@@ -94,7 +97,7 @@ void SolvPinvQR(
 
 
 // Quadratic Programming Solvers
-void QuadProgPhase1(
+/*void QuadProgPhase1(
   const MatSolv &A, const VecSolvObj &b, const VecSolvEff &xMin, const VecSolvEff &xMax,
   VecEffInt &iEffSat, VecEff &x,
   float tol = 1.0E-8);
@@ -103,7 +106,7 @@ void QuadProgPhase2(
   const MatSolv &A1, const VecSolvObj &b1, const MatSolv &A2, const VecSolvObj &b2, const VecSolvEff &xMin, const VecSolvEff &xMax,
   VecEffInt &iEffSat, VecEff &x,
   float tol = 1.0E-8);
-
+*/
 
 // General Functions
 void Saturate(

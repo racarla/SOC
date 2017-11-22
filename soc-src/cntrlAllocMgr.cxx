@@ -8,6 +8,7 @@ History:
 */
 
 #include "cntrlAllocMgr.hxx"
+#include <iostream>
 
 
 void CntrlAllocMgr::Init(MatCntrlEff cntrlEff, MatObj wtObj, MatEff wtEff, VecEff uMin, VecEff uMax, VecEff uPref)
@@ -19,8 +20,8 @@ void CntrlAllocMgr::Init(MatCntrlEff cntrlEff, MatObj wtObj, MatEff wtEff, VecEf
   uMax_ = uMax;
   uPref_ = uPref;
 
-  numObj_ = cntrlEff.cols();
-  numEff_ = cntrlEff.rows();
+  numObj_ = cntrlEff.rows();
+  numEff_ = cntrlEff.cols();
 
   VecEff uCmd_(numEff_);
 }
@@ -29,7 +30,7 @@ VecEff CntrlAllocMgr::Compute(VecObj vObj)
 {
   uCmd_.setZero(numEff_);
 
-  uCmd_ = CntrlAllocPseudoWt(cntrlEff_, vObj, wtObj_, wtEff_, uPref_);
+  uCmd_ = CntrlAllocPseudo(cntrlEff_, vObj, uPref_);
 
   return uCmd_;
 

@@ -22,7 +22,7 @@ History:
 // Mission Status Structure
 struct MissionMode {
   float time_s;   // Mission time
-  int frame_cnt;   // Mission frame counter
+  uint frame_cnt;   // Mission frame counter
 
   bool autoEngage;   // Mission autoEngage flag
   CntrlMode cntrlMode;   // Mission controller mode
@@ -38,7 +38,7 @@ struct MissionMode {
 
 class MissionMgr {
  public:
-  MissionMgr() {};   // Constructor
+  MissionMgr();   // Constructor
   ~MissionMgr() {};  // Destructor
   void Init();    // Initialize controllers and excitations
   MissionMode ModeMgr(const FmuData FmuDataRef); // Manage mode 
@@ -47,7 +47,7 @@ class MissionMgr {
  private:
   MissionMode missionMode_;
   float time_s_;
-  int frame_cnt_;
+  uint frame_cnt_;
 
   bool autoEngage_;     // Mission autoEngage flag
   CntrlMode cntrlMode_; // Controller mode

@@ -21,7 +21,7 @@ int main(void)  /* Program tester */
   float timeHold_s = 4.0;
   float TimeReset_s = 5.0;
   float TimeEnd_s = 6.0;
-  float TimeStep_s = 1.0/10.0;
+  float TimeStep_s = 1.0/50.0;
   float TimeCurr_s;
 
 
@@ -35,28 +35,27 @@ int main(void)  /* Program tester */
 
   int numIter = (int) (TimeEnd_s / TimeStep_s); // Number of Iterations
 
-  std::cout << "time" << "\t" << "mode" << "\t" << "ref"  << "\t" << "meas"  << "\t" << "err"  << "\t" << "cmd"   << "\t" << "intErr" << std::endl;
+  std::cout << "ref" << "\t" << "meas" << "\t" << "dMeas"  << "\t" << "mode" << "\t" << "cmdBase"  << "\t" << "cmdRes" << std::endl;
   for(int iIter = 0 ; iIter < numIter ; iIter++){
     TimeCurr_s = (float) iIter * TimeStep_s;
 
+    VecCmd refVec(4);
+    refVec[0] = 1;//Data.SbusRx[0].Inceptors[0];
+    refVec[1] = 1;//Data.SbusRx[0].Inceptors[1];
+    refVec[2] = 1;//Data.SbusRx[0].Inceptors[2];
+    refVec[3] = 1;//Data.SbusRx[0].Inceptors[4];
 
-      VecCmd refVec(4);
-      refVec[0] = 1;//Data.SbusRx[0].Inceptors[0];
-      refVec[1] = 1;//Data.SbusRx[0].Inceptors[1];
-      refVec[2] = 1;//Data.SbusRx[0].Inceptors[2];
-      refVec[3] = 1;//Data.SbusRx[0].Inceptors[4];
+    VecCmd measVecAngles(4);
+    measVecAngles[0] = meas;//NavData.Euler_rad[0];
+    measVecAngles[1] = -meas;//NavData.Euler_rad[1];
+    measVecAngles[2] = 0;//NavData.Euler_rad[2];
+    measVecAngles[3] = 0.5; // FIXIT - Need airspeed
 
-      VecCmd measVecAngles(4);
-      measVecAngles[0] = meas;//NavData.Euler_rad[0];
-      measVecAngles[1] = 0;//NavData.Euler_rad[1];
-      measVecAngles[2] = 0;//NavData.Euler_rad[2];
-      measVecAngles[3] = 15; // FIXIT - Need airspeed
-
-      VecCmd measVecRates(4);
-      measVecRates[0] = 0;//Data.Mpu9250.Gyro_rads[0];
-      measVecRates[1] = 0;//ata.Mpu9250.Gyro_rads[1];
-      measVecRates[2] = 0;//Data.Mpu9250.Gyro_rads[2];
-      measVecRates[3] = 10;
+    VecCmd measVecRates(4);
+    measVecRates[0] = 0;//Data.Mpu9250.Gyro_rads[0];
+    measVecRates[1] = 0;//ata.Mpu9250.Gyro_rads[1];
+    measVecRates[2] = meas;//Data.Mpu9250.Gyro_rads[2];
+    measVecRates[3] = 0;
 
 
     if (TimeCurr_s <= timeInit_s) {
@@ -76,15 +75,17 @@ int main(void)  /* Program tester */
     }
 
 
-std::cout << refVec.transpose() << "\t" << measVecAngles.transpose() << "\t" << measVecRates.transpose() << std::endl;
-      VecCmd cmdBase = cntrlMgr.CmdBase(refVec, TimeCurr_s);
-      VecCmd cmdRes = cntrlMgr.CmdRes(refVec, measVecAngles, measVecRates, TimeCurr_s);
-     VecCmd cmdCntrl = cntrlMgr.Cmd();
-std::cout << cmdBase.transpose() << std::endl;
+std::cout << refVec[0] << "\t" << measVecAngles[0] << "\t" << measVecRates[0] << "\t";
+std::cout << cntrlMgr.cntrlMode_ << "\t";
 
 
+    VecCmd cmdBase = cntrlMgr.CmdBase(refVec, TimeCurr_s);
+    VecCmd cmdRes = cntrlMgr.CmdRes(refVec, measVecAngles, measVecRates, TimeCurr_s);
+    VecCmd cmdCntrl = cntrlMgr.Cmd();
 
+std::cout << cmdBase[0] << "\t" << cmdRes[0] << "\t" << cmdCntrl[0] << "\t";
 
+std::cout << std::endl;
 
     meas += measStep;
 

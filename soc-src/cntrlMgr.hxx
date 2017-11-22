@@ -11,18 +11,18 @@ History:
 #define CNTRLMGR_HXX_
 
 #include "cntrlFunc.hxx"
-#include <Eigen/Dense>
+#include <Eigen/Core>
 
 #define MaxCntrlCmdDim 5
 
 typedef Eigen::Matrix<float, -1, 1, 0, MaxCntrlCmdDim, 1> VecCmd;
+typedef Eigen::Matrix<float, 2, 1, 0> VecRng;
 
 class CntrlMgr {
  public:
   CntrlMode cntrlMode_; // Controller mode
-  VecCmd cntrlBaseCmd_, cntrlResCmd_, cntrlCmd_;
 
-  CntrlMgr() {};   // Constructor
+  CntrlMgr();   // Constructor
   ~CntrlMgr() {};  // Destructor
 
   void Init();     // Initialize controllers and excitations
@@ -32,7 +32,8 @@ class CntrlMgr {
   VecCmd CmdRes(VecCmd refVec, VecCmd measVec, VecCmd dMeasVec, float time_s);
   VecCmd Cmd();      // Compute Controller Commands
  private:
-  float timePrev_s_, time_s_, dt_s_;
+  VecCmd cntrlBaseCmd_, cntrlResCmd_, cntrlCmd_;
+  float timePrev_s_;
 
   CntrlManual cntrlBaseRoll_, cntrlBasePitch_, cntrlBaseYaw_, cntrlBaseSpeed_;
   CntrlPiDamp cntrlResRoll_, cntrlResPitch_, cntrlResYaw_, cntrlResSpeed_;

@@ -11,11 +11,17 @@ History:
 #include <ctime>
 
 #include <iostream>
-#include "cntrlAllocFunc.hxx"
+#include "cntrlAllocMgr.hxx"
+//#include "cntrlAllocFunc.hxx"
 
+
+static const float kD2R = M_PI / 180.0;
 
 int main(void)  /* Program tester */
 {
+  // Define Control Allocation
+  CntrlAllocMgr cntrlAllocMgr; // Create the Control Allocator
+
   uint8_t numObj = 3;
   uint8_t numEff = 6;
 
@@ -30,15 +36,24 @@ int main(void)  /* Program tester */
   MatEff wtEff(numEff, numEff); // Effector weighting matrix
 
   // Define Problem
-  cntrlEff << 7712, -25060,   5603, -7712, -25060, -5603, 
-      -1025,      0,   6862,  5582,      0, 861.9, 
-      -5582,      0, -861.9,  1284,      0, -17460;
 
-  vObj << -7.0E+5,  8.0E+5,  9.0E+5;
+  // Surface Order - Elev, Rud, AilL, FlapL, FlapR, AilR
+  // Objectives Order - Roll Rate, Pitch Rate, Yaw Rate
+  // cntrlEff << 0.0000, -5.0084, 78.235,  33.013, -33.013, -78.235,
+  //            -133.69, -0.0047, 3.0002,  2.6238,  2.6238,  3.0002,
+  //             0.0000, -82.041, 5.7521, -1.7941,  1.7941,  5.7521; // rad/s per rad
 
-  uMin << -29.0, -29.0, -15.0, -20.0, -20.0, -30.0 ;
-  uMax <<  15.0,  15.0,  15.0,  20.0,  20.0,  30.0 ;
-  uPref <<  0.0,   0.0,   0.0,   0.0,   0.0,   0.0 ;
+  cntrlEff << 0.0000,  0.0000, 78.235,  33.013, -33.013, -78.235,
+             -133.69,  0.0000, 0.0000,  0.0000,  0.0000,  0.0000,
+              0.0000, -82.041, 0.0000,  0.0000,  0.0000,  0.0000; // rad/s per rad
+
+  cntrlEff *= kD2R;
+
+  uMin << -25.0*kD2R, -25.0*kD2R, -25.0*kD2R, -25.0*kD2R, -25.0*kD2R, -25.0*kD2R ;
+  uMax <<  25.0*kD2R,  25.0*kD2R,  25.0*kD2R,  25.0*kD2R,  25.0*kD2R,  25.0*kD2R ;
+  uPref << 0.0,        0.0,        0.0,        0.0,        0.0,        0.0;
+
+  vObj << -20*kD2R,  5*kD2R,  2*kD2R; // Command rad/s
 
 
   std::cout << "Matrix cntrlEff:\n" << cntrlEff << std::endl;
@@ -49,13 +64,20 @@ int main(void)  /* Program tester */
   wtObj.setIdentity();
   wtEff.setIdentity();
 
+
+  cntrlAllocMgr.Init(cntrlEff, wtObj, wtEff, uMin, uMax, uPref);     // Initialize Control Allocator
+
+
   tStart_tick = std::clock(); // Start the timer
 
   // Call control allocation
   int numIter = 1000;
   for(int i = 0 ; i < numIter ; i++){
+
+    uCmd = cntrlAllocMgr.Compute(vObj);
+
     //uCmd = CntrlAllocPseudo(cntrlEff, vObj, uPref);
-    uCmd = CntrlAllocPseudoWt(cntrlEff, vObj, wtObj, wtEff, uPref);
+    //uCmd = CntrlAllocPseudoWt(cntrlEff, vObj, wtObj, wtEff, uPref);
 
     //float gammaEff = .001;
     //uint8_t numIter = 200;
@@ -66,7 +88,7 @@ int main(void)  /* Program tester */
 
   std::cout<<"Average tElaps_s: "<< tElaps_s / numIter <<'\n';
 
-  std::cout << "Unsaturated Solution:\n" << uCmd << std::endl;
+  std::cout << "Unsaturated Solution:\n" << uCmd/kD2R << std::endl;
 
   vErr = vObj - (cntrlEff * uCmd);
   std::cout << "Unsaturation Solution Error:\n" << vErr << std::endl;
@@ -74,7 +96,7 @@ int main(void)  /* Program tester */
   // Apply Saturation
   Saturate(uMin, uMax, uCmd);
 
-  std::cout << "Saturated Solution:\n" << uCmd << std::endl;
+  std::cout << "Saturated Solution:\n" << uCmd/kD2R << std::endl;
 
   vErr = vObj - (cntrlEff * uCmd);
   std::cout << "Saturation Solution Error:\n" << vErr << std::endl;
