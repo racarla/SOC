@@ -185,23 +185,29 @@ void CntrlMgr::CntrlResDef()
 {
   // Command Range Limits, stick -1 to 1, converts to ref -60 to 60
   VecRng refRollRng, refPitchRng, refYawRng, refSpeedRng;
-  refRollRng  << -100*kD2R, 100*kD2R;  // Roll angle range [rad]
-  refPitchRng << -60*kD2R, 60*kD2R; // Pitch angle range [rad]
+  refRollRng  << -60*kD2R, 60*kD2R;  // Roll angle range [rad]
+  refPitchRng << -20*kD2R, 20*kD2R; // Pitch angle range [rad]
   refYawRng   << -30*kD2R, 30*kD2R;   // Yaw rate range [rad/s]
   refSpeedRng << 0, 30;     // Speed range [m/s]
 
   // Command Range Limits, limits of the aircraft capability
   VecRng cmdRollRng, cmdPitchRng, cmdYawRng, cmdThrotRng;
-  cmdRollRng  = refRollRng; // Roll rate command range [rad/s]
-  cmdPitchRng = refPitchRng; // Pitch rate command range [rad/s]
-  cmdYawRng   = refYawRng; // Yaw rate command range [rad/s]
+  cmdRollRng  << -100*kD2R, 100*kD2R;  // Roll rate range [rad/s]
+  cmdPitchRng << -60*kD2R, 60*kD2R; // Pitch rate range [rad/s]
+  cmdYawRng   << -30*kD2R, 30*kD2R;   // Yaw rate range [rad/s]
   cmdThrotRng << 0, 1; // Throttle command range [nd]
 
-  // Controller Parameters
-  float KpRoll = 0.52, KiRoll = 0.20, KdampRoll = 0.07;
-  float KpPitch = 0.84, KiPitch = 0.23, KdampPitch = 0.08;
-  float KpYaw = 0.0, KiYaw = 0.0, KdampYaw = 0.0;
-  float KpSpeed = 0.0278, KiSpeed = 0.0061, KdampSpeed = 0.0;
+  // Correct for the reference and command range scales
+  float cmdScaleRoll = (cmdRollRng[1] - cmdRollRng[0]) / (refRollRng[1] - refRollRng[0]);
+  float cmdScalePitch = (cmdPitchRng[1] - cmdPitchRng[0]) / (refPitchRng[1] - refPitchRng[0]);
+  float cmdScaleYaw = (cmdYawRng[1] - cmdYawRng[0]) / (refYawRng[1] - refYawRng[0]);
+  float cmdScaleSpeed = (cmdThrotRng[1] - cmdThrotRng[0]) / (refSpeedRng[1] - refSpeedRng[0]);
+
+  // Controller Parameters, corrected to the normalized I/O ranges
+  float KpRoll = 0.52 * cmdScaleRoll, KiRoll = 0.385 * KpRoll, KdampRoll = 0.08; // FIXIT Gains
+  float KpPitch = 0.84 * cmdScalePitch, KiPitch = 0.274 * KpPitch, KdampPitch = 0.08;
+  float KpYaw = 0.5 * cmdScaleYaw, KiYaw = 0.0 * KpYaw, KdampYaw = 0.08;
+  float KpSpeed = 1.0 * cmdScaleSpeed, KiSpeed = 0.456 * KpSpeed, KdampSpeed = 0.0;
 
   // Initialize Individual Controllers
   cntrlResRoll_.Init(KpRoll, KiRoll, KdampRoll, refRollRng[0], refRollRng[1], cmdRollRng[0], cmdRollRng[1]);

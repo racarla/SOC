@@ -43,6 +43,12 @@ $(DIR_FLIGHT)/cntrlAllocMgr.cxx \
 $(DIR_FLIGHT)/cntrlAllocFunc.cxx \
 $(DIR_FLIGHT)/main.cxx
 
+SRC_CAL :=\
+$(DIR_FLIGHT)/config.cxx \
+$(DIR_FLIGHT)/fmu.cxx \
+$(DIR_FLIGHT)/missionMgr.cxx \
+$(DIR_FLIGHT)/inclinometer.cxx \
+$(DIR_FLIGHT)/mainCal.cxx
 
 SRC_CONFIG :=\
 $(DIR_CONFIG)/config.cxx \
@@ -56,20 +62,25 @@ $(DIR_BIN2HDF)/main.cxx
 
 # Create lists of object code
 OBJ_FLIGHT := ${SRC_FLIGHT:%.cxx=%.o}
+OBJ_CAL := ${SRC_CAL:%.cxx=%.o}
 OBJ_CONFIG := ${SRC_CONFIG:%.cxx=%.o}
 OBJ_BIN2HDF := ${SRC_BIN2HDF:%.cxx=%.o}
 
 # Build rules
-all: flightcode config bin2hdf display
+all: flightcode calib config bin2hdf display
 
-%.o: %.cxx
-	$(CC) $(CFLAGS) $(IFLAGS) -c -o $@ $<
+#%.o: %.cxx
+#	$(CC) $(CFLAGS) $(IFLAGS) -c -o $@ $<
 
-flightcode: $(OBJ_FLIGHT)
+flightcode: $(SRC_FLIGHT)
 	@ echo "Building flightcode ..."	
 	$(CC) $(CFLAGS) $(IFLAGS) -o $@ $? $(LFLAGS_FLIGHT)
 
-config: $(OBJ_CONFIG)
+calib: $(SRC_CAL)
+	@ echo "Building calibration ..."	
+	$(CC) $(CFLAGS) $(IFLAGS) -o $@ $? $(LFLAGS_FLIGHT)
+
+config: $(SRC_CONFIG)
 	@ echo "Building config ..."	
 	$(CC) $(CFLAGS) $(IFLAGS) -o $@ $? $(LFLAGS_CONFIG)
 
@@ -78,10 +89,10 @@ bin2hdf: $(SRC_BIN2HDF)
 	$(CC) $(CFLAGS) $(IFLAGS) -o $@ $? $(LFLAGS_BIN2HDF)
 
 cleanObj:
-	rm -f $(OBJ_FLIGHT) ${OBJ_CONFIG} ${OBJ_CONFIG}
+	rm -f $(OBJ_FLIGHT) $(OBJ_CAL) ${OBJ_CONFIG} ${OBJ_CONFIG}
 
 clean:
-	rm -f flightcode config bin2hdf
+	rm -f flightcode calib config bin2hdf
 
 display: 
 	@ echo

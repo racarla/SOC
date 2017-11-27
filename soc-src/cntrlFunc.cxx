@@ -10,6 +10,7 @@ History:
 */
 
 #include "cntrlFunc.hxx"
+#include <iostream>
 
 
 // CntrlManual
@@ -281,7 +282,7 @@ float CntrlPiDamp::Compute(float ref, float meas, float dMeas, float dt_s)
 {
   float refScale = 0.5 * (refMax_ - refMin_) * ref; // Scaled reference command
   float err = refScale - meas; // Compute the Error
-	float dErr = 0.0 - dMeas; // Measurement for the Damper, Not the sign!!
+	float dErr = 0.0 - dMeas; // Measurement for the Damper, Note the sign!!
 
   if (dt_s <= 0.0 ) {
     dt_s = 0.0; // Prevents the Integrator state from changing
@@ -325,6 +326,8 @@ void CntrlPiDamp::InitState(float cmd, float err, float dErr)
 {
   if (KI_ != 0.0) { // Protect for KI == 0
     iErr_ = (cmd - (KP_ * err + KD_ * dErr)) / KI_; // Compute the required state
+  } else {
+    iErr_ = 0.0; // Compute the required state
   }
 }
 
@@ -335,6 +338,7 @@ float CntrlPiDamp::CalcCmd(float err, float dErr)
 	float iCmd = KI_ * iErr_;
 	float dCmd = KD_ * dErr;
 	float cmd = pCmd + iCmd + dCmd;
+//std::cout << "TEST\n" << err << "\t" << pCmd << "\t" << iErr_ << "\t" <<  iCmd << "\t" <<  dCmd << "\t" << cmd << std::endl;
 
 	// saturate cmd, set iErr to limit that produces saturated cmd
 	if (cmd <= cmdMin_) {
@@ -344,6 +348,7 @@ float CntrlPiDamp::CalcCmd(float err, float dErr)
 		cmd = cmdMax_;
 		InitState(cmd, err, dErr); // Re-compute the integrator state
 	}
+//std::cout << "CMD   \n" << err << "\t" << pCmd << "\t" << iErr_ << "\t" <<  iCmd << "\t" <<  dCmd << "\t" << cmd << std::endl;
 }
 
 
@@ -434,6 +439,8 @@ void CntrlPid::InitState(float cmd, float err, float dErr)
 {
   if (KI_ != 0.0) { // Protect for KI == 0
     iErr_ = (cmd - (KP_ * err + KD_ * dErr)) / KI_; // Compute the required state
+  } else {
+    iErr_ = 0.0; // Compute the required state
   }
 }
 

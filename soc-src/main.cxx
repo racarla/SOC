@@ -76,21 +76,21 @@ int main(int argc, char* argv[]) {
   VecEff cmdAlloc(numEff); // effector allocator commands
 
   // Control Allocation Definition
-  // Surface Order - Elev, Rud, AilL, FlapL, FlapR, AilR
+  // Surface Order - Elev, Rud, AilR, FlapR, FlapL, AilL
   // Objectives Order - Roll Rate, Pitch Rate, Yaw Rate
-  // cntrlEff << 0.0000, -5.0084, 78.235,  33.013, -33.013, -78.235,
-  //            -133.69, -0.0047, 3.0002,  2.6238,  2.6238,  3.0002,
-  //             0.0000, -82.041, 5.7521, -1.7941,  1.7941,  5.7521; // rad/s per rad
+//  cntrlEff <<  0.0000,  5.0084,  78.235,  33.013, -33.013, -78.235,
+//              -133.69,  0.0047,  3.0002,  2.6238,  2.6238,  3.0002,
+//               0.0000,  82.041, -5.7521, -1.7941,  1.7941,  5.7521; // rad/s per deg
 
   // Objectives Order - Roll Rate, Pitch Rate, Yaw Rate
-  cntrlEff << 0.0000,  0.0000, 78.235,  33.013, -33.013, -78.235,
-             -133.69,  0.0000, 0.0000,  0.0000,  0.0000,  0.0000,
-              0.0000, -82.041, 0.0000,  0.0000,  0.0000,  0.0000; // rad/s per deg
+  cntrlEff <<  0.0000,  5.0084,  78.235,  33.013, -33.013, -78.235,
+              -133.69,  0.0000,  0.0000,  0.0000,  0.0000,  0.0000,
+               0.0000,  82.041, -5.7521, -1.7941,  1.7941,  5.7521; // rad/s per deg
 
   cntrlEff *= kD2R; // Convert to rad/s per rad
 
-  uMin << -25.0*kD2R, -25.0*kD2R, -25.0*kD2R, -25.0*kD2R, -25.0*kD2R, -25.0*kD2R ;
-  uMax <<  25.0*kD2R,  25.0*kD2R,  25.0*kD2R,  25.0*kD2R,  25.0*kD2R,  25.0*kD2R ;
+  uMin << -25.0*kD2R, -15.0*kD2R, -25.0*kD2R, -25.0*kD2R, -25.0*kD2R, -25.0*kD2R ;
+  uMax <<  25.0*kD2R,  15.0*kD2R,  25.0*kD2R,  25.0*kD2R,  25.0*kD2R,  25.0*kD2R ;
   uPref << 0.0,        0.0,        0.0,        0.0,        0.0,        0.0;
 
   wtObj.setIdentity();
@@ -123,7 +123,7 @@ int main(int argc, char* argv[]) {
 
       cntrlMgr.Mode(modeMgr.cntrlMode); // Transfer the Mission Control mode to the Controller Manager
 
-std::cout << modeMgr.time_s << "\t" << modeMgr.autoEngage << "\t" << modeMgr.cntrlMode << "\t" << modeMgr.testArm << "\t" << modeMgr.testEngage << "\t" << (int) modeMgr.indxTest << "\t";
+std::cout << modeMgr.time_s << "\t" << modeMgr.autoEngage << "  " << modeMgr.cntrlMode << "  " << modeMgr.testArm << "  " << modeMgr.testEngage << "  " << (int) modeMgr.indxTest << "\t";
 
       VecCmd refVec(4);
       refVec[0] = Data.SbusRx[0].Inceptors[0];
@@ -141,14 +141,16 @@ std::cout << modeMgr.time_s << "\t" << modeMgr.autoEngage << "\t" << modeMgr.cnt
       measVecRates[0] = Data.Mpu9250.Gyro_rads[0];
       measVecRates[1] = Data.Mpu9250.Gyro_rads[1];
       measVecRates[2] = Data.Mpu9250.Gyro_rads[2];
-      measVecRates[3] = 0; // FIXIT ???
+      measVecRates[3] = 0.0;
 
       VecCmd cmdBase = cntrlMgr.CmdBase(refVec, modeMgr.time_s);
       VecCmd cmdRes = cntrlMgr.CmdRes(refVec, measVecAngles, measVecRates, modeMgr.time_s);
       VecCmd cmdCntrl = cntrlMgr.Cmd();
 
-std::cout << refVec.transpose() << "\t";
-std::cout << cmdCntrl.transpose()/kD2R << "\t";
+std::cout << refVec.transpose() << "\t\t";
+std::cout << measVecAngles[2]/kD2R << "\t";
+std::cout << measVecRates[2]/kD2R << "\t";
+std::cout << cmdCntrl[2]/kD2R << "\t";
 
 // FIXIT - the failsafe mode leaves the controller engaged, at least need to disengage the excitation
 // FIXIT - Throttle controller??
@@ -171,8 +173,8 @@ std::cout << cmdCntrl.transpose()/kD2R << "\t";
       float cmdElev = cmdAlloc[0] + cmdExcite[1];
       float cmdRud = cmdAlloc[1] + cmdExcite[2];
       float cmdAilL = cmdAlloc[2] + cmdExcite[0];
-      float cmdFlapL = cmdAlloc[3];
-      float cmdFlapR = cmdAlloc[4];
+      float cmdFlapL = cmdAlloc[3] + Data.SbusRx[0].Inceptors[3];
+      float cmdFlapR = cmdAlloc[4] + Data.SbusRx[0].Inceptors[3];
       float cmdAilR = cmdAlloc[5] - cmdExcite[0];
 
       float cmdThrot = cmdCntrl[3];
@@ -186,7 +188,7 @@ cmdTemp[4] = cmdFlapL;
 cmdTemp[5] = cmdFlapR;
 cmdTemp[6] = cmdAilR;
 
-std::cout << cmdTemp.transpose()/kD2R << "\t";
+//std::cout << cmdTemp.transpose()/kD2R << "\t";
 
       // OUTPUT PROCESSING
 Config.NumberEffectors = 7; // FIXIT - Shouldn't need this!!
@@ -199,10 +201,10 @@ Config.NumberEffectors = 7; // FIXIT - Shouldn't need this!!
       EffectorCmd[0] = cmdThrot;
       EffectorCmd[1] = cmdElev;
       EffectorCmd[2] = cmdRud;
-      EffectorCmd[3] = cmdAilL;
-      EffectorCmd[4] = cmdFlapL;
-      EffectorCmd[5] = cmdFlapR;
-      EffectorCmd[6] = cmdAilR;
+      EffectorCmd[3] = cmdAilR;
+      EffectorCmd[4] = cmdFlapR;
+      EffectorCmd[5] = cmdFlapL;
+      EffectorCmd[6] = cmdAilL;
 
       // Saturate(uMin, uMax, EffectorCmd);
 

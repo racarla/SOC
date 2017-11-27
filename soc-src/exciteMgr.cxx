@@ -125,7 +125,7 @@ void ExciteMgr::Init()
   // Excitation 8: Chirp, Rudder
   exciteTest08_.Init(kLinear, timeVecStart_s, timeVecDur_s, freqVecStart_rps, freqVecEnd_rps, ampVecStart_nd, ampVecEnd_nd);
 
-  // Excitation 9: Simultaneous Chirp, Elevator (increase freq) and Ailerons (decreasing freq)
+  // Excitation 9: Simultaneous Chirp, Ailerons (decreasing freq) and Elevator (increase freq) 
   timeStart_s = 1.0; timeDur_s = 20.0; amp_nd = 4 * kD2R;
   freqLow_rps = 1; freqHigh_rps = 50;
 
@@ -133,8 +133,8 @@ void ExciteMgr::Init()
 
   timeVecStart_s.setConstant(numChan, timeStart_s);
   timeVecDur_s.setConstant(numChan, timeDur_s);
-  freqVecStart_rps.setConstant(numChan, freqLow_rps); freqVecStart_rps[1] = freqHigh_rps;
-  freqVecEnd_rps.setConstant(numChan, freqHigh_rps); freqVecEnd_rps[1] = freqLow_rps;
+  freqVecStart_rps.setConstant(numChan, freqHigh_rps); freqVecStart_rps[1] = freqLow_rps;
+  freqVecEnd_rps.setConstant(numChan, freqLow_rps); freqVecEnd_rps[1] = freqHigh_rps;
   ampVecStart_nd.setConstant(numChan, amp_nd);
   ampVecEnd_nd.setConstant(numChan, amp_nd);
 
