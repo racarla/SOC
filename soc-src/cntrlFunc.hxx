@@ -25,11 +25,11 @@ public:
 
   CntrlManual();
   ~CntrlManual() {};
-  void Init(float refMin, float refMax, float cmdMin, float cmdMax);
+  void Init(float refScale, float cmdMin, float cmdMax);
   float Compute(float ref);
 
 private:
-  float refMin_, refMax_, cmdMin_, cmdMax_;
+  float refScale_, cmdMin_, cmdMax_;
 
   float CalcCmd(float ref);
 };
@@ -42,11 +42,12 @@ public:
 
   CntrlDamp();
   ~CntrlDamp() {};
-  void Init(float KD, float refMin, float refMax, float cmdMin, float cmdMax);
+  void Init(float refScale, float cmdMin, float cmdMax, float KD);
   float Compute(float ref, float dMeas);
 
 private:
-  float refMin_, refMax_, cmdMin_, cmdMax_;
+  float refScale_, cmdMin_, cmdMax_;
+
   float KD_;
 
   float CalcCmd(float err, float dErr);
@@ -61,11 +62,13 @@ public:
 
   CntrlPi();
   ~CntrlPi() {};
-  void Init(float KP, float KI, float refMin, float refMax, float cmdMin, float cmdMax);
+  void Init(float refScale, float cmdMin, float cmdMax, float KP, float KI);
   float Compute(float ref, float meas, float dt_s);
 
 private:
   float refMin_, refMax_, cmdMin_, cmdMax_;
+  float refScale_;
+
   float KP_, KI_;
 
   void InitState(float cmd, float err);
@@ -81,11 +84,12 @@ public:
 
   CntrlPiDamp();
   ~CntrlPiDamp() {};
-  void Init(float KP, float KI, float KD, float refMin, float refMax, float cmdMin, float cmdMax);
+  void Init(float refScale, float cmdMin, float cmdMax, float KP, float KI, float KD);
   float Compute(float ref, float meas, float dMeas, float dt_s);
 
 private:
-  float refMin_, refMax_, cmdMin_, cmdMax_;
+  float refScale_, cmdMin_, cmdMax_;
+
   float KP_, KI_, KD_;
 
   void InitState(float cmd, float err, float dErr);
@@ -101,11 +105,12 @@ public:
 
   CntrlPid();
   ~CntrlPid() {};
-  void Init(float KP, float KI, float KD, float refMin, float refMax, float cmdMin, float cmdMax);
+  void Init(float refScale, float cmdMin, float cmdMax, float KP, float KI, float KD);
   float Compute(float ref, float meas, float dt_s);
 
 private:
-  float refMin_, refMax_, cmdMin_, cmdMax_;
+  float refScale_, cmdMin_, cmdMax_;
+
   float KP_, KI_, KD_;
 
   void InitState(float cmd, float err, float dErr);

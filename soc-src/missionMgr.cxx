@@ -9,13 +9,6 @@ History:
 
 #include "missionMgr.hxx"
 
-MissionMgr::MissionMgr()
-{
-  float time_s_;
-  float rame_cnt_;
-  uint8_t indxTest_;
-  uint8_t numTest_;
-}
 
 void MissionMgr::Init()
 {

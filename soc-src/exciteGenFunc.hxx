@@ -14,8 +14,8 @@ History:
 #include <stdint.h>
 #include <Eigen/Core>
 
-#define MaxChan 16
-#define MaxElem 30
+#define MaxChan 4
+#define MaxElem 50
 
 // Matrix<typename Scalar, int RowsAtCompiletime, int ColsAtCompiletime, int Options = 0, int MaxRowsAtCompiletime = RowsAtCompiletime, int MaxColsAtCompiletime = ColsAtCompiletime>
 typedef Eigen::Matrix<float, -1, 1, 0, MaxElem, 1> VecElem;

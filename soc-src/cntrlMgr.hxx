@@ -33,16 +33,15 @@ class CntrlMgr {
   VecCmd Cmd();      // Compute Controller Commands
  private:
   VecCmd cntrlBaseCmd_, cntrlResCmd_, cntrlCmd_;
-  float timePrev_s_;
+  float timePrevBase_s_, timePrevRes_s_;
 
   CntrlManual cntrlBaseRoll_, cntrlBasePitch_, cntrlBaseYaw_, cntrlBaseSpeed_;
-  CntrlPiDamp cntrlResRoll_, cntrlResPitch_, cntrlResYaw_, cntrlResSpeed_;
+  //CntrlPiDamp cntrlResRoll_, cntrlResPitch_, cntrlResYaw_, cntrlResSpeed_;
+  CntrlDamp cntrlResRoll_, cntrlResPitch_, cntrlResYaw_;
+  CntrlPi cntrlResSpeed_;
 
   void CntrlBaseDef();
   void CntrlResDef();
 };
 
-
-
 #endif // CNTRLMGR_HXX_
-

@@ -11,7 +11,7 @@
 
 # compiler
 CC := arm-linux-gnueabihf-g++-5
-CFLAGS := -std=c++0x
+CFLAGS := -std=c++0x -Wall
 
 # src
 DIR_FLIGHT := soc-src
@@ -29,6 +29,7 @@ LFLAGS_BIN2HDF := -lz -lm -lhdf5_cpp -lhdf5_serial -L/usr/lib/x86_64-linux-gnu
 # source code to be compiled
 SRC_FLIGHT :=\
 $(DIR_FLIGHT)/navigation.cxx \
+$(DIR_FLIGHT)/airdata.cxx \
 $(DIR_FLIGHT)/EKF_15state.cxx \
 $(DIR_FLIGHT)/nav_functions.cxx \
 $(DIR_FLIGHT)/datalogger.cxx \
@@ -88,10 +89,8 @@ bin2hdf: $(SRC_BIN2HDF)
 	@ echo "Building bin2hdf ..."	
 	$(CC) $(CFLAGS) $(IFLAGS) -o $@ $? $(LFLAGS_BIN2HDF)
 
-cleanObj:
-	rm -f $(OBJ_FLIGHT) $(OBJ_CAL) ${OBJ_CONFIG} ${OBJ_CONFIG}
-
 clean:
+	rm -f $(OBJ_FLIGHT) $(OBJ_CAL) ${OBJ_CONFIG} ${OBJ_CONFIG}
 	rm -f flightcode calib config bin2hdf
 
 display: 

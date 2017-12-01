@@ -38,7 +38,7 @@ struct MissionMode {
 
 class MissionMgr {
  public:
-  MissionMgr();   // Constructor
+  MissionMgr() {};   // Constructor
   ~MissionMgr() {};  // Destructor
   void Init();    // Initialize controllers and excitations
   MissionMode ModeMgr(const FmuData FmuDataRef); // Manage mode 

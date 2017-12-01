@@ -43,7 +43,9 @@ VecEff CntrlAlloc(const MatCntrlEff &cntrlEff, const VecObj &vObj, const VecEff 
   }
   
   // Saturate to control constraints
-    Saturate(uMin, uMax, uCmd);
+  Saturate(uMin, uMax, uCmd);
+
+  return uCmd;
 }
 
 // Cntrl Allocation Methods
@@ -829,7 +831,7 @@ uint8_t SaturateIndex(const VecEff &uMin, const VecEff &uMax, VecEff &uCmd, VecE
   return numSat;
 }
 
-uint8_t FindFree(const VecEffInt &iEffSat, VecEffInt &iEffFree)
+void FindFree(const VecEffInt &iEffSat, VecEffInt &iEffFree)
 {
   uint8_t len = iEffSat.size();
   uint8_t num = 0;
@@ -918,7 +920,7 @@ void ExpandVecElem(const VecEff &V, const VecEffInt &elemKeep, VecEff &VExp)
 
   uint8_t numExp = elemKeep.size();
   uint8_t i = 0;
-  uint8_t iGrow;
+  //uint8_t iGrow;
 
   for (i = 0; i < numExp; i++) {
     if( elemKeep[i] == 1 ) {

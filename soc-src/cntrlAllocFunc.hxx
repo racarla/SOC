@@ -117,7 +117,7 @@ uint8_t SaturateIndex(
   const VecEff &uMin, const VecEff &uMax,
   VecEff &uCmd, VecEffInt &iEffSat);
 
-uint8_t FindFree(
+void FindFree(
   const VecEffInt &iEffSat,
   VecEffInt &iEffFree);
 

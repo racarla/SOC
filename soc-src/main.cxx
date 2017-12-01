@@ -19,6 +19,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SO
 */
 
 #include "navigation.hxx"
+#include "airdata.hxx"
 #include "datalogger.hxx"
 #include "config.hxx"
 #include "fmu.hxx"
@@ -37,15 +38,20 @@ int main(int argc, char* argv[]) {
     return -1;
   }
 
-  /* initialize classes */
+  /* Construct classes */
   Fmu Sensors;
   Datalogger Log;
   Navigation NavFilter;
+  Airdata airdata;
 
   /* initialize structures */
   AircraftConfig Config;
   FmuData Data;
   NavigationData NavData;
+  AirdataStruct airdataStruct;
+
+  // Initialize
+  airdata.Init();
 
   /* load configuration file */
   LoadConfigFile(argv[1], Sensors, &Config, &Data);
@@ -104,10 +110,18 @@ int main(int argc, char* argv[]) {
       // INPUT PROCESSING
 
       // MISSION MANAGER
-        // Mode Switching
+      // Mode Switching
       MissionMode modeMgr = missionMgr.ModeMgr(Data);
 
       // SENSOR PROCESSING
+      // Airdata
+      airdataStruct = airdata.Compute(Data.Pitot[0]);
+
+      // Compute the Airdata Biases during startup, 10 seconds @ 50 Hz
+      if (modeMgr.frame_cnt < (500)) {
+        airdata.BiasEst();
+      }
+
       // navigation filter
       if (Data.Gps.size() > 0) {
         if (!NavFilter.Initialized) {
@@ -116,26 +130,41 @@ int main(int argc, char* argv[]) {
           NavFilter.RunNavigation(Data,&NavData);
         }
       }
-      // smoothing filters
 
       // CONTROL LAWS
       // execute inner-loop control law
 
       cntrlMgr.Mode(modeMgr.cntrlMode); // Transfer the Mission Control mode to the Controller Manager
 
-std::cout << modeMgr.time_s << "\t" << modeMgr.autoEngage << "  " << modeMgr.cntrlMode << "  " << modeMgr.testArm << "  " << modeMgr.testEngage << "  " << (int) modeMgr.indxTest << "\t";
+//std::cout << modeMgr.time_s << "\t" << modeMgr.frame_cnt << "\t" << modeMgr.autoEngage << "  " << modeMgr.cntrlMode << "  " << modeMgr.testArm << "  " << modeMgr.testEngage << "  " << (int) modeMgr.indxTest << "\t";
 
-      VecCmd refVec(4);
-      refVec[0] = Data.SbusRx[0].Inceptors[0];
-      refVec[1] = Data.SbusRx[0].Inceptors[1];
-      refVec[2] = Data.SbusRx[0].Inceptors[2];
-      refVec[3] = Data.SbusRx[0].Inceptors[4];
+/*
+std::cout << airdataStruct.presStatic_Pa << "\t";
+std::cout << airdataStruct.presDiff_Pa << "\t\t";
+
+std::cout << airdataStruct.alt_m << "\t";
+std::cout << airdataStruct.vIas_mps << "\t\t";
+
+std::cout << airdataStruct.altFilt_m << "\t";
+std::cout << airdataStruct.vIasFilt_mps << "\t\t";
+*/
+      VecCmd refVecBase(4);
+      refVecBase[0] = Data.SbusRx[0].Inceptors[0];
+      refVecBase[1] = Data.SbusRx[0].Inceptors[1];
+      refVecBase[2] = Data.SbusRx[0].Inceptors[2];
+      refVecBase[3] = Data.SbusRx[0].Inceptors[4];
+
+      VecCmd refVecRes(4);
+      refVecRes[0] = Data.SbusRx[0].Inceptors[0];
+      refVecRes[1] = Data.SbusRx[0].Inceptors[1];
+      refVecRes[2] = Data.SbusRx[0].Inceptors[2];
+      refVecRes[3] = 17; // Command speed
 
       VecCmd measVecAngles(4);
       measVecAngles[0] = NavData.Euler_rad[0];
       measVecAngles[1] = NavData.Euler_rad[1];
       measVecAngles[2] = NavData.Euler_rad[2];
-      measVecAngles[3] = 15; // FIXIT - Need filtered airspeed
+      measVecAngles[3] = airdataStruct.vIasFilt_mps;
 
       VecCmd measVecRates(4);
       measVecRates[0] = Data.Mpu9250.Gyro_rads[0];
@@ -143,21 +172,14 @@ std::cout << modeMgr.time_s << "\t" << modeMgr.autoEngage << "  " << modeMgr.cnt
       measVecRates[2] = Data.Mpu9250.Gyro_rads[2];
       measVecRates[3] = 0.0;
 
-      VecCmd cmdBase = cntrlMgr.CmdBase(refVec, modeMgr.time_s);
-      VecCmd cmdRes = cntrlMgr.CmdRes(refVec, measVecAngles, measVecRates, modeMgr.time_s);
+      VecCmd cmdBase = cntrlMgr.CmdBase(refVecBase, modeMgr.time_s);
+      VecCmd cmdRes = cntrlMgr.CmdRes(refVecRes, measVecAngles, measVecRates, modeMgr.time_s);
       VecCmd cmdCntrl = cntrlMgr.Cmd();
 
-std::cout << refVec.transpose() << "\t\t";
-std::cout << measVecAngles[2]/kD2R << "\t";
-std::cout << measVecRates[2]/kD2R << "\t";
-std::cout << cmdCntrl[2]/kD2R << "\t";
-
-// FIXIT - the failsafe mode leaves the controller engaged, at least need to disengage the excitation
-// FIXIT - Throttle controller??
-// FIXIT - Need airspeed source + filtered
-// FIXIT - Research Yaw controller??
-// FIXIT - check reference command limits, manual mode pegs the cmd with really small stick deflections
-
+//std::cout << refVecBase.transpose() << "\t\t";
+//std::cout << measVecAngles[3] << "\t";
+//std::cout << measVecRates[3] << "\t";
+//std::cout << cmdCntrl[3] << "\t";
 
       // Apply command excitations
       VecChan cmdExcite(4);
@@ -191,7 +213,6 @@ cmdTemp[6] = cmdAilR;
 //std::cout << cmdTemp.transpose()/kD2R << "\t";
 
       // OUTPUT PROCESSING
-Config.NumberEffectors = 7; // FIXIT - Shouldn't need this!!
       // send control surface commands
       std::vector<float> EffectorCmd;
       EffectorCmd.resize(Config.NumberEffectors);

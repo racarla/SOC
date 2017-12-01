@@ -8,24 +8,25 @@ History:
 */
 
 #include "cntrlMgr.hxx"
+#include <iostream>
 
 CntrlMgr::CntrlMgr()
 {
   // Create Individual Controllers
   CntrlManual cntrlBaseRoll_, cntrlBasePitch_, cntrlBaseYaw_, cntrlBaseSpeed_;
-  CntrlPiDamp cntrlResRoll_, cntrlResPitch_, cntrlResYaw_, cntrlResSpeed_;
+  //CntrlPiDamp cntrlResRoll_, cntrlResPitch_, cntrlResYaw_, cntrlResSpeed_;
+  CntrlDamp cntrlResRoll_, cntrlResPitch_, cntrlResYaw_;
+  CntrlPi cntrlResSpeed_;
 
-  CntrlMode cntrlMode_;
   VecCmd cntrlBaseCmd_, cntrlResCmd_, cntrlCmd_;
-
-  float timePrev_s_;
 };
 
 void CntrlMgr::Init()
 {
   cntrlMode_ = kCntrlReset; // Controller mode
 
-  timePrev_s_ = -1.0;
+  timePrevBase_s_ = 0.0;
+  timePrevRes_s_ = 0.0;
 
   cntrlBaseCmd_.setZero(4);
   cntrlResCmd_.setZero(4);
@@ -51,6 +52,7 @@ void CntrlMgr::Mode(CntrlMode cntrlMode)
       cntrlResPitch_.runMode_ = kCntrlReset;
       cntrlResYaw_.runMode_ = kCntrlReset;
       cntrlResSpeed_.runMode_ = kCntrlReset;
+      break;
 
     case kCntrlHold:
       cntrlBaseRoll_.runMode_ = kCntrlEngage;
@@ -62,6 +64,7 @@ void CntrlMgr::Mode(CntrlMode cntrlMode)
       cntrlResPitch_.runMode_ = kCntrlHold;
       cntrlResYaw_.runMode_ = kCntrlHold;
       cntrlResSpeed_.runMode_ = kCntrlHold;
+      break;
 
     case kCntrlStandby:
       cntrlBaseRoll_.runMode_ = kCntrlEngage;
@@ -73,6 +76,7 @@ void CntrlMgr::Mode(CntrlMode cntrlMode)
       cntrlResPitch_.runMode_ = kCntrlStandby;
       cntrlResYaw_.runMode_ = kCntrlStandby;
       cntrlResSpeed_.runMode_ = kCntrlStandby;
+      break;
 
     case kCntrlInit:
       cntrlBaseRoll_.runMode_ = kCntrlEngage;
@@ -84,6 +88,7 @@ void CntrlMgr::Mode(CntrlMode cntrlMode)
       cntrlResPitch_.runMode_ = kCntrlInit;
       cntrlResYaw_.runMode_ = kCntrlInit;
       cntrlResSpeed_.runMode_ = kCntrlInit;
+      break;
 
     case kCntrlEngage:
       cntrlBaseRoll_.runMode_ = kCntrlInit;
@@ -95,13 +100,15 @@ void CntrlMgr::Mode(CntrlMode cntrlMode)
       cntrlResPitch_.runMode_ = kCntrlEngage;
       cntrlResYaw_.runMode_ = kCntrlEngage;
       cntrlResSpeed_.runMode_ = kCntrlEngage;
+      break;
   }
 }
 
 // Define the Baseline Controller - FIXIT
 VecCmd CntrlMgr::CmdBase(VecCmd refVec, float time_s)
 {
-  timePrev_s_ = time_s;
+  if (timePrevBase_s_ <= 0.0) timePrevBase_s_ = time_s;
+  timePrevBase_s_ = time_s;
 
   // Zero the Command - FIXIT shouldn't be required, variable size
   cntrlBaseCmd_.setZero(4);
@@ -118,18 +125,29 @@ VecCmd CntrlMgr::CmdBase(VecCmd refVec, float time_s)
 // Define the Research Controller - FIXIT
 VecCmd CntrlMgr::CmdRes(VecCmd refVec, VecCmd measVec, VecCmd dMeasVec, float time_s)
 {
-  if (timePrev_s_ == -1.0) timePrev_s_ = time_s;
-  float dt_s = time_s - timePrev_s_;
-  timePrev_s_ = time_s;
+  if (timePrevRes_s_ <= 0.0) timePrevRes_s_ = time_s;
+  float dt_s = time_s - timePrevRes_s_;
+  timePrevRes_s_ = time_s;
 
   // Zero the Command - FIXIT shouldn't be required, variable size
   cntrlResCmd_.setZero(4);
 
   // Run the Controllers
-  cntrlResCmd_[0] = cntrlResRoll_.Compute(refVec[0], measVec[0], dMeasVec[0], dt_s);
-  cntrlResCmd_[1] = cntrlResPitch_.Compute(refVec[1], measVec[1], dMeasVec[1], dt_s);
-  cntrlResCmd_[2] = cntrlResYaw_.Compute(refVec[2], measVec[2], dMeasVec[2], dt_s);
-  cntrlResCmd_[3] = cntrlResSpeed_.Compute(refVec[3], measVec[3], dMeasVec[3], dt_s);
+  cntrlResCmd_[0] = cntrlResRoll_.Compute(refVec[0], dMeasVec[0]);
+  cntrlResCmd_[1] = cntrlResPitch_.Compute(refVec[1], dMeasVec[1]);
+  cntrlResCmd_[2] = cntrlResYaw_.Compute(refVec[2], dMeasVec[2]);
+  //cntrlResCmd_[0] = cntrlResRoll_.Compute(refVec[0], measVec[0], dMeasVec[0], dt_s);
+  //cntrlResCmd_[1] = cntrlResPitch_.Compute(refVec[1], measVec[1], dMeasVec[1], dt_s);
+  //cntrlResCmd_[2] = cntrlResYaw_.Compute(refVec[2], measVec[2], dMeasVec[2], dt_s);
+  cntrlResCmd_[3] = cntrlResSpeed_.Compute(refVec[3], measVec[3], dt_s);
+
+//std::cout << cntrlResRoll_.iErr_ << "\t";
+//std::cout << cntrlResPitch_.iErr_ << "\t";
+//std::cout << cntrlResYaw_.iErr_ << "\t";
+std::cout << refVec[3] << "\t";
+std::cout << measVec[3] << "\t";
+std::cout << cntrlResSpeed_.iErr_ << "\t";
+std::cout << cntrlResCmd_[3] << "\t";
 
   return cntrlResCmd_;
 }
@@ -154,24 +172,24 @@ VecCmd CntrlMgr::Cmd() {
 void CntrlMgr::CntrlBaseDef()
 {
   // Command Range Limits, stick -1 to 1, converts to ref -100 to 100
-  VecRng refRollRng, refPitchRng, refYawRng, refThrotRng;
-  refRollRng  << -100*kD2R, 100*kD2R;  // Roll rate range [rad/s]
-  refPitchRng << -60*kD2R, 60*kD2R; // Pitch rate range [rad/s]
-  refYawRng   << -30*kD2R, 30*kD2R;   // Yaw rate range [rad/s]
-  refThrotRng << 0, 1;     // Throttle range [nd]
+  float refRollScale, refPitchScale, refYawScale, refThotScale;
+  refRollScale  = 100*kD2R; // Roll rate range [rad/s]
+  refPitchScale = 60*kD2R;  // Pitch rate range [rad/s]
+  refYawScale   = 30*kD2R;  // Yaw rate range [rad/s]
+  refThotScale  = 1;        // Throttle range [nd]
 
   // Command Range Limits, limits of the aircraft capability
   VecRng cmdRollRng, cmdPitchRng, cmdYawRng, cmdThrotRng;
-  cmdRollRng  = refRollRng; // Roll rate command range [rad/s]
-  cmdPitchRng = refPitchRng; // Pitch rate command range [rad/s]
-  cmdYawRng   = refYawRng; // Yaw rate command range [rad/s]
-  cmdThrotRng = refThrotRng; // Throttle command range [nd]
+  cmdRollRng  << -refRollScale, refRollScale;  // Roll rate command range [rad/s]
+  cmdPitchRng << -refPitchScale, refPitchScale; // Pitch rate command range [rad/s]
+  cmdYawRng   << -refYawScale, refYawScale;   // Yaw rate command range [rad/s]
+  cmdThrotRng << 0, 1;   // Throttle command range [nd]
 
   // Initialize Individual Controllers
-  cntrlBaseRoll_.Init(refRollRng[0], refRollRng[1], cmdRollRng[0], cmdRollRng[1]);
-  cntrlBasePitch_.Init(refPitchRng[0], refPitchRng[1], cmdPitchRng[0], cmdPitchRng[1]);
-  cntrlBaseYaw_.Init(refYawRng[0], refYawRng[1], cmdYawRng[0], cmdYawRng[1]);
-  cntrlBaseSpeed_.Init(refThrotRng[0], refThrotRng[1], cmdThrotRng[0], cmdThrotRng[1]);
+  cntrlBaseRoll_.Init(refRollScale, cmdRollRng[0], cmdRollRng[1]);
+  cntrlBasePitch_.Init(refPitchScale, cmdPitchRng[0], cmdPitchRng[1]);
+  cntrlBaseYaw_.Init(refYawScale, cmdYawRng[0], cmdYawRng[1]);
+  cntrlBaseSpeed_.Init(refThotScale, cmdThrotRng[0], cmdThrotRng[1]);
 
   // Set the initial controller mode
   cntrlBaseRoll_.runMode_ = kCntrlInit;
@@ -184,37 +202,42 @@ void CntrlMgr::CntrlBaseDef()
 void CntrlMgr::CntrlResDef()
 {
   // Command Range Limits, stick -1 to 1, converts to ref -60 to 60
-  VecRng refRollRng, refPitchRng, refYawRng, refSpeedRng;
-  refRollRng  << -60*kD2R, 60*kD2R;  // Roll angle range [rad]
-  refPitchRng << -20*kD2R, 20*kD2R; // Pitch angle range [rad]
-  refYawRng   << -30*kD2R, 30*kD2R;   // Yaw rate range [rad/s]
-  refSpeedRng << 0, 30;     // Speed range [m/s]
+  float refRollScale, refPitchScale, refYawScale, refSpeedRng;
+  refRollScale  = 100*kD2R; // Roll rate range [rad/s]
+  refPitchScale = 60*kD2R;  // Pitch rate range [rad/s]
+  refYawScale   = 30*kD2R;  // Yaw rate range [rad/s]
+  refSpeedRng   = 30;      // Speed range [m/s]
 
   // Command Range Limits, limits of the aircraft capability
   VecRng cmdRollRng, cmdPitchRng, cmdYawRng, cmdThrotRng;
-  cmdRollRng  << -100*kD2R, 100*kD2R;  // Roll rate range [rad/s]
-  cmdPitchRng << -60*kD2R, 60*kD2R; // Pitch rate range [rad/s]
-  cmdYawRng   << -30*kD2R, 30*kD2R;   // Yaw rate range [rad/s]
+  cmdRollRng  << -refRollScale, refRollScale;  // Roll rate command range [rad/s]
+  cmdPitchRng << -refPitchScale, refPitchScale; // Pitch rate command range [rad/s]
+  cmdYawRng   << -refYawScale, refYawScale;   // Yaw rate command range [rad/s]
   cmdThrotRng << 0, 1; // Throttle command range [nd]
 
   // Correct for the reference and command range scales
-  float cmdScaleRoll = (cmdRollRng[1] - cmdRollRng[0]) / (refRollRng[1] - refRollRng[0]);
-  float cmdScalePitch = (cmdPitchRng[1] - cmdPitchRng[0]) / (refPitchRng[1] - refPitchRng[0]);
-  float cmdScaleYaw = (cmdYawRng[1] - cmdYawRng[0]) / (refYawRng[1] - refYawRng[0]);
-  float cmdScaleSpeed = (cmdThrotRng[1] - cmdThrotRng[0]) / (refSpeedRng[1] - refSpeedRng[0]);
+  float cmdScaleRoll = 0.5 * (cmdRollRng[1] - cmdRollRng[0]) / refRollScale;
+  float cmdScalePitch = 0.5 * (cmdPitchRng[1] - cmdPitchRng[0]) / refPitchScale;
+  float cmdScaleYaw = 0.5 * (cmdYawRng[1] - cmdYawRng[0]) / refYawScale;
+  float cmdScaleSpeed = (cmdThrotRng[1] - cmdThrotRng[0]) / refSpeedRng;
 
   // Controller Parameters, corrected to the normalized I/O ranges
-  float KpRoll = 0.52 * cmdScaleRoll, KiRoll = 0.385 * KpRoll, KdampRoll = 0.08; // FIXIT Gains
-  float KpPitch = 0.84 * cmdScalePitch, KiPitch = 0.274 * KpPitch, KdampPitch = 0.08;
-  float KpYaw = 0.5 * cmdScaleYaw, KiYaw = 0.0 * KpYaw, KdampYaw = 0.08;
-  float KpSpeed = 1.0 * cmdScaleSpeed, KiSpeed = 0.456 * KpSpeed, KdampSpeed = 0.0;
+  float KpRoll = 0.52 * cmdScaleRoll, KiRoll = 0.385 * KpRoll, KdampRoll = 10 * -0.08; // FIXIT Gains
+  float KpPitch = 0.84 * cmdScalePitch, KiPitch = 0.274 * KpPitch, KdampPitch = 10 * -0.08;
+  float KpYaw = 0.5 * cmdScaleYaw, KiYaw = 0.0 * KpYaw, KdampYaw = 10 * -0.08;
+  float KpSpeed = 0.5 / 30, KiSpeed = 0.219 * KpSpeed, KdampSpeed = 0.0;
 
   // Initialize Individual Controllers
-  cntrlResRoll_.Init(KpRoll, KiRoll, KdampRoll, refRollRng[0], refRollRng[1], cmdRollRng[0], cmdRollRng[1]);
-  cntrlResPitch_.Init(KpPitch, KiPitch, KdampPitch, refPitchRng[0], refPitchRng[1], cmdPitchRng[0], cmdPitchRng[1]);
-  cntrlResYaw_.Init(KpYaw, KiYaw, KdampYaw, refYawRng[0], refYawRng[1], cmdYawRng[0], cmdYawRng[1]);
-  cntrlResSpeed_.Init(KpSpeed, KiSpeed, KdampSpeed, refSpeedRng[0], refSpeedRng[1], cmdThrotRng[0], cmdThrotRng[1]);
-
+  cntrlResRoll_.Init(refRollScale, cmdRollRng[0], cmdRollRng[1], KdampRoll);
+  cntrlResPitch_.Init(refPitchScale, cmdPitchRng[0], cmdPitchRng[1], KdampPitch);
+  cntrlResYaw_.Init(refYawScale, cmdYawRng[0], cmdYawRng[1], KdampYaw);
+  cntrlResSpeed_.Init(1.0, cmdThrotRng[0], cmdThrotRng[1], KpSpeed, KiSpeed);
+/*
+  cntrlResRoll_.Init(refRollScale, cmdRollRng[0], cmdRollRng[1], KpRoll, KiRoll, KdampRoll);
+  cntrlResPitch_.Init(refPitchScale, cmdPitchRng[0], cmdPitchRng[1], KpPitch, KiPitch, KdampPitch);
+  cntrlResYaw_.Init(refYawScale, cmdYawRng[0], cmdYawRng[1], KpYaw, KiYaw, KdampYaw);
+  cntrlResSpeed_.Init(refSpeedRng, cmdThrotRng[0], cmdThrotRng[1], KpSpeed, KiSpeed, KdampSpeed);
+*/
   // Set the initial controller mode
   cntrlResRoll_.runMode_ = kCntrlReset;
   cntrlResPitch_.runMode_ = kCntrlReset;
