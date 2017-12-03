@@ -119,6 +119,17 @@ struct FmuData {
   std::vector<Voltage> PwmVoltage;
 };
 
+/* Config */
+struct FmuConfig {
+  std::vector<std::string> Mpu9250Names;
+  std::vector<std::string> Bme280Names;
+  std::vector<std::string> SbusRxNames;
+  std::vector<std::string> GpsNames;
+  std::vector<std::string> PitotNames;
+  std::vector<std::string> PressureTransducerNames;
+  std::vector<std::string> AnalogNames;
+};
+
 struct NavigationData {
   double Time_s;                            // [sec], timestamp of NAV filter
   Eigen::Matrix<double,3,1>LLA;             // Latitude (rad), Longitude (rad), Altitude (m)

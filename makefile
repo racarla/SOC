@@ -10,7 +10,8 @@
 #
 
 # compiler
-CC := arm-linux-gnueabihf-g++-5
+CC_ARM := arm-linux-gnueabihf-g++-5
+CC := g++-5
 CFLAGS := -std=c++0x -Wall
 
 # src
@@ -19,7 +20,7 @@ DIR_CONFIG := fmu-cfg
 DIR_BIN2HDF := bin2hdf-src
 
 # includes
-IFLAGS := -Isoc-includes -Ibin2hdf-includes -I/usr/local/include -I/usr/include/hdf5/serial
+IFLAGS := -Isoc-includes -I/usr/local/include -I/usr/include/hdf5/serial
 
 # configuration
 LFLAGS_FLIGHT :=
@@ -71,23 +72,23 @@ OBJ_BIN2HDF := ${SRC_BIN2HDF:%.cxx=%.o}
 all: flightcode calib config bin2hdf display
 
 #%.o: %.cxx
-#	$(CC) $(CFLAGS) $(IFLAGS) -c -o $@ $<
+#	$(CC_ARM) $(CFLAGS) $(IFLAGS) -c -o $@ $<
 
 flightcode: $(SRC_FLIGHT)
 	@ echo "Building flightcode ..."	
-	$(CC) $(CFLAGS) $(IFLAGS) -o $@ $? $(LFLAGS_FLIGHT)
+	$(CC_ARM) $(CFLAGS) $(IFLAGS) -o $@ $? $(LFLAGS_FLIGHT)
 
 calib: $(SRC_CAL)
 	@ echo "Building calibration ..."	
-	$(CC) $(CFLAGS) $(IFLAGS) -o $@ $? $(LFLAGS_FLIGHT)
+	$(CC_ARM) $(CFLAGS) $(IFLAGS) -o $@ $? $(LFLAGS_FLIGHT)
 
 config: $(SRC_CONFIG)
 	@ echo "Building config ..."	
-	$(CC) $(CFLAGS) $(IFLAGS) -o $@ $? $(LFLAGS_CONFIG)
+	$(CC_ARM) $(CFLAGS) $(IFLAGS) -o $@ $? $(LFLAGS_CONFIG)
 
 bin2hdf: $(SRC_BIN2HDF)
 	@ echo "Building bin2hdf ..."	
-	g++ $(CFLAGS) $(IFLAGS) -o $@ $? $(LFLAGS_BIN2HDF)
+	$(CC) $(CFLAGS) $(IFLAGS) -o $@ $? $(LFLAGS_BIN2HDF)
 
 clean:
 	rm -f $(OBJ_FLIGHT) $(OBJ_CAL) ${OBJ_CONFIG} ${OBJ_CONFIG}

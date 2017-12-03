@@ -231,7 +231,7 @@ std::cout << cntrlAllocData.cmdAlloc.transpose()/kD2R << "\t";
       fmu.WriteMessage(kEffectorAngleCmd, cmdEffSerial.size(), cmdEffSerial.data());
 
       // DATA LOG
-      log.LogData(fmuData, airdataData, navData, missMgrData, cntrlMgrData, cntrlAllocData);
+      log.LogData(fmuData, airdataData, navData, missMgrData, exciteMgrData, cntrlMgrData, cntrlAllocData);
 
       // telemetry
 

@@ -6,6 +6,7 @@
 #include "airdata.hxx"
 #include "structs.hxx"
 #include "missionMgr.hxx"
+#include "exciteMgr.hxx"
 #include "cntrlMgr.hxx"
 #include "cntrlAllocMgr.hxx"
 
@@ -23,7 +24,7 @@
 class Datalogger {
   public:
     Datalogger();
-    void LogData(FmuData fmuData, AirdataStruct airdataData, NavigationData NavData, MissMgrStruct missMgrData, CntrlMgrStruct cntrlMgrData, CntrlAllocStruct cntrlAllocData);
+    void LogData(FmuData fmuData, AirdataStruct airdataData, NavigationData NavData, MissMgrStruct missMgrData, ExciteMgrStruct exciteMgrData, CntrlMgrStruct cntrlMgrData, CntrlAllocStruct cntrlAllocData);
   private:
     FILE *LogFile_;
     bool FileExists(const std::string &FileName);
