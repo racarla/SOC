@@ -19,39 +19,46 @@ Datalogger::Datalogger() {
 }
 
 /* Logs the FMU data into the binary file that was created */
-void Datalogger::LogFmuData(FmuData FmuDataRef) {
-  fwrite(&FmuDataRef.Time_us,sizeof(FmuDataRef.Time_us),1,LogFile_);
-  fwrite(&FmuDataRef.InputVoltage,sizeof(Voltage),1,LogFile_);
-  fwrite(&FmuDataRef.RegulatedVoltage,sizeof(Voltage),1,LogFile_);
-  fwrite(&FmuDataRef.Mpu9250,sizeof(Mpu9250Data),1,LogFile_);
-  fwrite(&FmuDataRef.Bme280,sizeof(Bme280Data),1,LogFile_);
-  for (size_t i=0; i < FmuDataRef.Mpu9250Ext.size(); i++) {
-    fwrite(&FmuDataRef.Mpu9250Ext[i],sizeof(Mpu9250Data),1,LogFile_);
+void Datalogger::LogData(FmuData fmuData, AirdataStruct airdataData, NavigationData navData, MissMgrStruct missMgrData, CntrlMgrStruct cntrlMgrData, CntrlAllocStruct cntrlAllocData) {
+  fwrite(&fmuData.Time_us,sizeof(fmuData.Time_us),1,LogFile_);
+  fwrite(&fmuData.InputVoltage,sizeof(Voltage),1,LogFile_);
+  fwrite(&fmuData.RegulatedVoltage,sizeof(Voltage),1,LogFile_);
+  fwrite(&fmuData.Mpu9250,sizeof(Mpu9250Data),1,LogFile_);
+  fwrite(&fmuData.Bme280,sizeof(Bme280Data),1,LogFile_);
+  for (size_t i=0; i < fmuData.Mpu9250Ext.size(); i++) {
+    fwrite(&fmuData.Mpu9250Ext[i],sizeof(Mpu9250Data),1,LogFile_);
   }
-  for (size_t i=0; i < FmuDataRef.Bme280Ext.size(); i++) {
-    fwrite(&FmuDataRef.Bme280Ext[i],sizeof(Bme280Data),1,LogFile_);
+  for (size_t i=0; i < fmuData.Bme280Ext.size(); i++) {
+    fwrite(&fmuData.Bme280Ext[i],sizeof(Bme280Data),1,LogFile_);
   }
-  for (size_t i=0; i < FmuDataRef.SbusRx.size(); i++) {
-    fwrite(&FmuDataRef.SbusRx[i],sizeof(SbusRxData),1,LogFile_);
+  for (size_t i=0; i < fmuData.SbusRx.size(); i++) {
+    fwrite(&fmuData.SbusRx[i],sizeof(SbusRxData),1,LogFile_);
   }
-  for (size_t i=0; i < FmuDataRef.Gps.size(); i++) {
-    fwrite(&FmuDataRef.Gps[i],sizeof(GpsData),1,LogFile_);
+  for (size_t i=0; i < fmuData.Gps.size(); i++) {
+    fwrite(&fmuData.Gps[i],sizeof(GpsData),1,LogFile_);
   }
-  for (size_t i=0; i < FmuDataRef.Pitot.size(); i++) {
-    fwrite(&FmuDataRef.Pitot[i],sizeof(PitotData),1,LogFile_);
+  for (size_t i=0; i < fmuData.Pitot.size(); i++) {
+    fwrite(&fmuData.Pitot[i],sizeof(PitotData),1,LogFile_);
   }  
-  for (size_t i=0; i < FmuDataRef.PressureTransducer.size(); i++) {
-    fwrite(&FmuDataRef.PressureTransducer[i],sizeof(PressureData),1,LogFile_);
+  for (size_t i=0; i < fmuData.PressureTransducer.size(); i++) {
+    fwrite(&fmuData.PressureTransducer[i],sizeof(PressureData),1,LogFile_);
   }
-  for (size_t i=0; i < FmuDataRef.Analog.size(); i++) {
-    fwrite(&FmuDataRef.Analog[i],sizeof(AnalogData),1,LogFile_);
+  for (size_t i=0; i < fmuData.Analog.size(); i++) {
+    fwrite(&fmuData.Analog[i],sizeof(AnalogData),1,LogFile_);
   }
-  for (size_t i=0; i < FmuDataRef.SbusVoltage.size(); i++) {
-    fwrite(&FmuDataRef.SbusVoltage[i],sizeof(Voltage),1,LogFile_);
+  for (size_t i=0; i < fmuData.SbusVoltage.size(); i++) {
+    fwrite(&fmuData.SbusVoltage[i],sizeof(Voltage),1,LogFile_);
   }
-  for (size_t i=0; i < FmuDataRef.PwmVoltage.size(); i++) {
-    fwrite(&FmuDataRef.PwmVoltage[i],sizeof(Voltage),1,LogFile_);
+  for (size_t i=0; i < fmuData.PwmVoltage.size(); i++) {
+    fwrite(&fmuData.PwmVoltage[i],sizeof(Voltage),1,LogFile_);
   }
+
+  fwrite(&airdataData,sizeof(AirdataStruct),1,LogFile_);
+  fwrite(&navData,sizeof(NavigationData),1,LogFile_);
+  fwrite(&missMgrData,sizeof(MissMgrStruct),1,LogFile_);
+  fwrite(&cntrlMgrData,sizeof(CntrlMgrStruct),1,LogFile_);
+  fwrite(&cntrlAllocData,sizeof(CntrlAllocStruct),1,LogFile_);
+
   fflush(LogFile_);
 }
 

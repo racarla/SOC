@@ -11,27 +11,22 @@ History:
 #include <iostream>
 
 
-void CntrlAllocMgr::Init(MatCntrlEff cntrlEff, MatObj wtObj, MatEff wtEff, VecEff uMin, VecEff uMax, VecEff uPref)
+void CntrlAllocMgr::Init(CntrlAllocDef cntrlAllocDef)
 {
-  cntrlEff_ = cntrlEff;
-  wtObj_ = wtObj;
-  wtEff_ = wtEff;
-  uMin_ = uMin;
-  uMax_ = uMax;
-  uPref_ = uPref;
+  cntrlAllocDef_ = cntrlAllocDef;
 
-  numObj_ = cntrlEff.rows();
-  numEff_ = cntrlEff.cols();
+  numObj_ = cntrlAllocDef_.cntrlEff.rows();
+  numEff_ = cntrlAllocDef_.cntrlEff.cols();
 
-  VecEff uCmd_(numEff_);
+  cntrlAllocData_.cmdAlloc = cntrlAllocDef_.uPref;
 }
 
-VecEff CntrlAllocMgr::Compute(VecObj vObj)
+CntrlAllocStruct CntrlAllocMgr::Compute(VecObj vObj)
 {
-  uCmd_.setZero(numEff_);
+  cntrlAllocData_.cmdAlloc = cntrlAllocDef_.uPref;
 
-  uCmd_ = CntrlAllocPseudo(cntrlEff_, vObj, uPref_);
+  cntrlAllocData_.cmdAlloc = CntrlAllocPseudo(cntrlAllocDef_.cntrlEff, vObj, cntrlAllocDef_.uPref);
 
-  return uCmd_;
+  return cntrlAllocData_;
 
 }

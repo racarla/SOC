@@ -23,7 +23,7 @@ CntrlManual::CntrlManual()
 // Set Parameters for the tunable controller
 void CntrlManual::Init(float refScale, float cmdMin, float cmdMax)
 {
-  runMode_ = kCntrlStandby; // Initialize in Standby
+  mode_ = kCntrlStandby; // Initialize in Standby
 
   refScale_ = refScale;
 
@@ -38,11 +38,11 @@ float CntrlManual::Compute(float ref)
   float cmd;
 
 
-  switch(runMode_) {
+  switch(mode_) {
     case kCntrlReset: // Zero the state and command
 
       cmd = 0.0;
-      runMode_ = kCntrlStandby;
+      mode_ = kCntrlStandby;
       break;
 
     case kCntrlStandby: // Do Nothing, State and Command unchanged
@@ -92,7 +92,7 @@ CntrlDamp::CntrlDamp()
 // Set Parameters for the tunable controller
 void CntrlDamp::Init(float refScale, float cmdMin, float cmdMax, float KD)
 {
-  runMode_ = kCntrlStandby; // Initialize in Standby
+  mode_ = kCntrlStandby; // Initialize in Standby
 
   refScale_ = refScale;
 
@@ -106,13 +106,13 @@ void CntrlDamp::Init(float refScale, float cmdMin, float cmdMax, float KD)
 float CntrlDamp::Compute(float ref, float dMeas)
 {
   float err = (refScale_ * ref) - 0.0;
-  float dErr = 0.0 - dMeas; // Measurement for the Damper, Note the sign!!
+  float dErr = 0.0 - dMeas; // Measurement for the Damper
   float cmd = 0;
 
-  switch(runMode_) {
+  switch(mode_) {
     case kCntrlReset: // Zero the state and command
       cmd = 0.0;
-      runMode_ = kCntrlStandby;
+      mode_ = kCntrlStandby;
       break;
 
     case kCntrlStandby: // Do Nothing, State and Command unchanged
@@ -161,7 +161,7 @@ CntrlPi::CntrlPi()
 // Set Parameters for the tunable controller
 void CntrlPi::Init(float refScale, float cmdMin, float cmdMax, float KP, float KI)
 {
-  runMode_ = kCntrlStandby; // Initialize in Standby
+  mode_ = kCntrlStandby; // Initialize in Standby
 
   refScale_ = refScale;
 
@@ -184,11 +184,11 @@ float CntrlPi::Compute(float ref, float meas, float dt_s)
   }
   float cmd;
 
-  switch(runMode_) {
+  switch(mode_) {
     case kCntrlReset: // Zero the state and command
 
       iErr_ = 0.0;
-      runMode_ = kCntrlStandby;
+      mode_ = kCntrlStandby;
       cmd = 0.0;
       break;
 
@@ -259,7 +259,7 @@ CntrlPiDamp::CntrlPiDamp()
 // Set Parameters for the tunable controller
 void CntrlPiDamp::Init(float refScale, float cmdMin, float cmdMax, float KP, float KI, float KD)
 {
-  runMode_ = kCntrlStandby; // Initialize in Standby
+  mode_ = kCntrlStandby; // Initialize in Standby
 
   refScale_ = refScale;
 
@@ -284,11 +284,11 @@ float CntrlPiDamp::Compute(float ref, float meas, float dMeas, float dt_s)
   }
   float cmd;
 
-	switch(runMode_) {
+	switch(mode_) {
 		case kCntrlReset: // Zero the state and command
 
 			iErr_ = 0.0;
-      runMode_ = kCntrlStandby;
+      mode_ = kCntrlStandby;
       cmd = 0.0;
      	break;
 
@@ -363,7 +363,7 @@ CntrlPid::CntrlPid()
 // Set Parameters for the tunable controller
 void CntrlPid::Init(float refScale, float cmdMin, float cmdMax, float KP, float KI, float KD)
 {
-  runMode_ = kCntrlStandby; // Initialize in Standby
+  mode_ = kCntrlStandby; // Initialize in Standby
 
   refScale_ = refScale;
 
@@ -396,14 +396,14 @@ float CntrlPid::Compute(float ref, float meas, float dt_s)
   // Update the previous error state
   errPrev_ = err;
 
-  switch(runMode_) {
+  switch(mode_) {
     case kCntrlReset: // Zero the State and Command
       iErr_ = 0.0;
       err = 0.0;
       errPrev_ = 0.0;
       cmd = 0.0;
 
-      runMode_ = kCntrlStandby;
+      mode_ = kCntrlStandby;
       break;
 
     case kCntrlStandby: // Do Nothing, State and Command are unchanged

@@ -34,14 +34,15 @@ void Airdata::Init() {
 
 AirdataStruct Airdata::Compute(PitotData pitotData) {
 
-  airdata_.presStatic_Pa = pitotData.Static.Pressure_Pa;
-  airdata_.presDiff_Pa = pitotData.Diff.Pressure_Pa;
+  presStatic_Pa_ = pitotData.Static.Pressure_Pa;
+  presDiff_Pa_ = pitotData.Diff.Pressure_Pa;
+
   airdata_.temp_C = 0.5 * (pitotData.Static.Temp_C + pitotData.Diff.Temp_C);
 
-  airdata_.alt_m = ComputeAlt(airdata_.presStatic_Pa);
+  airdata_.alt_m = ComputeAlt(presStatic_Pa_);
   airdata_.altFilt_m = FiltAlt(airdata_.alt_m);
 
-  airdata_.vIas_mps = ComputeAirspeed(airdata_.presDiff_Pa);
+  airdata_.vIas_mps = ComputeAirspeed(presDiff_Pa_);
   airdata_.vIasFilt_mps = FiltAirspeed(airdata_.vIas_mps);
 
   return airdata_;
@@ -50,7 +51,7 @@ AirdataStruct Airdata::Compute(PitotData pitotData) {
 float Airdata::ComputeAlt(float presStatic_Pa) {
 
   // Compute pressure altitude; bias removal results in AGL altitude
-  float alt_m = kK1_m_ * (1 - pow((presStatic_Pa) / kP0_Pa_ , kK2_nd_)) - airdata_.altBias_m;
+  float alt_m = kK1_m_ * (1 - pow((presStatic_Pa) / kP0_Pa_ , kK2_nd_)) - altBias_m_;
 
   return alt_m;
 }
@@ -65,7 +66,7 @@ float Airdata::FiltAlt(float alt_m) {
 float Airdata::ComputeAirspeed(float presDiff_Pa) {
 
   // Compute Indicated Airspeed (IAS). This equation accounts for compressibility effects. Sensor bias is removed prior to calculation
-  float vIas_mps = copysign(kK3_mps_ * sqrt(fabs(pow(fabs((presDiff_Pa - airdata_.presDiffBias_Pa) / kP0_Pa_ + 1), kK4_nd_) - 1)), presDiff_Pa); 
+  float vIas_mps = copysign(kK3_mps_ * sqrt(fabs(pow(fabs((presDiff_Pa - presDiffBias_Pa_) / kP0_Pa_ + 1), kK4_nd_) - 1)), presDiff_Pa); 
 
   return vIas_mps;
 }
@@ -82,12 +83,12 @@ void Airdata::BiasEst(){
 	biasCount_++;
 
   // Compute the biases as a moving average
-	airdata_.altBias_m = altBiasPrev_m_ * (1 - 1/biasCount_) + airdata_.alt_m * (1 / biasCount_);
-  airdata_.presDiffBias_Pa = presDiffBiasPrev_Pa_ * (1 - 1/biasCount_) + airdata_.presDiff_Pa * (1 / biasCount_);
+	altBias_m_ = altBiasPrev_m_ * (1 - 1/biasCount_) + airdata_.alt_m * (1 / biasCount_);
+  presDiffBias_Pa_ = presDiffBiasPrev_Pa_ * (1 - 1/biasCount_) + presDiff_Pa_ * (1 / biasCount_);
 
   // Store the moving average states
-	altBiasPrev_m_ = airdata_.altBias_m;
-  presDiffBiasPrev_Pa_ = airdata_.presDiffBias_Pa;
+	altBiasPrev_m_ = altBias_m_;
+  presDiffBiasPrev_Pa_ = presDiffBias_Pa_;
 }
 
 

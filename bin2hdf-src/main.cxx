@@ -21,6 +21,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SO
 #include "hdf5class.hxx"
 #include "config.hxx"
 #include "global-defs.hxx"
+#include "buffer.hxx"
 #include <H5Cpp.h>
 #include <iostream>
 #include <string>
@@ -71,7 +72,7 @@ int main(int argc, char* argv[]) {
   /* create an HDF5 file */
   hdf5class Logger(argv[3]);
 
-  // /* parse binary files into data structures */
+  // /* parse binary file into data structures */
   uint64_t* Time_us = new uint64_t [NumberRecords];
   Voltage* InputVoltage = new Voltage [NumberRecords];
   Voltage* RegulatedVoltage = new Voltage [NumberRecords];
@@ -114,52 +115,43 @@ int main(int argc, char* argv[]) {
     PwmVoltage[i] = new Voltage [NumberRecords];
   }
 
+
+  // Read each line of the binary file and copy into the structure pointers
+  Buffer buf;
   for (size_t i=0; i < NumberRecords; i++) {
-    memcpy(&Time_us[i],FileBuffer[i],sizeof(Time_us[i]));
-    memcpy(&InputVoltage[i],FileBuffer[i]+sizeof(Time_us[i]),sizeof(InputVoltage[i]));
-    memcpy(&RegulatedVoltage[i],FileBuffer[i]+sizeof(Time_us[i])+sizeof(InputVoltage[i]),sizeof(RegulatedVoltage[i]));
-    memcpy(&Mpu9250[i],FileBuffer[i]+sizeof(Time_us[i])+sizeof(InputVoltage[i])+sizeof(RegulatedVoltage[i]),sizeof(Mpu9250[i]));
-    memcpy(&Bme280[i],FileBuffer[i]+sizeof(Time_us[i])+sizeof(InputVoltage[i])+sizeof(RegulatedVoltage[i])+sizeof(Mpu9250[i]),sizeof(Bme280[i]));
+    buf.Reset(FileBuffer[i]);
+
+    buf.Read(&Time_us[i]);
+    buf.Read(&InputVoltage[i]);
+    buf.Read(&RegulatedVoltage[i]);
+    buf.Read(&Mpu9250[i]);
+    buf.Read(&Bme280[i]);
     for (size_t j=0; j < Data.Mpu9250Ext.size(); j++) {
-      memcpy(&Mpu9250Ext[j][i],FileBuffer[i]+sizeof(Time_us[i])+sizeof(InputVoltage[i])+sizeof(RegulatedVoltage[i])+sizeof(Mpu9250[i])+sizeof(Bme280[i])+j*sizeof(Mpu9250Ext[j][i]),sizeof(Mpu9250Ext[j][i]));
+      buf.Read(&Mpu9250Ext[j][i]);
     }
     for (size_t j=0; j < Data.Bme280Ext.size(); j++) {
-      memcpy(&Bme280Ext[j][i],FileBuffer[i]+sizeof(Time_us[i])+sizeof(InputVoltage[i])+sizeof(RegulatedVoltage[i])+sizeof(Mpu9250[i])+sizeof(Bme280[i])+
-        Data.Mpu9250Ext.size()*sizeof(Mpu9250Data)+j*sizeof(Bme280Ext[j][i]),sizeof(Bme280Ext[j][i]));
+      buf.Read(&Bme280Ext[j][i]);
     }
     for (size_t j=0; j < Data.SbusRx.size(); j++) {
-      memcpy(&SbusRx[j][i],FileBuffer[i]+sizeof(Time_us[i])+sizeof(InputVoltage[i])+sizeof(RegulatedVoltage[i])+sizeof(Mpu9250[i])+sizeof(Bme280[i])+
-        Data.Mpu9250Ext.size()*sizeof(Mpu9250Data)+Data.Bme280Ext.size()*sizeof(Bme280Data)+j*sizeof(SbusRx[j][i]),sizeof(SbusRx[j][i]));
+      buf.Read(&SbusRx[j][i]);
     }
     for (size_t j=0; j < Data.Gps.size(); j++) {
-      memcpy(&Gps[j][i],FileBuffer[i]+sizeof(Time_us[i])+sizeof(InputVoltage[i])+sizeof(RegulatedVoltage[i])+sizeof(Mpu9250[i])+sizeof(Bme280[i])+
-        Data.Mpu9250Ext.size()*sizeof(Mpu9250Data)+Data.Bme280Ext.size()*sizeof(Bme280Data)+Data.SbusRx.size()*sizeof(SbusRxData)+j*sizeof(Gps[j][i]),sizeof(Gps[j][i]));
+      buf.Read(&Gps[j][i]);
     }
     for (size_t j=0; j < Data.Pitot.size(); j++) {
-      memcpy(&Pitot[j][i],FileBuffer[i]+sizeof(Time_us[i])+sizeof(InputVoltage[i])+sizeof(RegulatedVoltage[i])+sizeof(Mpu9250[i])+sizeof(Bme280[i])+
-        Data.Mpu9250Ext.size()*sizeof(Mpu9250Data)+Data.Bme280Ext.size()*sizeof(Bme280Data)+Data.SbusRx.size()*sizeof(SbusRxData)+Data.Gps.size()*sizeof(GpsData)+
-        j*sizeof(Pitot[j][i]),sizeof(Pitot[j][i]));
+      buf.Read(&Pitot[j][i]);
     }
     for (size_t j=0; j < Data.PressureTransducer.size(); j++) {
-      memcpy(&PressureTransducer[j][i],FileBuffer[i]+sizeof(Time_us[i])+sizeof(InputVoltage[i])+sizeof(RegulatedVoltage[i])+sizeof(Mpu9250[i])+sizeof(Bme280[i])+
-        Data.Mpu9250Ext.size()*sizeof(Mpu9250Data)+Data.Bme280Ext.size()*sizeof(Bme280Data)+Data.SbusRx.size()*sizeof(SbusRxData)+Data.Gps.size()*sizeof(GpsData)+
-        Data.Pitot.size()*sizeof(PitotData)+j*sizeof(PressureTransducer[j][i]),sizeof(PressureTransducer[j][i]));
+      buf.Read(&PressureTransducer[j][i]);
     }
     for (size_t j=0; j < Data.Analog.size(); j++) {
-      memcpy(&Analog[j][i],FileBuffer[i]+sizeof(Time_us[i])+sizeof(InputVoltage[i])+sizeof(RegulatedVoltage[i])+sizeof(Mpu9250[i])+sizeof(Bme280[i])+
-        Data.Mpu9250Ext.size()*sizeof(Mpu9250Data)+Data.Bme280Ext.size()*sizeof(Bme280Data)+Data.SbusRx.size()*sizeof(SbusRxData)+Data.Gps.size()*sizeof(GpsData)+
-        Data.Pitot.size()*sizeof(PitotData)+Data.PressureTransducer.size()*sizeof(PressureData)+j*sizeof(Analog[j][i]),sizeof(Analog[j][i]));
+      buf.Read(&Analog[j][i]);
     }
     for (size_t j=0; j < Data.SbusVoltage.size(); j++) {
-      memcpy(&SbusVoltage[j][i],FileBuffer[i]+sizeof(Time_us[i])+sizeof(InputVoltage[i])+sizeof(RegulatedVoltage[i])+sizeof(Mpu9250[i])+sizeof(Bme280[i])+
-        Data.Mpu9250Ext.size()*sizeof(Mpu9250Data)+Data.Bme280Ext.size()*sizeof(Bme280Data)+Data.SbusRx.size()*sizeof(SbusRxData)+Data.Gps.size()*sizeof(GpsData)+
-        Data.Pitot.size()*sizeof(PitotData)+Data.PressureTransducer.size()*sizeof(PressureData)+Data.Analog.size()*sizeof(AnalogData)+j*sizeof(SbusVoltage[j][i]),sizeof(SbusVoltage[j][i]));
+      buf.Read(&SbusVoltage[j][i]);
     }
     for (size_t j=0; j < Data.PwmVoltage.size(); j++) {
-      memcpy(&PwmVoltage[j][i],FileBuffer[i]+sizeof(Time_us[i])+sizeof(InputVoltage[i])+sizeof(RegulatedVoltage[i])+sizeof(Mpu9250[i])+sizeof(Bme280[i])+
-        Data.Mpu9250Ext.size()*sizeof(Mpu9250Data)+Data.Bme280Ext.size()*sizeof(Bme280Data)+Data.SbusRx.size()*sizeof(SbusRxData)+Data.Gps.size()*sizeof(GpsData)+
-        Data.Pitot.size()*sizeof(PitotData)+Data.PressureTransducer.size()*sizeof(PressureData)+Data.Analog.size()*sizeof(AnalogData)+Data.SbusVoltage.size()*sizeof(Voltage)+
-        j*sizeof(PwmVoltage[j][i]),sizeof(PwmVoltage[j][i]));
+      buf.Read(&PwmVoltage[j][i]);
     }
   }
 

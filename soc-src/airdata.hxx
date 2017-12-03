@@ -27,16 +27,11 @@ class Filt{ // Filter Class - FIXIT - Move into a seperate .hxx
 };
 
 struct AirdataStruct {
-  float presStatic_Pa;
-  float presDiff_Pa;
-
   float temp_C;
 
   float alt_m;
-  float altBias_m;
   float altFilt_m;
 
-  float presDiffBias_Pa;
   float vIas_mps;
   float vIasFilt_mps;
 };
@@ -57,8 +52,10 @@ class Airdata {
   Filt filtVel_, filtAlt_;
 
   uint16_t biasCount_;
-  float altBiasPrev_m_;
-  float presDiffBiasPrev_Pa_;
+  float presStatic_Pa_;
+  float presDiff_Pa_;
+  float altBias_m_, altBiasPrev_m_;
+  float presDiffBias_Pa_, presDiffBiasPrev_Pa_;
 
   float ComputeAlt(float presStatic_Pa);
   float ComputeAirspeed(float presDiff_Pa);

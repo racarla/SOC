@@ -38,202 +38,200 @@ int main(int argc, char* argv[]) {
     return -1;
   }
 
-  /* Construct classes */
-  Fmu Sensors;
-  Datalogger Log;
-  Navigation NavFilter;
-  Airdata airdata;
+  // FMU Sensors
+  Fmu fmu; // Class
+  FmuData fmuData; // Struct
+//std::cout << "Fmu" << "\t";
 
-  /* initialize structures */
-  AircraftConfig Config;
-  FmuData Data;
-  NavigationData NavData;
-  AirdataStruct airdataStruct;
+  // Data Logger
+  Datalogger log;
 
-  // Initialize
-  airdata.Init();
+  // load configuration file
+  AircraftConfig configData; // Structure
+  LoadConfigFile(argv[1], fmu, &configData, &fmuData);
 
-  /* load configuration file */
-  LoadConfigFile(argv[1], Sensors, &Config, &Data);
+  // Airdata
+  Airdata airdata; // Class
+  airdata.Init(); // Init
+  AirdataStruct airdataData; // Struct
+//std::cout << "Airdata" << "\t";
+
+  // Navigation Filter
+  Navigation NavFilter; // Class
+  NavigationData navData; // Struct
+//std::cout << "Navigation" << "\t";
 
   // SETUP MISSION
   // Define Mission Manager
-  MissionMgr missionMgr; // Create the Mission Manager
-  missionMgr.Init(); // Initialize mission manager
+  MissMgr missMgr; // Create the Mission Manager
+  missMgr.Init(); // Initialize mission manager
+  MissMgrStruct missMgrData; // Create the Mission Manage Structure
+//std::cout << "MissMgr" << "\t";
 
   // Define Controller Manager and Controllers
-  CntrlMgr cntrlMgr;       // Create the Controller Manager
-  cntrlMgr.Init(); // Define the Baseline and Research Controller
+  CntrlMgr cntrlMgr; // Create the Controller Manager
+  cntrlMgr.Init();   // Define the Baseline and Research Controller
+  CntrlMgrStruct cntrlMgrData; // Struct
+//std::cout << "CntrlMgr" << "\t";
 
   // Define Excitation Manager and Excitations
   ExciteMgr exciteMgr; // Create the Excitation Manager
   exciteMgr.Init();    // Initialize the Excitation Manager
+  ExciteMgrStruct exciteMgrData; // Struct
+//std::cout << "ExciteMgr" << "\t";
 
   // Define Control Allocation
   CntrlAllocMgr cntrlAllocMgr; // Create the Control Allocator
+  CntrlAllocDef cntrlAllocDef; // Structure for control allocation definition
+  CntrlAllocStruct cntrlAllocData; // Structure for control allocation data
 
   uint8_t numObj = 3;
   uint8_t numEff = 6;
 
-  MatCntrlEff cntrlEff(numObj, numEff); // effectiveness matrix
-  VecEff uMin(numEff), uMax(numEff), uPref(numEff); // min, max, prefered effector commands
-  MatObj wtObj(numObj, numObj); // Objective weighting matrix
-  MatEff wtEff(numEff, numEff); // Effector weighting matrix
-  VecEff cmdAlloc(numEff); // effector allocator commands
+  cntrlAllocDef.cntrlEff.conservativeResize(numObj, numEff); // Control effectiveness matrix
+  cntrlAllocDef.uMin.conservativeResize(numEff); // Min effector commands
+  cntrlAllocDef.uMax.conservativeResize(numEff); // Max effector commands
+  cntrlAllocDef.uPref.conservativeResize(numEff); // Prefered effector commands
+  cntrlAllocDef.wtObj.conservativeResize(numObj, numObj); // Objective weighting matrix
+  cntrlAllocDef.wtEff.conservativeResize(numEff, numEff); // Effector weighting matrix
 
   // Control Allocation Definition
   // Surface Order - Elev, Rud, AilR, FlapR, FlapL, AilL
   // Objectives Order - Roll Rate, Pitch Rate, Yaw Rate
-//  cntrlEff <<  0.0000,  5.0084,  78.235,  33.013, -33.013, -78.235,
-//              -133.69,  0.0047,  3.0002,  2.6238,  2.6238,  3.0002,
-//               0.0000,  82.041, -5.7521, -1.7941,  1.7941,  5.7521; // rad/s per deg
+//  cntrlAllocDef.cntrlEff <<  0.0000,  5.0084, -78.235, -33.013,  33.013,  78.235,
+//                            -133.69,  0.0047,  3.0002,  2.6238,  2.6238,  3.0002,
+//                             0.0000,  82.041,  5.7521,  1.7941, -1.7941, -5.7521; // rad/s per deg
 
   // Objectives Order - Roll Rate, Pitch Rate, Yaw Rate
-  cntrlEff <<  0.0000,  5.0084,  78.235,  33.013, -33.013, -78.235,
-              -133.69,  0.0000,  0.0000,  0.0000,  0.0000,  0.0000,
-               0.0000,  82.041, -5.7521, -1.7941,  1.7941,  5.7521; // rad/s per deg
+  cntrlAllocDef.cntrlEff <<  0.0000,  5.0084, -78.235, -33.013,  33.013,  78.235,
+                            -133.69,  0.0000,  0.0000,  0.0000,  0.0000,  0.0000,
+                             0.0000,  82.041,  5.7521,  1.7941, -1.7941, -5.7521; // rad/s per deg
 
-  cntrlEff *= kD2R; // Convert to rad/s per rad
+  cntrlAllocDef.cntrlEff *= kD2R; // Convert to rad/s per rad
 
-  uMin << -25.0*kD2R, -15.0*kD2R, -25.0*kD2R, -25.0*kD2R, -25.0*kD2R, -25.0*kD2R ;
-  uMax <<  25.0*kD2R,  15.0*kD2R,  25.0*kD2R,  25.0*kD2R,  25.0*kD2R,  25.0*kD2R ;
-  uPref << 0.0,        0.0,        0.0,        0.0,        0.0,        0.0;
+  cntrlAllocDef.uMin << -25.0*kD2R, -15.0*kD2R, -25.0*kD2R, -25.0*kD2R, -25.0*kD2R, -25.0*kD2R ;
+  cntrlAllocDef.uMax <<  25.0*kD2R,  15.0*kD2R,  25.0*kD2R,  25.0*kD2R,  25.0*kD2R,  25.0*kD2R ;
+  cntrlAllocDef.uPref << 0.0,        0.0,        0.0,        0.0,        0.0,        0.0;
 
-  wtObj.setIdentity();
-  wtEff.setIdentity();
+  cntrlAllocDef.wtObj.setIdentity();
+  cntrlAllocDef.wtEff.setIdentity();
 
-  cntrlAllocMgr.Init(cntrlEff, wtObj, wtEff, uMin, uMax, uPref);     // Initialize Control Allocator
+  cntrlAllocMgr.Init(cntrlAllocDef);     // Initialize Control Allocator
+//std::cout << "CntrlAllocMgr" << "\t";
+
 
   /* main loop */
   while (1) {
-    if (Sensors.GetSensorData(&Data)) {
+    if (fmu.GetSensorData(&fmuData)) {
       // INPUT PROCESSING
 
       // MISSION MANAGER
       // Mode Switching
-      MissionMode modeMgr = missionMgr.ModeMgr(Data);
+      missMgrData = missMgr.ModeMgr(fmuData);
+//std::cout << "missMgrData" << "\t";
 
       // SENSOR PROCESSING
       // Airdata
-      airdataStruct = airdata.Compute(Data.Pitot[0]);
+      airdataData = airdata.Compute(fmuData.Pitot[0]);
+//std::cout << "Airdata" << "\t";
 
       // Compute the Airdata Biases during startup, 10 seconds @ 50 Hz
-      if (modeMgr.frame_cnt < (500)) {
+      if (missMgrData.frame_cnt < (500)) {
         airdata.BiasEst();
       }
 
       // navigation filter
-      if (Data.Gps.size() > 0) {
+      if (fmuData.Gps.size() > 0) {
         if (!NavFilter.Initialized) {
-          NavFilter.InitializeNavigation(Data);
+          NavFilter.InitializeNavigation(fmuData);
         } else {
-          NavFilter.RunNavigation(Data,&NavData);
+          NavFilter.RunNavigation(fmuData,&navData);
         }
       }
 
       // CONTROL LAWS
-      // execute inner-loop control law
+      // Execute inner-loop control law
+      cntrlMgr.Mode(missMgrData.cntrlMode); // Transfer the Mission Control mode to the Controller Manager
 
-      cntrlMgr.Mode(modeMgr.cntrlMode); // Transfer the Mission Control mode to the Controller Manager
+std::cout << missMgrData.time_s << "\t";
+std::cout << missMgrData.frame_cnt << "\t";
+std::cout << missMgrData.autoEngage << "  ";
+std::cout << missMgrData.cntrlMode << "  ";
+std::cout << missMgrData.testArm << "  ";
+std::cout << missMgrData.testEngage << "  ";
+std::cout << (int) missMgrData.indxTest << "\t";
 
-//std::cout << modeMgr.time_s << "\t" << modeMgr.frame_cnt << "\t" << modeMgr.autoEngage << "  " << modeMgr.cntrlMode << "  " << modeMgr.testArm << "  " << modeMgr.testEngage << "  " << (int) modeMgr.indxTest << "\t";
+//std::cout << airdataData.alt_m << "\t";
+//std::cout << airdataData.vIas_mps << "\t\t";
 
-/*
-std::cout << airdataStruct.presStatic_Pa << "\t";
-std::cout << airdataStruct.presDiff_Pa << "\t\t";
+//std::cout << airdataData.altFilt_m << "\t";
+//std::cout << airdataData.vIasFilt_mps << "\t\t";
 
-std::cout << airdataStruct.alt_m << "\t";
-std::cout << airdataStruct.vIas_mps << "\t\t";
-
-std::cout << airdataStruct.altFilt_m << "\t";
-std::cout << airdataStruct.vIasFilt_mps << "\t\t";
-*/
       VecCmd refVecBase(4);
-      refVecBase[0] = Data.SbusRx[0].Inceptors[0];
-      refVecBase[1] = Data.SbusRx[0].Inceptors[1];
-      refVecBase[2] = Data.SbusRx[0].Inceptors[2];
-      refVecBase[3] = Data.SbusRx[0].Inceptors[4];
+      refVecBase[0] = fmuData.SbusRx[0].Inceptors[0];
+      refVecBase[1] = fmuData.SbusRx[0].Inceptors[1];
+      refVecBase[2] = fmuData.SbusRx[0].Inceptors[2];
+      refVecBase[3] = fmuData.SbusRx[0].Inceptors[4];
+std::cout << refVecBase.transpose() << "\t\t";
+//std::cout << refVecBase[0] << "\t\t";
 
       VecCmd refVecRes(4);
-      refVecRes[0] = Data.SbusRx[0].Inceptors[0];
-      refVecRes[1] = Data.SbusRx[0].Inceptors[1];
-      refVecRes[2] = Data.SbusRx[0].Inceptors[2];
+      refVecRes[0] = fmuData.SbusRx[0].Inceptors[0];
+      refVecRes[1] = fmuData.SbusRx[0].Inceptors[1];
+      refVecRes[2] = fmuData.SbusRx[0].Inceptors[2];
       refVecRes[3] = 17; // Command speed
+//std::cout << refVecRes.transpose() << "\t\t";
 
-      VecCmd measVecAngles(4);
-      measVecAngles[0] = NavData.Euler_rad[0];
-      measVecAngles[1] = NavData.Euler_rad[1];
-      measVecAngles[2] = NavData.Euler_rad[2];
-      measVecAngles[3] = airdataStruct.vIasFilt_mps;
+      VecCmd measVec(4);
+      measVec[0] = navData.Euler_rad[0];
+      measVec[1] = navData.Euler_rad[1];
+      measVec[2] = navData.Euler_rad[2];
+      measVec[3] = airdataData.vIasFilt_mps;
+//std::cout << measVec.transpose() << "\t";
 
-      VecCmd measVecRates(4);
-      measVecRates[0] = Data.Mpu9250.Gyro_rads[0];
-      measVecRates[1] = Data.Mpu9250.Gyro_rads[1];
-      measVecRates[2] = Data.Mpu9250.Gyro_rads[2];
-      measVecRates[3] = 0.0;
+      VecCmd dMeasVec(4);
+      dMeasVec[0] = fmuData.Mpu9250.Gyro_rads[0];
+      dMeasVec[1] = fmuData.Mpu9250.Gyro_rads[1];
+      dMeasVec[2] = fmuData.Mpu9250.Gyro_rads[2];
+      dMeasVec[3] = 0.0;
+//std::cout << dMeasVec.transpose() << "\t";
 
-      VecCmd cmdBase = cntrlMgr.CmdBase(refVecBase, modeMgr.time_s);
-      VecCmd cmdRes = cntrlMgr.CmdRes(refVecRes, measVecAngles, measVecRates, modeMgr.time_s);
-      VecCmd cmdCntrl = cntrlMgr.Cmd();
+      // Run the controllers
+      cntrlMgr.CmdBase(refVecBase, missMgrData.time_s);
+      cntrlMgr.CmdRes(refVecRes, measVec, dMeasVec, missMgrData.time_s);
+      cntrlMgrData = cntrlMgr.Cmd();
+//std::cout << cntrlMgrData.cmd.transpose() << "\t";
+//std::cout << cntrlMgrData.cmd[0] << "\t\t";
 
-//std::cout << refVecBase.transpose() << "\t\t";
-//std::cout << measVecAngles[3] << "\t";
-//std::cout << measVecRates[3] << "\t";
-//std::cout << cmdCntrl[3] << "\t";
+      // Allocate control surfaces
+      VecCmd objAlloc = cntrlMgrData.cmd.head(3);
+      cntrlAllocData = cntrlAllocMgr.Compute(objAlloc);
+std::cout << cntrlAllocData.cmdAlloc.transpose()/kD2R << "\t";
 
       // Apply command excitations
-      VecChan cmdExcite(4);
-      cmdExcite = exciteMgr.Compute(modeMgr.testEngage, modeMgr.indxTest, modeMgr.time_s);
-//std::cout << cmdExcite.transpose()/kD2R << "\t";
-
-      // Allocate control surfaces / mixer
-      VecCmd objAlloc = cmdCntrl.head(3);
-      cmdAlloc = cntrlAllocMgr.Compute(objAlloc);
-
-//std::cout << cmdAlloc.transpose()/kD2R << "\t";
-
-      float cmdElev = cmdAlloc[0] + cmdExcite[1];
-      float cmdRud = cmdAlloc[1] + cmdExcite[2];
-      float cmdAilL = cmdAlloc[2] + cmdExcite[0];
-      float cmdFlapL = cmdAlloc[3] + Data.SbusRx[0].Inceptors[3];
-      float cmdFlapR = cmdAlloc[4] + Data.SbusRx[0].Inceptors[3];
-      float cmdAilR = cmdAlloc[5] - cmdExcite[0];
-
-      float cmdThrot = cmdCntrl[3];
-
-VecEff cmdTemp(7);
-cmdTemp[0] = cmdThrot;
-cmdTemp[1] = cmdElev;
-cmdTemp[2] = cmdRud;
-cmdTemp[3] = cmdAilL;
-cmdTemp[4] = cmdFlapL;
-cmdTemp[5] = cmdFlapR;
-cmdTemp[6] = cmdAilR;
-
-//std::cout << cmdTemp.transpose()/kD2R << "\t";
+      exciteMgrData = exciteMgr.Compute(missMgrData.testEngage, missMgrData.indxTest, missMgrData.time_s);
+//std::cout << exciteMgrData.cmdExcite.transpose()/kD2R << "\t";
 
       // OUTPUT PROCESSING
       // send control surface commands
-      std::vector<float> EffectorCmd;
-      EffectorCmd.resize(Config.NumberEffectors);
-      std::vector<uint8_t> EffectorBuffer;
-      EffectorBuffer.resize(EffectorCmd.size()*sizeof(float));
+      std::vector<float> cmdEff;
+      cmdEff.resize(configData.NumberEffectors);
+      std::vector<uint8_t> cmdEffSerial;
+      cmdEffSerial.resize(cmdEff.size()*sizeof(float));
 
-      EffectorCmd[0] = cmdThrot;
-      EffectorCmd[1] = cmdElev;
-      EffectorCmd[2] = cmdRud;
-      EffectorCmd[3] = cmdAilR;
-      EffectorCmd[4] = cmdFlapR;
-      EffectorCmd[5] = cmdFlapL;
-      EffectorCmd[6] = cmdAilL;
+      cmdEff[0] = cntrlMgrData.cmd[3]; // Throttle 
+      cmdEff[1] = cntrlAllocData.cmdAlloc[0] + exciteMgrData.cmdExcite[1]; // Elevator
+      cmdEff[2] = cntrlAllocData.cmdAlloc[1] + exciteMgrData.cmdExcite[2]; // Rudder
+      cmdEff[3] = cntrlAllocData.cmdAlloc[2] + exciteMgrData.cmdExcite[0]; // Ail R
+      cmdEff[4] = cntrlAllocData.cmdAlloc[3] + fmuData.SbusRx[0].Inceptors[3]; // Flap R
+      cmdEff[5] = cntrlAllocData.cmdAlloc[4] + fmuData.SbusRx[0].Inceptors[3]; // Flap L
+      cmdEff[6] = cntrlAllocData.cmdAlloc[5] - exciteMgrData.cmdExcite[0]; // Ail L
 
-      // Saturate(uMin, uMax, EffectorCmd);
-
-      memcpy(EffectorBuffer.data(), EffectorCmd.data(), EffectorBuffer.size());
-      Sensors.WriteMessage(kEffectorAngleCmd, EffectorBuffer.size(), EffectorBuffer.data());
+      memcpy(cmdEffSerial.data(), cmdEff.data(), cmdEffSerial.size());
+      fmu.WriteMessage(kEffectorAngleCmd, cmdEffSerial.size(), cmdEffSerial.data());
 
       // DATA LOG
-      Log.LogFmuData(Data);
+      log.LogData(fmuData, airdataData, navData, missMgrData, cntrlMgrData, cntrlAllocData);
 
       // telemetry
 

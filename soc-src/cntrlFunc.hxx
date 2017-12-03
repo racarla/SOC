@@ -21,7 +21,7 @@ enum CntrlMode {kCntrlReset = -1, kCntrlStandby = 0, kCntrlHold = 1, kCntrlInit 
 // Define CntrlManual Class
 class CntrlManual {
 public:
-  CntrlMode runMode_;
+  CntrlMode mode_;
 
   CntrlManual();
   ~CntrlManual() {};
@@ -38,7 +38,7 @@ private:
 // Define CntrlDamp Class
 class CntrlDamp {
 public:
-  CntrlMode runMode_;
+  CntrlMode mode_;
 
   CntrlDamp();
   ~CntrlDamp() {};
@@ -57,7 +57,7 @@ private:
 // Define CntrlPi Class
 class CntrlPi {
 public:
-  CntrlMode runMode_;
+  CntrlMode mode_;
   float iErr_;
 
   CntrlPi();
@@ -79,7 +79,7 @@ private:
 // Define CntrlPiDamp Class
 class CntrlPiDamp {
 public:
-  CntrlMode runMode_;
+  CntrlMode mode_;
   float iErr_;
 
   CntrlPiDamp();
@@ -100,7 +100,7 @@ private:
 // Define CntrlPid Class
 class CntrlPid {
 public:
-  CntrlMode runMode_;
+  CntrlMode mode_;
   float iErr_, errPrev_;
 
   CntrlPid();

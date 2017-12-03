@@ -16,17 +16,25 @@ History:
 
 const float kHz2Rps = 2 * M_PI;
 
+// Exitation output structure
+struct ExciteMgrStruct {
+  bool exciteMode;
+  uint8_t indxTest;
+  float timeExcite_s;
+  VecChan cmdExcite;
+};
+
 class ExciteMgr {
  public:
-  VecChan cmdExcite_;
 
   ExciteMgr() {};   // Constructor
   ~ExciteMgr() {};  // Destructor
 
   void Init();     // Initialize excitations
-  VecChan Compute(bool exciteMode, int indxTest, float time_s);
+  ExciteMgrStruct Compute(bool exciteMode, uint8_t indxTest, float time_s);
 
  private:
+  ExciteMgrStruct exciteMgrData_;
   float timeEngage_s_;
 
   ExciteMultisine exciteTest01_, exciteTest02_, exciteTest03_, exciteTest04_, exciteTest05_;

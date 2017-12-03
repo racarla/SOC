@@ -20,7 +20,7 @@ History:
 
 
 // Mission Status Structure
-struct MissionMode {
+struct MissMgrStruct {
   float time_s;   // Mission time
   uint frame_cnt;   // Mission frame counter
 
@@ -36,16 +36,16 @@ struct MissionMode {
   uint8_t numTest; // Number of test points
 };
 
-class MissionMgr {
+class MissMgr {
  public:
-  MissionMgr() {};   // Constructor
-  ~MissionMgr() {};  // Destructor
+  MissMgr() {};   // Constructor
+  ~MissMgr() {};  // Destructor
   void Init();    // Initialize controllers and excitations
-  MissionMode ModeMgr(const FmuData FmuDataRef); // Manage mode 
+  MissMgrStruct ModeMgr(const FmuData FmuDataRef); // Manage mode 
   void Reset();   // Resets the controllers and test points with in the class
 
  private:
-  MissionMode missionMode_;
+  MissMgrStruct missMgrData_;
   float time_s_;
   uint frame_cnt_;
 

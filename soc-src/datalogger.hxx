@@ -3,6 +3,11 @@
 #define DATALOGGER_HXX_
 
 #include "global-defs.hxx"
+#include "airdata.hxx"
+#include "structs.hxx"
+#include "missionMgr.hxx"
+#include "cntrlMgr.hxx"
+#include "cntrlAllocMgr.hxx"
 
 #include <stdio.h>
 #include <fcntl.h>
@@ -18,7 +23,7 @@
 class Datalogger {
   public:
     Datalogger();
-    void LogFmuData(FmuData FmuDataRef);
+    void LogData(FmuData fmuData, AirdataStruct airdataData, NavigationData NavData, MissMgrStruct missMgrData, CntrlMgrStruct cntrlMgrData, CntrlAllocStruct cntrlAllocData);
   private:
     FILE *LogFile_;
     bool FileExists(const std::string &FileName);

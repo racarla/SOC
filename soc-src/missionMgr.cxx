@@ -10,7 +10,7 @@ History:
 #include "missionMgr.hxx"
 
 
-void MissionMgr::Init()
+void MissMgr::Init()
 {
   // Initialize timers 
   time_s_ = -1;
@@ -25,7 +25,7 @@ void MissionMgr::Init()
   Reset();
 }
 
-MissionMode MissionMgr::ModeMgr(const FmuData FmuDataRef)
+MissMgrStruct MissMgr::ModeMgr(const FmuData FmuDataRef)
 {
   // Get the current time
   time_s_ = (float) FmuDataRef.Time_us / 1e6;
@@ -111,25 +111,25 @@ MissionMode MissionMgr::ModeMgr(const FmuData FmuDataRef)
   } // Auto Engage
 
   // Mission Mode Structure
-  missionMode_.time_s = time_s_;   // Mission time
-  missionMode_.frame_cnt = frame_cnt_;   // Mission frame counter
-  missionMode_.autoEngage = autoEngage_;   // Mission autoEngage flag
+  missMgrData_.time_s = time_s_;   // Mission time
+  missMgrData_.frame_cnt = frame_cnt_;   // Mission frame counter
+  missMgrData_.autoEngage = autoEngage_;   // Mission autoEngage flag
 
-  missionMode_.cntrlMode = cntrlMode_;
-  missionMode_.numTest = numTest_; // Number of test points
+  missMgrData_.cntrlMode = cntrlMode_;
+  missMgrData_.numTest = numTest_; // Number of test points
 
-  missionMode_.trigArm = trigArm_;
-  missionMode_.trigEngage = trigEngage_;
+  missMgrData_.trigArm = trigArm_;
+  missMgrData_.trigEngage = trigEngage_;
 
-  missionMode_.testArm = testArm_;
-  missionMode_.testEngage = testEngage_; // Flag to engage excitation
-  missionMode_.indxTest = indxTest_; // Index Number of the Test
+  missMgrData_.testArm = testArm_;
+  missMgrData_.testEngage = testEngage_; // Flag to engage excitation
+  missMgrData_.indxTest = indxTest_; // Index Number of the Test
 
   // Return 
-  return missionMode_;
+  return missMgrData_;
 }
 
-void MissionMgr::Reset()
+void MissMgr::Reset()
 {
   // Reset the Auto Engagement Flag 
   autoEngage_ = 0;

@@ -7,7 +7,7 @@ History:
 2017-11-12 - Chris Regan - Created
 */
 
-#include "config.hxx"
+#include "configData.hxx"
 #include "fmu.hxx"
 #include "hardware-defs.hxx"
 #include "global-defs.hxx"
@@ -26,28 +26,32 @@ int main(int argc, char* argv[]) {
     return -1;
   }
 
-  /* initialize classes */
-  Fmu Sensors;
-  Incline InclineSens;
+  // FMU fmu
+  Fmu fmu; // Class
+  FmuData fmuData; // Struct
 
-  /* initialize structures */
-  AircraftConfig Config;
-  FmuData Data;
-  InclineData IncMeas;
+  // Data Logger
+  Datalogger log;
+
+  // load configuration file
+  AircraftConfig configData; // Structure
+  LoadConfigFile(argv[1], fmu, &configData, &fmuData);
+
+  // Inclinomenter Setup
+  Incline incline;
+  InclineData incData;
+
   
-  /* load configuration file */
-  LoadConfigFile(argv[1], Sensors, &Config, &Data);
   /* Define the Control Effector Vector */
   std::vector<float> EffectorCmd;
-  Config.NumberEffectors = 7; // FIXIT - Hardcoded
-  EffectorCmd.resize(Config.NumberEffectors);
+  //configData.NumberEffectors = 7; // FIXIT - Hardcoded
+  EffectorCmd.resize(configData.NumberEffectors);
   
   std::vector<uint8_t> EffectorBuffer;
   EffectorBuffer.resize(EffectorCmd.size()*sizeof(float));
   
   /* Setup Inclinometer */
-  InclineSens.SetDamping();
-  double IncAngle;
+  incline.SetDamping();
   
   // Define Delays
   int DelayMove = 2000000; // delay for 2 second after servo move
@@ -79,7 +83,7 @@ int main(int argc, char* argv[]) {
   // Surface Commands to free-float
   EffectorCmd[ServoIndx] = 0.0;
   memcpy(EffectorBuffer.data(), EffectorCmd.data(), EffectorBuffer.size()); // copy
-  Sensors.WriteMessage(kEffectorDirectCmd, EffectorBuffer.size(), EffectorBuffer.data()); // write commands
+  fmu.WriteMessage(kEffectorDirectCmd, EffectorBuffer.size(), EffectorBuffer.data()); // write commands
 
   //Get the Pot channel number
   std::cout << "Enter the Analog Index Number for Surface Pot (-1 to skip): ";
@@ -115,10 +119,10 @@ int main(int argc, char* argv[]) {
       usleep (DelayRead);
 
       // Read inclinometer
-      InclineSens.GetAngle(&IncMeas);
+      incline.GetAngle(&incData);
       
       // Accumulate Values
-      IncAngleSum += IncMeas.Angle_deg;
+      IncAngleSum += incData.Angle_deg;
       }
 
     // Average values, define as zero angle
@@ -151,34 +155,33 @@ int main(int argc, char* argv[]) {
       // Send the Servo Command
       EffectorCmd[ServoIndx] = cmdCurr;
       memcpy(EffectorBuffer.data(),EffectorCmd.data(),EffectorBuffer.size());
-      Sensors.WriteMessage(kEffectorDirectCmd, EffectorBuffer.size(), EffectorBuffer.data());
+      fmu.WriteMessage(kEffectorDirectCmd, EffectorBuffer.size(), EffectorBuffer.data());
       
       usleep(DelayMove); // delay
       
       IncAngleSum = 0.0;
-      IncAngle = 0.0;
       float potValTemp = 0.0;
       float potValSum = 0.0;
       // Read the Inclinometer and pot data
       for (int iRead = 0; iRead < NumRead; ++iRead) {
         // Keep Sending the same servo command
         memcpy(EffectorBuffer.data(),EffectorCmd.data(),EffectorBuffer.size());
-        Sensors.WriteMessage(kEffectorDirectCmd,EffectorBuffer.size(),EffectorBuffer.data());
+        fmu.WriteMessage(kEffectorDirectCmd,EffectorBuffer.size(),EffectorBuffer.data());
       
         // Delay
         usleep (DelayRead);
 
         // Read inclinometer
-        InclineSens.GetAngle(&IncMeas);
+        incline.GetAngle(&incData);
         
         // Accumulate Values
-        IncAngleSum += IncMeas.Angle_deg;
+        IncAngleSum += incData.Angle_deg;
         
-        // Read Pot Sensors
+        // Read Pot fmu
         if(AnalogIndx >= 0){
-          Sensors.GetSensorData(&Data);
+          fmu.GetSensorData(&fmuData);
         
-          potValTemp = Data.Analog[AnalogIndx].Voltage_V;
+          potValTemp = fmuData.Analog[AnalogIndx].Voltage_V;
           potValSum += potValTemp;
         }
       }
@@ -192,7 +195,7 @@ int main(int argc, char* argv[]) {
     // Surface Commands to free-float
     EffectorCmd[ServoIndx] = 0.0;
     memcpy(EffectorBuffer.data(), EffectorCmd.data(), EffectorBuffer.size()); // copy
-    Sensors.WriteMessage(kEffectorDirectCmd, EffectorBuffer.size(), EffectorBuffer.data()); // write commands
+    fmu.WriteMessage(kEffectorDirectCmd, EffectorBuffer.size(), EffectorBuffer.data()); // write commands
         
     
     std::cout << "Calibration Complete" << std::endl;

@@ -87,7 +87,7 @@ config: $(SRC_CONFIG)
 
 bin2hdf: $(SRC_BIN2HDF)
 	@ echo "Building bin2hdf ..."	
-	$(CC) $(CFLAGS) $(IFLAGS) -o $@ $? $(LFLAGS_BIN2HDF)
+	g++ $(CFLAGS) $(IFLAGS) -o $@ $? $(LFLAGS_BIN2HDF)
 
 clean:
 	rm -f $(OBJ_FLIGHT) $(OBJ_CAL) ${OBJ_CONFIG} ${OBJ_CONFIG}
