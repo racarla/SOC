@@ -33,6 +33,27 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SO
 #include <iostream>
 #include <iomanip>      // std::setw
 
+
+#ifndef kMaxAllocObj // Allocator Objectives
+#define kMaxAllocObj 3
+#endif
+
+#ifndef kMaxAllocEff // Allocator Effectors
+#define kMaxAllocEff 6
+#endif
+
+#ifndef kMaxCntrlCmd // Controller Dimension
+#define kMaxCntrlCmd 4
+#endif
+
+#ifndef kMaxExciteChan // Excitation Channels
+#define kMaxExciteChan 4
+#endif
+
+#ifndef kMaxExciteElem // Excitation Elements (Multisine components)
+#define kMaxExciteElem 46
+#endif
+
 #define EIGEN_INITIALIZE_MATRICES_BY_ZERO 1
 //#define EIGEN_INITIALIZE_MATRICES_BY_NAN 1
 
@@ -178,7 +199,7 @@ std::cout << fmuData.PressureTransducer[1].Pressure_Pa << "\t";
 std::cout << fmuData.PressureTransducer[2].Pressure_Pa << "\t";
 std::cout << fmuData.PressureTransducer[3].Pressure_Pa << "\t";
 
-      VecCmd refVecBase(4);
+      VecCmd refVecBase(kMaxCntrlCmd);
       refVecBase[0] = fmuData.SbusRx[0].Inceptors[0];
       refVecBase[1] = fmuData.SbusRx[0].Inceptors[1];
       refVecBase[2] = fmuData.SbusRx[0].Inceptors[2];
@@ -186,21 +207,21 @@ std::cout << fmuData.PressureTransducer[3].Pressure_Pa << "\t";
 //std::cout << refVecBase.transpose() << "\t\t";
 //std::cout << refVecBase[0] << "\t\t";
 
-      VecCmd refVecRes(4);
+      VecCmd refVecRes(kMaxCntrlCmd);
       refVecRes[0] = fmuData.SbusRx[0].Inceptors[0];
       refVecRes[1] = fmuData.SbusRx[0].Inceptors[1];
       refVecRes[2] = fmuData.SbusRx[0].Inceptors[2];
       refVecRes[3] = 17; // Command speed
 //std::cout << refVecRes.transpose() << "\t\t";
 
-      VecCmd measVec(4);
+      VecCmd measVec(kMaxCntrlCmd);
       measVec[0] = navData.Euler_rad[0];
       measVec[1] = navData.Euler_rad[1];
       measVec[2] = navData.Euler_rad[2];
       measVec[3] = airdataData.vIasFilt_mps;
 //std::cout << measVec.transpose() << "\t";
 
-      VecCmd dMeasVec(4);
+      VecCmd dMeasVec(kMaxCntrlCmd);
       dMeasVec[0] = fmuData.Mpu9250.Gyro_rads[0];
       dMeasVec[1] = fmuData.Mpu9250.Gyro_rads[1];
       dMeasVec[2] = fmuData.Mpu9250.Gyro_rads[2];
@@ -233,10 +254,10 @@ std::cout << fmuData.PressureTransducer[3].Pressure_Pa << "\t";
       cmdEff[0] = cntrlMgrData.cmd[3]; // Throttle 
       cmdEff[1] = cntrlAllocData.cmdAlloc[0] + exciteMgrData.cmdExcite[1]; // Elevator
       cmdEff[2] = cntrlAllocData.cmdAlloc[1] + exciteMgrData.cmdExcite[2]; // Rudder
-      cmdEff[3] = cntrlAllocData.cmdAlloc[2] + exciteMgrData.cmdExcite[0]; // Ail R
+      cmdEff[3] = cntrlAllocData.cmdAlloc[2] - exciteMgrData.cmdExcite[0]; // Ail R
       cmdEff[4] = cntrlAllocData.cmdAlloc[3] + fmuData.SbusRx[0].Inceptors[3]; // Flap R
       cmdEff[5] = cntrlAllocData.cmdAlloc[4] + fmuData.SbusRx[0].Inceptors[3]; // Flap L
-      cmdEff[6] = cntrlAllocData.cmdAlloc[5] - exciteMgrData.cmdExcite[0]; // Ail L
+      cmdEff[6] = cntrlAllocData.cmdAlloc[5] + exciteMgrData.cmdExcite[0]; // Ail L
 
       memcpy(cmdEffSerial.data(), cmdEff.data(), cmdEffSerial.size());
       fmu.WriteMessage(kEffectorAngleCmd, cmdEffSerial.size(), cmdEffSerial.data());

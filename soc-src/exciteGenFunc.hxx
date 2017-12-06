@@ -14,13 +14,18 @@ History:
 #include <stdint.h>
 #include <Eigen/Core>
 
-#define MaxChan 4
-#define MaxElem 50
+#ifndef kMaxExciteChan
+#define kMaxExciteChan 10
+#endif
+
+#ifndef kMaxExciteElem
+#define kMaxExciteElem 10
+#endif
 
 // Matrix<typename Scalar, int RowsAtCompiletime, int ColsAtCompiletime, int Options = 0, int MaxRowsAtCompiletime = RowsAtCompiletime, int MaxColsAtCompiletime = ColsAtCompiletime>
-typedef Eigen::Matrix<float, -1, 1, 0, MaxElem, 1> VecElem;
-typedef Eigen::Matrix<float, -1, -1, 0, MaxChan, MaxElem> MatChanElem;
-typedef Eigen::Matrix<float, -1, 1, 0, MaxChan, 1> VecChan;
+typedef Eigen::Matrix<float, -1, 1, 0, kMaxExciteElem, 1> VecElem;
+typedef Eigen::Matrix<float, -1, -1, 0, kMaxExciteChan, kMaxExciteElem> MatChanElem;
+typedef Eigen::Matrix<float, -1, 1, 0, kMaxExciteChan, 1> VecChan;
 
 
 enum ExciteDiscType {kPulse = 0, kDoublet = 1, kDoublet121 = 2, kDoublet3211 = 3};

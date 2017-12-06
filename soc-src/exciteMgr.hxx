@@ -14,6 +14,14 @@ History:
 #include <Eigen/Core>
 #include "exciteGenFunc.hxx"
 
+#ifndef kMaxExciteChan
+#define kMaxExciteChan 10
+#endif
+
+#ifndef kMaxExciteElem
+#define kMaxExciteElem 10
+#endif
+
 const float kHz2Rps = 2 * M_PI;
 
 // Exitation output structure

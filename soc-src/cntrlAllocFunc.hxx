@@ -15,27 +15,32 @@ History:
 #include <Eigen/LU>
 //#include <Eigen/QR>
 
-#define MaxObj 5
-#define MaxEff 16
+#ifndef kMaxAllocObj
+#define kMaxAllocObj 5
+#endif
+
+#ifndef kMaxAllocEff
+#define kMaxAllocEff 16
+#endif
 
 #include <stdint.h>
 
 // Matrix<typename Scalar, int RowsAtCompileTime, int ColsAtCompileTime, int Options = 0, int MaxRowsAtCompileTime = RowsAtCompileTime, int MaxColsAtCompileTime = ColsAtCompileTime>
-typedef Eigen::Matrix<float, -1, -1, 0, MaxObj, MaxEff> MatCntrlEff;
-typedef Eigen::Matrix<float, -1, 1, 0, MaxObj, 1> VecObj;
-typedef Eigen::Matrix<float, -1, 1, 0, MaxEff, 1> VecEff;
-typedef Eigen::Matrix<float, -1, -1, 0, MaxObj, MaxObj> MatObj;
-typedef Eigen::Matrix<float, -1, -1, 0, MaxEff, MaxEff> MatEff;
-typedef Eigen::Matrix<float, -1, -1, 0, MaxEff, MaxObj> MatCntrlEffT;
+typedef Eigen::Matrix<float, -1, -1, 0, kMaxAllocObj, kMaxAllocEff> MatCntrlEff;
+typedef Eigen::Matrix<float, -1, 1, 0, kMaxAllocObj, 1> VecObj;
+typedef Eigen::Matrix<float, -1, 1, 0, kMaxAllocEff, 1> VecEff;
+typedef Eigen::Matrix<float, -1, -1, 0, kMaxAllocObj, kMaxAllocObj> MatObj;
+typedef Eigen::Matrix<float, -1, -1, 0, kMaxAllocEff, kMaxAllocEff> MatEff;
+typedef Eigen::Matrix<float, -1, -1, 0, kMaxAllocEff, kMaxAllocObj> MatCntrlEffT;
 
-typedef Eigen::Matrix<uint8_t, -1, 1, 0, MaxEff, 1> VecEffInt;
+typedef Eigen::Matrix<uint8_t, -1, 1, 0, kMaxAllocEff, 1> VecEffInt;
 
-#define MaxSolvObj MaxObj
-#define MaxSolvEff MaxEff
+#define kMaxSolvObj kMaxAllocObj // FIXIT - This is method dependent, may want to just allow dynamic sizing
+#define kMaxSolvEff kMaxAllocEff // FIXIT - This is method dependent, may want to just allow dynamic sizing
 
-typedef Eigen::Matrix<float, -1, -1, 0, MaxSolvObj, MaxSolvEff> MatSolv;
-typedef Eigen::Matrix<float, -1, 1, 0, MaxSolvObj, 1> VecSolvObj;
-typedef Eigen::Matrix<float, -1, 1, 0, MaxSolvEff, 1> VecSolvEff;
+typedef Eigen::Matrix<float, -1, -1, 0, kMaxSolvObj, kMaxSolvEff> MatSolv;
+typedef Eigen::Matrix<float, -1, 1, 0, kMaxSolvObj, 1> VecSolvObj;
+typedef Eigen::Matrix<float, -1, 1, 0, kMaxSolvEff, 1> VecSolvEff;
 
 // Enumerated list of Control Allocation Methods
 enum CntrlAllocMethod { kPseudo = 10, kPseudoWt = 15, kPseudoRedis = 20, kPseudoRedisScale = 25, kFxp = 50, kMolp = 60, kMoqp = 70, kSqp = 75};

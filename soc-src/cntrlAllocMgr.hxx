@@ -16,6 +16,14 @@ History:
 
 #include <stdint.h>
 
+#ifndef kMaxAllocObj
+#define kMaxAllocObj 5
+#endif
+
+#ifndef kMaxAllocEff
+#define kMaxAllocEff 16
+#endif
+
 struct CntrlAllocDef {
   MatCntrlEff cntrlEff;
   MatObj wtObj;

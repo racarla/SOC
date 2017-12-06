@@ -13,9 +13,11 @@ History:
 #include "cntrlFunc.hxx"
 #include <Eigen/Core>
 
-#define MaxCntrlCmdDim 5
+#ifndef kMaxCntrlCmd
+#define kMaxCntrlCmd 4
+#endif
 
-typedef Eigen::Matrix<float, -1, 1, 0, MaxCntrlCmdDim, 1> VecCmd;
+typedef Eigen::Matrix<float, -1, 1, 0, kMaxCntrlCmd, 1> VecCmd;
 
 struct CntrlMgrStruct {
   VecCmd cmdBase, cmdRes, cmd;
