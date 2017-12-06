@@ -42,6 +42,8 @@ int main(int argc, char* argv[]) {
   FmuData Data;
   NavigationData NavData;
 
+  std::cout << sizeof(NavigationData) << std::endl;
+
   /* load configuration file */
   LoadConfigFile(argv[1],Sensors,&Config,&Data);
 
@@ -60,14 +62,14 @@ int main(int argc, char* argv[]) {
 
       // control laws
 
-      // send control surface commands
-      std::vector<float> EffectorCmd;
-      EffectorCmd.resize(Config.NumberEffectors);
-      std::vector<uint8_t> EffectorBuffer;
-      EffectorBuffer.resize(EffectorCmd.size()*sizeof(float));
-      EffectorCmd[0] = -0.3;
-      memcpy(EffectorBuffer.data(),EffectorCmd.data(),EffectorBuffer.size());
-      Sensors.WriteMessage(kEffectorAngleCmd,EffectorBuffer.size(),EffectorBuffer.data());
+      // // send control surface commands
+      // std::vector<float> EffectorCmd;
+      // EffectorCmd.resize(Config.NumberEffectors);
+      // std::vector<uint8_t> EffectorBuffer;
+      // EffectorBuffer.resize(EffectorCmd.size()*sizeof(float));
+      // EffectorCmd[0] = -0.3;
+      // memcpy(EffectorBuffer.data(),EffectorCmd.data(),EffectorBuffer.size());
+      // Sensors.WriteMessage(kEffectorAngleCmd,EffectorBuffer.size(),EffectorBuffer.data());
 
       // data logging
       Log.LogFmuData(Data);
