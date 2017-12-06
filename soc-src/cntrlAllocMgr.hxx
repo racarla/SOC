@@ -16,7 +16,6 @@ History:
 
 #include <stdint.h>
 
-
 struct CntrlAllocDef {
   MatCntrlEff cntrlEff;
   MatObj wtObj;
@@ -36,8 +35,8 @@ class CntrlAllocMgr {
   CntrlAllocMgr() {};   // Constructor
   ~CntrlAllocMgr() {};  // Destructor
 
-  void Init(CntrlAllocDef cntrlAllocDef); // Initialize excitations
-  CntrlAllocStruct Compute(VecObj vObj);
+  void Init(const CntrlAllocDef& cntrlAllocDef); // Initialize excitations
+  CntrlAllocStruct Compute(const VecObj& vObj);
 
  private:
   uint8_t numObj_;

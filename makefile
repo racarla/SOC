@@ -25,7 +25,7 @@ IFLAGS := -Isoc-includes -I/usr/local/include -I/usr/include/hdf5/serial
 # configuration
 LFLAGS_FLIGHT :=
 LFLAGS_CONFIG :=
-LFLAGS_BIN2HDF := -lz -lm -lhdf5_cpp -lhdf5_serial -L/usr/lib/x86_64-linux-gnu
+LFLAGS_BIN2HDF := -lz -lm -lhdf5_cpp -lhdf5_serial
 
 # source code to be compiled
 SRC_FLIGHT :=\

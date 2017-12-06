@@ -20,7 +20,7 @@ class Filt{ // Filter Class - FIXIT - Move into a seperate .hxx
   Filt() {};
   ~Filt() {};
   void Init();
-  float LowPass1(float meas);
+  float LowPass1(const float& meas);
 
  private:
   float x_, a_, b_, c_;
@@ -43,7 +43,7 @@ class Airdata {
   void Init();    // Initialize Bias Estimate and Filters
 
   void BiasEst(); // Compute the Airdata biases on startup
-  AirdataStruct Compute(const PitotData pitotData);
+  AirdataStruct Compute(const PitotData& pitotData);
 
  private:
   float kP0_Pa_, kK1_m_, kK2_nd_, kK3_mps_, kK4_nd_;
@@ -57,11 +57,11 @@ class Airdata {
   float altBias_m_, altBiasPrev_m_;
   float presDiffBias_Pa_, presDiffBiasPrev_Pa_;
 
-  float ComputeAlt(float presStatic_Pa);
-  float ComputeAirspeed(float presDiff_Pa);
+  float ComputeAlt(const float& presStatic_Pa);
+  float ComputeAirspeed(const float& presDiff_Pa);
 
-  float FiltAlt(float alt_m);
-  float FiltAirspeed(float vIas_mps);
+  float FiltAlt(const float& alt_m);
+  float FiltAirspeed(const float& vIas_mps);
 
 };
 

@@ -41,7 +41,7 @@ class MissMgr {
   MissMgr() {};   // Constructor
   ~MissMgr() {};  // Destructor
   void Init();    // Initialize controllers and excitations
-  MissMgrStruct ModeMgr(const FmuData FmuDataRef); // Manage mode 
+  MissMgrStruct ModeMgr(const FmuData& FmuDataRef); // Manage mode 
   void Reset();   // Resets the controllers and test points with in the class
 
  private:

@@ -25,13 +25,13 @@ public:
 
   CntrlManual();
   ~CntrlManual() {};
-  void Init(float refScale, float cmdMin, float cmdMax);
-  float Compute(float ref);
+  void Init(const float& refScale, const float& cmdMin, const float& cmdMax);
+  float Compute(const float& ref);
 
 private:
   float refScale_, cmdMin_, cmdMax_;
 
-  float CalcCmd(float ref);
+  float CalcCmd(const float& ref);
 };
 
 
@@ -42,15 +42,15 @@ public:
 
   CntrlDamp();
   ~CntrlDamp() {};
-  void Init(float refScale, float cmdMin, float cmdMax, float KD);
-  float Compute(float ref, float dMeas);
+  void Init(const float& refScale, const float& cmdMin, const float& cmdMax, const float& KD);
+  float Compute(const float& ref, const float& dMeas);
 
 private:
   float refScale_, cmdMin_, cmdMax_;
 
   float KD_;
 
-  float CalcCmd(float err, float dErr);
+  float CalcCmd(const float& err, const float& dErr);
 };
 
 
@@ -62,8 +62,8 @@ public:
 
   CntrlPi();
   ~CntrlPi() {};
-  void Init(float refScale, float cmdMin, float cmdMax, float KP, float KI);
-  float Compute(float ref, float meas, float dt_s);
+  void Init(const float& refScale, const float& cmdMin, const float& cmdMax, const float& KP, const float& KI);
+  float Compute(const float& ref, const float& meas, float& dt_s);
 
 private:
   float refMin_, refMax_, cmdMin_, cmdMax_;
@@ -71,8 +71,8 @@ private:
 
   float KP_, KI_;
 
-  void InitState(float cmd, float err);
-  float CalcCmd(float err);
+  void InitState(const float& cmd, const float& err);
+  float CalcCmd(const float& err);
 };
 
 
@@ -84,16 +84,16 @@ public:
 
   CntrlPiDamp();
   ~CntrlPiDamp() {};
-  void Init(float refScale, float cmdMin, float cmdMax, float KP, float KI, float KD);
-  float Compute(float ref, float meas, float dMeas, float dt_s);
+  void Init(const float& refScale, const float& cmdMin, const float& cmdMax, const float& KP, const float& KI, const float& KD);
+  float Compute(const float& ref, const float& meas, const float& dMeas, float& dt_s);
 
 private:
   float refScale_, cmdMin_, cmdMax_;
 
   float KP_, KI_, KD_;
 
-  void InitState(float cmd, float err, float dErr);
-  float CalcCmd(float err, float dErr);
+  void InitState(const float& cmd, const float& err, const float& dErr);
+  float CalcCmd(const float& err, const float& dErr);
 };
 
 
@@ -105,16 +105,16 @@ public:
 
   CntrlPid();
   ~CntrlPid() {};
-  void Init(float refScale, float cmdMin, float cmdMax, float KP, float KI, float KD);
-  float Compute(float ref, float meas, float dt_s);
+  void Init(const float& refScale, const float& cmdMin, const float& cmdMax, const float& KP, const float& KI, const float& KD);
+  float Compute(const float& ref, const float& meas, float& dt_s);
 
 private:
   float refScale_, cmdMin_, cmdMax_;
 
   float KP_, KI_, KD_;
 
-  void InitState(float cmd, float err, float dErr);
-  float CalcCmd(float err, float dErr);
+  void InitState(const float& cmd, const float& err, const float& dErr);
+  float CalcCmd(const float& err, const float& dErr);
 };
 
 #endif // CNTRLFUNC_HXX_

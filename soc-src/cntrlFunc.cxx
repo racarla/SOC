@@ -21,7 +21,7 @@ CntrlManual::CntrlManual()
 }
 
 // Set Parameters for the tunable controller
-void CntrlManual::Init(float refScale, float cmdMin, float cmdMax)
+void CntrlManual::Init(const float& refScale, const float& cmdMin, const float& cmdMax)
 {
   mode_ = kCntrlStandby; // Initialize in Standby
 
@@ -32,7 +32,7 @@ void CntrlManual::Init(float refScale, float cmdMin, float cmdMax)
 }
 
 // Damper Controller
-float CntrlManual::Compute(float ref)
+float CntrlManual::Compute(const float& ref)
 {
   float err = (refScale_ * ref) - 0.0;
   float cmd;
@@ -68,7 +68,7 @@ float CntrlManual::Compute(float ref)
 }
 
 // Compute the Command for the Damper controller
-float CntrlManual::CalcCmd(float err)
+float CntrlManual::CalcCmd(const float& err)
 {
   float cmd = err;
 
@@ -90,7 +90,7 @@ CntrlDamp::CntrlDamp()
 }
 
 // Set Parameters for the tunable controller
-void CntrlDamp::Init(float refScale, float cmdMin, float cmdMax, float KD)
+void CntrlDamp::Init(const float& refScale, const float& cmdMin, const float& cmdMax, const float& KD)
 {
   mode_ = kCntrlStandby; // Initialize in Standby
 
@@ -103,7 +103,7 @@ void CntrlDamp::Init(float refScale, float cmdMin, float cmdMax, float KD)
 }
 
 // Damper Controller
-float CntrlDamp::Compute(float ref, float dMeas)
+float CntrlDamp::Compute(const float& ref, const float& dMeas)
 {
   float err = (refScale_ * ref) - 0.0;
   float dErr = 0.0 - dMeas; // Measurement for the Damper
@@ -138,7 +138,7 @@ float CntrlDamp::Compute(float ref, float dMeas)
 }
 
 // Compute the Command
-float CntrlDamp::CalcCmd(float err, float dErr)
+float CntrlDamp::CalcCmd(const float& err, const float& dErr)
 {
   float cmd = err + KD_ * dErr;
 
@@ -159,7 +159,7 @@ CntrlPi::CntrlPi()
 }
 
 // Set Parameters for the tunable controller
-void CntrlPi::Init(float refScale, float cmdMin, float cmdMax, float KP, float KI)
+void CntrlPi::Init(const float& refScale, const float& cmdMin, const float& cmdMax, const float& KP, const float& KI)
 {
   mode_ = kCntrlStandby; // Initialize in Standby
 
@@ -175,7 +175,7 @@ void CntrlPi::Init(float refScale, float cmdMin, float cmdMax, float KP, float K
 }
 
 // PI Controller
-float CntrlPi::Compute(float ref, float meas, float dt_s)
+float CntrlPi::Compute(const float& ref, const float& meas, float& dt_s)
 {
   float err = (refScale_ * ref) - meas; // Compute the Error
 
@@ -226,7 +226,7 @@ float CntrlPi::Compute(float ref, float meas, float dt_s)
 }
 
 // Initialize for near-zero transient
-void CntrlPi::InitState(float cmd, float err)
+void CntrlPi::InitState(const float& cmd, const float& err)
 {
   if (KI_ != 0.0) { // Protect for KI == 0
     iErr_ = (cmd - (KP_ * err)) / KI_; // Compute the required state
@@ -234,7 +234,7 @@ void CntrlPi::InitState(float cmd, float err)
 }
 
 // Compute the Command
-float CntrlPi::CalcCmd(float err)
+float CntrlPi::CalcCmd(const float& err)
 {
   float pCmd = KP_ * err;
   float iCmd = KI_ * iErr_;
@@ -257,7 +257,7 @@ CntrlPiDamp::CntrlPiDamp()
 {}
 
 // Set Parameters for the tunable controller
-void CntrlPiDamp::Init(float refScale, float cmdMin, float cmdMax, float KP, float KI, float KD)
+void CntrlPiDamp::Init(const float& refScale, const float& cmdMin, const float& cmdMax, const float& KP, const float& KI, const float& KD)
 {
   mode_ = kCntrlStandby; // Initialize in Standby
 
@@ -274,7 +274,7 @@ void CntrlPiDamp::Init(float refScale, float cmdMin, float cmdMax, float KP, flo
 }
 
 // PI Controller plus Damper
-float CntrlPiDamp::Compute(float ref, float meas, float dMeas, float dt_s)
+float CntrlPiDamp::Compute(const float& ref, const float& meas, const float& dMeas, float& dt_s)
 {
   float err = (refScale_ * ref) - meas; // Compute the Error
 	float dErr = 0.0 - dMeas; // Measurement for the Damper
@@ -324,7 +324,7 @@ float CntrlPiDamp::Compute(float ref, float meas, float dMeas, float dt_s)
 }
 
 // Initialize Controller for near-zero transient
-void CntrlPiDamp::InitState(float cmd, float err, float dErr)
+void CntrlPiDamp::InitState(const float& cmd, const float& err, const float& dErr)
 {
   if (KI_ != 0.0) { // Protect for KI == 0
     iErr_ = (cmd - (KP_ * err + KD_ * dErr)) / KI_; // Compute the required state
@@ -334,7 +334,7 @@ void CntrlPiDamp::InitState(float cmd, float err, float dErr)
 }
 
 // Compute the Command
-float CntrlPiDamp::CalcCmd(float err, float dErr)
+float CntrlPiDamp::CalcCmd(const float& err, const float& dErr)
 {
 	float pCmd = KP_ * err;
 	float iCmd = KI_ * iErr_;
@@ -361,7 +361,7 @@ CntrlPid::CntrlPid()
 {}
 
 // Set Parameters for the tunable controller
-void CntrlPid::Init(float refScale, float cmdMin, float cmdMax, float KP, float KI, float KD)
+void CntrlPid::Init(const float& refScale, const float& cmdMin, const float& cmdMax, const float& KP, const float& KI, const float& KD)
 {
   mode_ = kCntrlStandby; // Initialize in Standby
 
@@ -378,7 +378,7 @@ void CntrlPid::Init(float refScale, float cmdMin, float cmdMax, float KP, float 
   errPrev_ = 0.0; // Set previous error to zero
 }
 
-float CntrlPid::Compute(float ref, float meas, float dt_s)
+float CntrlPid::Compute(const float& ref, const float& meas, float& dt_s)
 {
   float err = (refScale_ * ref) - meas; // Compute the Error
 
@@ -437,7 +437,7 @@ float CntrlPid::Compute(float ref, float meas, float dt_s)
 }
 
 // Initialize for near-zero transient
-void CntrlPid::InitState(float cmd, float err, float dErr)
+void CntrlPid::InitState(const float& cmd, const float& err, const float& dErr)
 {
   if (KI_ != 0.0) { // Protect for KI == 0
     iErr_ = (cmd - (KP_ * err + KD_ * dErr)) / KI_; // Compute the required state
@@ -447,7 +447,7 @@ void CntrlPid::InitState(float cmd, float err, float dErr)
 }
 
 // Compute the Command
-float CntrlPid::CalcCmd(float err, float dErr)
+float CntrlPid::CalcCmd(const float& err, const float& dErr)
 {
   float pCmd = KP_ * err;
   float iCmd = KI_ * iErr_;

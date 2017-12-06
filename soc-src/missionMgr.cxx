@@ -25,7 +25,7 @@ void MissMgr::Init()
   Reset();
 }
 
-MissMgrStruct MissMgr::ModeMgr(const FmuData FmuDataRef)
+MissMgrStruct MissMgr::ModeMgr(const FmuData& FmuDataRef)
 {
   // Get the current time
   time_s_ = (float) FmuDataRef.Time_us / 1e6;

@@ -96,7 +96,7 @@ void CntrlMgr::Mode(CntrlMode mode)
 }
 
 // Define the Baseline Controller - FIXIT
-VecCmd CntrlMgr::CmdBase(VecCmd refVec, float time_s)
+VecCmd CntrlMgr::CmdBase(const VecCmd& refVec, float time_s)
 {
   if (timePrevBase_s_ <= 0.0) timePrevBase_s_ = time_s;
   timePrevBase_s_ = time_s;
@@ -114,7 +114,7 @@ VecCmd CntrlMgr::CmdBase(VecCmd refVec, float time_s)
 }
 
 // Define the Research Controller - FIXIT
-VecCmd CntrlMgr::CmdRes(VecCmd refVec, VecCmd measVec, VecCmd dMeasVec, float time_s)
+VecCmd CntrlMgr::CmdRes(const VecCmd& refVec, const VecCmd& measVec, const VecCmd& dMeasVec, float time_s)
 {
   if (timePrevRes_s_ <= 0.0) timePrevRes_s_ = time_s;
   float dt_s = time_s - timePrevRes_s_;

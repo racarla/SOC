@@ -32,7 +32,7 @@ void Airdata::Init() {
 
 
 
-AirdataStruct Airdata::Compute(PitotData pitotData) {
+AirdataStruct Airdata::Compute(const PitotData& pitotData) {
 
   presStatic_Pa_ = pitotData.Static.Pressure_Pa;
   presDiff_Pa_ = pitotData.Diff.Pressure_Pa;
@@ -48,7 +48,7 @@ AirdataStruct Airdata::Compute(PitotData pitotData) {
   return airdata_;
 }
 
-float Airdata::ComputeAlt(float presStatic_Pa) {
+float Airdata::ComputeAlt(const float& presStatic_Pa) {
 
   // Compute pressure altitude; bias removal results in AGL altitude
   float alt_m = kK1_m_ * (1 - pow((presStatic_Pa) / kP0_Pa_ , kK2_nd_)) - altBias_m_;
@@ -56,14 +56,14 @@ float Airdata::ComputeAlt(float presStatic_Pa) {
   return alt_m;
 }
 
-float Airdata::FiltAlt(float alt_m) {
+float Airdata::FiltAlt(const float& alt_m) {
   // Filter altitude and airspeed signals
   float altFilt_m = filtAlt_.LowPass1(alt_m);
 
   return altFilt_m;
 }
 
-float Airdata::ComputeAirspeed(float presDiff_Pa) {
+float Airdata::ComputeAirspeed(const float& presDiff_Pa) {
 
   // Compute Indicated Airspeed (IAS). This equation accounts for compressibility effects. Sensor bias is removed prior to calculation
   float vIas_mps = copysign(kK3_mps_ * sqrt(fabs(pow(fabs((presDiff_Pa - presDiffBias_Pa_) / kP0_Pa_ + 1), kK4_nd_) - 1)), presDiff_Pa); 
@@ -71,7 +71,7 @@ float Airdata::ComputeAirspeed(float presDiff_Pa) {
   return vIas_mps;
 }
 
-float Airdata::FiltAirspeed(float vIas_mps) {
+float Airdata::FiltAirspeed(const float& vIas_mps) {
   // Filter airspeed
   float vIasFilt_mps = filtVel_.LowPass1(vIas_mps);
 
@@ -102,7 +102,7 @@ void Filt::Init() {
   c_ = 0.4445;
 }
 
-float Filt::LowPass1(float meas)
+float Filt::LowPass1(const float& meas)
 {
 	x_ = (a_ * x_) + (b_ * meas); // State update equation
   float y = c_ * x_;

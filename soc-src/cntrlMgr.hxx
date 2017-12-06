@@ -17,7 +17,6 @@ History:
 
 typedef Eigen::Matrix<float, -1, 1, 0, MaxCntrlCmdDim, 1> VecCmd;
 
-
 struct CntrlMgrStruct {
   VecCmd cmdBase, cmdRes, cmd;
   CntrlMode mode;
@@ -32,8 +31,8 @@ class CntrlMgr {
   void Init();     // Initialize controllers and excitations
   void Mode(CntrlMode mode);     // Control the Mode of all the controllers
 
-  VecCmd CmdBase(VecCmd refVec, float time_s);
-  VecCmd CmdRes(VecCmd refVec, VecCmd measVec, VecCmd dMeasVec, float time_s);
+  VecCmd CmdBase(const VecCmd& refVec, float time_s);
+  VecCmd CmdRes(const VecCmd& refVec, const VecCmd& measVec, const VecCmd& dMeasVec, float time_s);
   CntrlMgrStruct Cmd();      // Compute Controller Commands
  private:
   CntrlMgrStruct cntrlMgrData_;

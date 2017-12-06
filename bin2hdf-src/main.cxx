@@ -34,6 +34,8 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SO
 #include <string>
 #include <vector>
 
+#define EIGEN_INITIALIZE_MATRICES_BY_NAN 1
+
 using namespace std;
 using namespace H5;
 
@@ -76,7 +78,7 @@ int main(int argc, char* argv[]) {
 
   bytes += sizeof(Mpu9250Data);
   cout << "Bytes: " << bytes << endl;
-  
+
   bytes += sizeof(Bme280Data);
   cout << "Bytes: " << bytes << endl;
 

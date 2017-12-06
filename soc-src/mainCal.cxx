@@ -7,7 +7,7 @@ History:
 2017-11-12 - Chris Regan - Created
 */
 
-#include "configData.hxx"
+#include "config.hxx"
 #include "fmu.hxx"
 #include "hardware-defs.hxx"
 #include "global-defs.hxx"
@@ -30,9 +30,6 @@ int main(int argc, char* argv[]) {
   Fmu fmu; // Class
   FmuData fmuData; // Struct
 
-  // Data Logger
-  Datalogger log;
-
   // load configuration file
   AircraftConfig configData; // Structure
   LoadConfigFile(argv[1], fmu, &configData, &fmuData);
@@ -40,32 +37,30 @@ int main(int argc, char* argv[]) {
   // Inclinomenter Setup
   Incline incline;
   InclineData incData;
-
   
   /* Define the Control Effector Vector */
-  std::vector<float> EffectorCmd;
-  //configData.NumberEffectors = 7; // FIXIT - Hardcoded
-  EffectorCmd.resize(configData.NumberEffectors);
+  std::vector<float> cmdEff;
+  configData.NumberEffectors = 7; // FIXIT - Hardcoded
+  cmdEff.resize(configData.NumberEffectors);
   
-  std::vector<uint8_t> EffectorBuffer;
-  EffectorBuffer.resize(EffectorCmd.size()*sizeof(float));
+  std::vector<uint8_t> cmdEffSerial;
+  cmdEffSerial.resize(cmdEff.size()*sizeof(float));
   
   /* Setup Inclinometer */
   incline.SetDamping();
   
   // Define Delays
   int DelayMove = 2000000; // delay for 2 second after servo move
-  int DelayRead = 100000; // delay for 50 ms between reads
+  int DelayRead = 100000; // delay for 100 ms between reads
 
   int NumRead = 30; // Number of iteration to sample
   
-
   int ServoIndx = -1;
   int AnalogIndx = -1;
   
   // Servo Command Definition
-  float CmdStart_;
-  float CmdEnd_;
+  float CmdStart;
+  float CmdEnd;
   int NumCmds = MaxCmdDim;
 
   VecCmd CmdList_;
@@ -81,9 +76,9 @@ int main(int argc, char* argv[]) {
   std::cin >> ServoIndx;
   
   // Surface Commands to free-float
-  EffectorCmd[ServoIndx] = 0.0;
-  memcpy(EffectorBuffer.data(), EffectorCmd.data(), EffectorBuffer.size()); // copy
-  fmu.WriteMessage(kEffectorDirectCmd, EffectorBuffer.size(), EffectorBuffer.data()); // write commands
+  cmdEff[ServoIndx] = 0.0;
+  memcpy(cmdEffSerial.data(), cmdEff.data(), cmdEffSerial.size()); // copy
+  fmu.WriteMessage(kEffectorDirectCmd, cmdEffSerial.size(), cmdEffSerial.data()); // write commands
 
   //Get the Pot channel number
   std::cout << "Enter the Analog Index Number for Surface Pot (-1 to skip): ";
@@ -91,14 +86,14 @@ int main(int argc, char* argv[]) {
 
   //Get Starting Command
   std::cout << "Enter the Starting Command: ";
-  std::cin >> CmdStart_;
+  std::cin >> CmdStart;
 
   //Get Ending Command
   std::cout << "Enter the Ending Command: ";
-  std::cin >> CmdEnd_;
+  std::cin >> CmdEnd;
 
   // Generate the list of servo commands
-  CmdList_.setLinSpaced(NumCmds, CmdStart_, CmdEnd_);
+  CmdList_.setLinSpaced(NumCmds, CmdStart, CmdEnd);
 
   // Begin the test
   std::cout << "Beginning Test, Surface: " << ServoIndx << std::endl; 
@@ -112,7 +107,7 @@ int main(int argc, char* argv[]) {
   /* main loop */
   while (1) {
     // Establish Zero Angle
-    float IncAngleSum = 0.0;
+    float IncAngleSum_deg = 0.0;
     for (int iRead = 0; iRead < NumRead; ++iRead) {
 
       // Delay
@@ -122,13 +117,13 @@ int main(int argc, char* argv[]) {
       incline.GetAngle(&incData);
       
       // Accumulate Values
-      IncAngleSum += incData.Angle_deg;
-      }
+      IncAngleSum_deg += incData.Angle_deg;
+    }
 
     // Average values, define as zero angle
-    float incAngleZero = IncAngleSum / NumRead;
+    float incAngleZero_deg = IncAngleSum_deg / (float) NumRead;
 
-    std::cout << "Zero Angle: " << incAngleZero << std::endl;
+    std::cout << "Zero Angle: " << incAngleZero_deg << std::endl;
 
     std::cout << "Beginning Automated Test..." << std::endl;
     std::cout << "Turn on Servo Power, Press Enter to continue . . . ";
@@ -140,11 +135,11 @@ int main(int argc, char* argv[]) {
     std::cout << "Starting... " << std::endl;
 
     // Loop Command Steps
-    VecCmd incAngleMeas;
-    incAngleMeas.setZero(NumCmds);
+    VecCmd incAngleMeas_deg;
+    incAngleMeas_deg.setZero(NumCmds);
   
-    VecCmd potValMeas;
-    potValMeas.setZero(NumCmds);
+    VecCmd potValMeas_V;
+    potValMeas_V.setZero(NumCmds);
     
     for (int iCmd = 0; iCmd < NumCmds; ++iCmd) {
       // Command Servo to command
@@ -153,64 +148,71 @@ int main(int argc, char* argv[]) {
       std::cout << "Servo Command: " << cmdCurr << std::endl;
       
       // Send the Servo Command
-      EffectorCmd[ServoIndx] = cmdCurr;
-      memcpy(EffectorBuffer.data(),EffectorCmd.data(),EffectorBuffer.size());
-      fmu.WriteMessage(kEffectorDirectCmd, EffectorBuffer.size(), EffectorBuffer.data());
+      cmdEff[ServoIndx] = cmdCurr;
+      memcpy(cmdEffSerial.data(),cmdEff.data(),cmdEffSerial.size());
+      fmu.WriteMessage(kEffectorDirectCmd, cmdEffSerial.size(), cmdEffSerial.data());
       
       usleep(DelayMove); // delay
       
-      IncAngleSum = 0.0;
-      float potValTemp = 0.0;
-      float potValSum = 0.0;
+      IncAngleSum_deg = 0.0;
+      float potValTemp_V = 0.0;
+      float potValSum_V = 0.0;
       // Read the Inclinometer and pot data
+
       for (int iRead = 0; iRead < NumRead; ++iRead) {
+        while (!fmu.GetSensorData(&fmuData))
+
         // Keep Sending the same servo command
-        memcpy(EffectorBuffer.data(),EffectorCmd.data(),EffectorBuffer.size());
-        fmu.WriteMessage(kEffectorDirectCmd,EffectorBuffer.size(),EffectorBuffer.data());
+        memcpy(cmdEffSerial.data(),cmdEff.data(),cmdEffSerial.size());
+        fmu.WriteMessage(kEffectorDirectCmd,cmdEffSerial.size(),cmdEffSerial.data());
       
         // Delay
-        usleep (DelayRead);
+        //usleep (DelayRead);
 
         // Read inclinometer
         incline.GetAngle(&incData);
         
         // Accumulate Values
-        IncAngleSum += incData.Angle_deg;
+        IncAngleSum_deg += incData.Angle_deg;
         
         // Read Pot fmu
         if(AnalogIndx >= 0){
-          fmu.GetSensorData(&fmuData);
         
-          potValTemp = fmuData.Analog[AnalogIndx].Voltage_V;
-          potValSum += potValTemp;
+          potValTemp_V = fmuData.Analog[AnalogIndx].Voltage_V;
+          potValSum_V += potValTemp_V;
         }
       }
 
       // Average values
-      incAngleMeas[iCmd] = (IncAngleSum / NumRead) - incAngleZero; // Average minus the 'Zero'
-      if(AnalogIndx >= 0){potValMeas[iCmd] = potValSum / NumRead;}
+      incAngleMeas_deg[iCmd] = (IncAngleSum_deg / (float) NumRead) - incAngleZero_deg; // Average minus the 'Zero'
+      if(AnalogIndx >= 0){
+        potValMeas_V[iCmd] = potValSum_V / (float) NumRead;
+      }
 
     }
 
     // Surface Commands to free-float
-    EffectorCmd[ServoIndx] = 0.0;
-    memcpy(EffectorBuffer.data(), EffectorCmd.data(), EffectorBuffer.size()); // copy
-    fmu.WriteMessage(kEffectorDirectCmd, EffectorBuffer.size(), EffectorBuffer.data()); // write commands
+    cmdEff[ServoIndx] = 0.0;
+    memcpy(cmdEffSerial.data(), cmdEff.data(), cmdEffSerial.size()); // copy
+    fmu.WriteMessage(kEffectorDirectCmd, cmdEffSerial.size(), cmdEffSerial.data()); // write commands
         
-    
+    // Print the results
     std::cout << "Calibration Complete" << std::endl;
-    std::cout << "%% " << "Surface: " << ServoIndx << std::endl;
+    std::cout << "%% Surface: " << std::endl;
+    std::cout << "% Servo: " << ServoIndx << std::endl;
     std::cout << "CmdList_ = [" << CmdList_.transpose() << "];" << std::endl;
-    std::cout << "incAngleMeas_rad = [" << incAngleMeas.transpose() << "] * d2r;" << std::endl;
-    
+    std::cout << "incAngleMeas_rad = [" << incAngleMeas_deg.transpose() << "] * d2r;" << std::endl;
+    std::cout << "fitOrderServo = 1; % Start with Linear, alter as required" << std::endl;
+    std::cout << "[polyCoefServo, cmdZero] = ServoCal(CmdList_, incAngleMeas_rad, fitOrderServo);" << std::endl;
     if(AnalogIndx >= 0){
-      std::cout << "potValMeas_rad = [" << potValMeas.transpose() << "] * d2r;" << std::endl;
+      std::cout << std::endl;
+      std::cout << "% Pot: " << AnalogIndx << std::endl;
+      std::cout << "incAngleMeas_rad = [" << incAngleMeas_deg.transpose() << "] * d2r;" << std::endl;
+      std::cout << "potValMeas_V = [" << potValMeas_V.transpose() << "];" << std::endl;
+      std::cout << "fitOrderPot = 1; % Start with Linear, alter as required" << std::endl;
+      std::cout << "[polyCoefPot] = PotCal(incAngleMeas_rad, potValMeas_V, fitOrderPot);" << std::endl;
     }
-    
-    std::cout << "fitOrder = 1; % Start with Linear, alter as required" << std::endl;
-    std::cout << "[polyCoefServo, cmdZero] = SurfCal(CmdList_, incAngleMeas_rad, fitOrder);" << std::endl;
-    if(AnalogIndx >= 0){std::cout << "[polyCoefPot, potZero] = SurfCal(potValMeas, incAngleMeas_rad, fitOrder);" << std::endl;}
-    std::cout << "%%" << std::endl;
+    std::cout << std::endl;
     
 	return 0;
 	

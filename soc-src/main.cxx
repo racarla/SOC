@@ -31,6 +31,11 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SO
 #include "exciteMgr.hxx"
 
 #include <iostream>
+#include <iomanip>      // std::setw
+
+#define EIGEN_INITIALIZE_MATRICES_BY_ZERO 1
+//#define EIGEN_INITIALIZE_MATRICES_BY_NAN 1
+
 
 int main(int argc, char* argv[]) {
   if (argc!=2) {
@@ -161,18 +166,24 @@ std::cout << missMgrData.testArm << "  ";
 std::cout << missMgrData.testEngage << "  ";
 std::cout << (int) missMgrData.indxTest << "\t";
 
-//std::cout << airdataData.alt_m << "\t";
-//std::cout << airdataData.vIas_mps << "\t\t";
+std::cout << std::setw(10);
 
-//std::cout << airdataData.altFilt_m << "\t";
-//std::cout << airdataData.vIasFilt_mps << "\t\t";
+std::cout << airdataData.alt_m << "\t";
+std::cout << airdataData.altFilt_m << "\t\t";
+std::cout << airdataData.vIas_mps << "\t";
+std::cout << airdataData.vIasFilt_mps << "\t\t";
+
+std::cout << fmuData.PressureTransducer[0].Pressure_Pa << "\t";
+std::cout << fmuData.PressureTransducer[1].Pressure_Pa << "\t";
+std::cout << fmuData.PressureTransducer[2].Pressure_Pa << "\t";
+std::cout << fmuData.PressureTransducer[3].Pressure_Pa << "\t";
 
       VecCmd refVecBase(4);
       refVecBase[0] = fmuData.SbusRx[0].Inceptors[0];
       refVecBase[1] = fmuData.SbusRx[0].Inceptors[1];
       refVecBase[2] = fmuData.SbusRx[0].Inceptors[2];
       refVecBase[3] = fmuData.SbusRx[0].Inceptors[4];
-std::cout << refVecBase.transpose() << "\t\t";
+//std::cout << refVecBase.transpose() << "\t\t";
 //std::cout << refVecBase[0] << "\t\t";
 
       VecCmd refVecRes(4);
@@ -206,7 +217,7 @@ std::cout << refVecBase.transpose() << "\t\t";
       // Allocate control surfaces
       VecCmd objAlloc = cntrlMgrData.cmd.head(3);
       cntrlAllocData = cntrlAllocMgr.Compute(objAlloc);
-std::cout << cntrlAllocData.cmdAlloc.transpose()/kD2R << "\t";
+//std::cout << cntrlAllocData.cmdAlloc.transpose()/kD2R << "\t";
 
       // Apply command excitations
       exciteMgrData = exciteMgr.Compute(missMgrData.testEngage, missMgrData.indxTest, missMgrData.time_s);

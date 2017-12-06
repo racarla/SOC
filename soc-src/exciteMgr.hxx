@@ -31,7 +31,7 @@ class ExciteMgr {
   ~ExciteMgr() {};  // Destructor
 
   void Init();     // Initialize excitations
-  ExciteMgrStruct Compute(bool exciteMode, uint8_t indxTest, float time_s);
+  ExciteMgrStruct Compute(const bool& exciteMode, const uint8_t& indxTest, const float& time_s);
 
  private:
   ExciteMgrStruct exciteMgrData_;

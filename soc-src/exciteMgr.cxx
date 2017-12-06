@@ -210,7 +210,7 @@ void ExciteMgr::Init()
   exciteTest19_.Init(kDoublet3211, timeVecStart_s, timeVecOnePulse_s, ampVec_nd);
 }
 
-ExciteMgrStruct ExciteMgr::Compute(bool exciteMode, uint8_t indxTest, float time_s)
+ExciteMgrStruct ExciteMgr::Compute(const bool& exciteMode, const uint8_t& indxTest, const float& time_s)
 {
   exciteMgrData_.exciteMode = exciteMode;
   exciteMgrData_.indxTest = indxTest;

@@ -11,7 +11,7 @@ History:
 #include <iostream>
 
 
-void CntrlAllocMgr::Init(CntrlAllocDef cntrlAllocDef)
+void CntrlAllocMgr::Init(const CntrlAllocDef& cntrlAllocDef)
 {
   cntrlAllocDef_ = cntrlAllocDef;
 
@@ -21,7 +21,7 @@ void CntrlAllocMgr::Init(CntrlAllocDef cntrlAllocDef)
   cntrlAllocData_.cmdAlloc = cntrlAllocDef_.uPref;
 }
 
-CntrlAllocStruct CntrlAllocMgr::Compute(VecObj vObj)
+CntrlAllocStruct CntrlAllocMgr::Compute(const VecObj& vObj)
 {
   cntrlAllocData_.cmdAlloc = cntrlAllocDef_.uPref;
 
