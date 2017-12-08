@@ -37,7 +37,9 @@ CntrlAllocLog CntrlAllocMgr::Log()
 
   CntrlAllocLog cntrlAllocLog;
 
-  *(cntrlAllocLog.cmdAlloc) = *(cntrlAllocData_.cmdAlloc).data();
+  for (int i = 0; i < kMaxAllocEff; i++) {
+    cntrlAllocLog.cmdAlloc[i] = cntrlAllocData_.cmdAlloc[i];
+  }
 
   return cntrlAllocLog;
 }

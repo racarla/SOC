@@ -20,7 +20,7 @@ class hdf5class {
     void WriteData(std::string GroupName,std::string Name,uint16_t *data,std::string Attr,size_t rows,size_t columns);
     void WriteData(std::string GroupName,std::string Name,uint32_t *data,std::string Attr,size_t rows,size_t columns);
     void WriteData(std::string GroupName,std::string Name,uint64_t *data,std::string Attr,size_t rows,size_t columns);
-    
+
     void WriteData(std::string GroupName,std::string Name,float *data,std::string Attr,size_t rows,size_t columns);
     void WriteData(std::string GroupName,std::string Name,double *data,std::string Attr,size_t rows,size_t columns);
   private:

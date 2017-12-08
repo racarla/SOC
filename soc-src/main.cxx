@@ -45,8 +45,8 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SO
 #define EIGEN_INITIALIZE_MATRICES_BY_ZERO 1
 //#define EIGEN_INITIALIZE_MATRICES_BY_NAN 1
 
-#define EIGEN_MAX_ALIGN_BYTES 0
-#define EIGEN_MAX_STATIC_ALIGN_BYTES 0
+//#define EIGEN_MAX_ALIGN_BYTES 0
+//#define EIGEN_MAX_STATIC_ALIGN_BYTES 0
 
 
 int main(int argc, char* argv[]) {
@@ -179,9 +179,9 @@ std::cout << (int) missMgrOut.indxTest << "\t";
 
 std::cout << std::setw(10);
 
-std::cout << airdataOut.alt_m << "\t";
+//std::cout << airdataOut.alt_m << "\t";
 std::cout << airdataOut.altFilt_m << "\t\t";
-std::cout << airdataOut.vIas_mps << "\t";
+//std::cout << airdataOut.vIas_mps << "\t";
 std::cout << airdataOut.vIasFilt_mps << "\t\t";
 
 //std::cout << fmuData.PressureTransducer[0].Pressure_Pa << "\t";
@@ -253,11 +253,16 @@ std::cout << airdataOut.vIasFilt_mps << "\t\t";
       fmu.WriteMessage(kEffectorAngleCmd, cmdEffSerial.size(), cmdEffSerial.data());
 
       // DATA LOG
+      NavLog navLog = NavFilter.Log();
       CntrlMgrLog cntrlMgrLog = cntrlMgr.Log();
       CntrlAllocLog cntrlAllocLog = cntrlAllocMgr.Log();
       ExciteMgrLog exciteMgrLog = exciteMgr.Log();
 
-      log.LogData(fmuData, airdataOut, navOut, missMgrOut, exciteMgrLog, cntrlMgrLog, cntrlAllocLog);
+std::cout << cntrlAllocLog.cmdAlloc[0] << "\t";
+std::cout << cntrlAllocLog.cmdAlloc[1] << "\t";
+std::cout << cntrlAllocLog.cmdAlloc[2] << "\t";
+
+      log.LogData(fmuData, airdataOut, navLog, missMgrOut, exciteMgrLog, cntrlMgrLog, cntrlAllocLog);
 
       // telemetry
 

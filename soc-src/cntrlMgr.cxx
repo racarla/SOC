@@ -243,9 +243,12 @@ CntrlMgrLog CntrlMgr::Log()
   CntrlMgrLog cntrlMgrLog;
 
   cntrlMgrLog.mode = cntrlMgrOut_.mode;
-  *(cntrlMgrLog.cmdBase) = *(cntrlMgrOut_.cmdBase).data();
-  *(cntrlMgrLog.cmdRes) = *(cntrlMgrOut_.cmdRes).data();
-  *(cntrlMgrLog.cmd) = *(cntrlMgrOut_.cmd).data();
+
+  for (int i = 0; i < kMaxCntrlCmd; i++) {
+    cntrlMgrLog.cmdBase[i] = cntrlMgrOut_.cmdBase[i];
+    cntrlMgrLog.cmdRes[i] = cntrlMgrOut_.cmdRes[i];
+    cntrlMgrLog.cmd[i] = cntrlMgrOut_.cmd[i];
+  }
 
   return cntrlMgrLog;
 }

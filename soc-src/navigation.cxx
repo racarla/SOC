@@ -24,6 +24,8 @@ void Navigation::RunNavigation(const FmuData fmuData, NavOut *NavOutPtr) {
   GlobalDefsToGps(fmuData,&gps_);
   nav_ = ekf_->update(imu_,gps_);
   NavToGlobalDefs(nav_,NavOutPtr);
+
+  navOut_ = *NavOutPtr;
 }
 
 void Navigation::GlobalDefsToImu(const FmuData fmuData, IMUdata *ImuDataPtr) {
@@ -112,4 +114,29 @@ void Navigation::NavToGlobalDefs(const NAVdata navData, NavOut *NavOutPtr) {
   NavOutPtr->Pgb[0] = navData.Pgbx;
   NavOutPtr->Pgb[1] = navData.Pgby;
   NavOutPtr->Pgb[2] = navData.Pgbz;
+}
+
+NavLog Navigation::Log()
+{
+  NavLog navLog;
+
+  navLog.Time_s = navOut_.Time_s;
+
+  for (int i = 0; i < 3; i++) {
+    navLog.LLA[i] = navOut_.LLA[i];
+    navLog.NEDVelocity_ms[i] = (float) navOut_.NEDVelocity_ms[i];
+    navLog.Euler_rad[i] = (float) navOut_.Euler_rad[i];
+    navLog.AccelBias_mss[i] = (float) navOut_.AccelBias_mss[i];
+    navLog.GyroBias_rads[i] = (float) navOut_.GyroBias_rads[i];
+    navLog.Pp[i] = (float) navOut_.Pp[i];
+    navLog.Pv[i] = (float) navOut_.Pv[i];
+    navLog.Pa[i] = (float) navOut_.Pa[i];
+    navLog.Pab[i] = (float) navOut_.Pab[i];
+    navLog.Pgb[i] = (float) navOut_.Pgb[i];
+  }
+  for (int i = 0; i < 4; i++) {
+    navLog.Quaternion[i] = (float) navOut_.Quaternion[i];
+  }
+
+  return navLog;
 }

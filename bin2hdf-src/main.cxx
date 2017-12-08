@@ -44,8 +44,8 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SO
 
 #define EIGEN_INITIALIZE_MATRICES_BY_NAN 1
 
-#define EIGEN_MAX_ALIGN_BYTES 0
-#define EIGEN_MAX_STATIC_ALIGN_BYTES 0
+//#define EIGEN_MAX_ALIGN_BYTES 0
+//#define EIGEN_MAX_STATIC_ALIGN_BYTES 0
 
 using namespace std;
 using namespace H5;
@@ -91,13 +91,20 @@ int main(int argc, char* argv[]) {
   bytes += fmuData.Analog.size() * sizeof(AnalogData);
   bytes += fmuData.SbusVoltage.size() * sizeof(Voltage);
   bytes += fmuData.PwmVoltage.size() * sizeof(Voltage);
+  cout << "Data packet size: " << bytes << " bytes" << endl;
 
   bytes += sizeof(AirdataOut);
-  bytes += sizeof(NavOut);
+  cout << "Data packet size: " << bytes << " bytes" << endl;
+  bytes += sizeof(NavLog);
+  cout << "Data packet size: " << bytes << " bytes" << endl;
   bytes += sizeof(MissMgrOut);
+  cout << "Data packet size: " << bytes << " bytes" << endl;
   bytes += sizeof(ExciteMgrLog);
+  cout << "Data packet size: " << bytes << " bytes" << endl;
   bytes += sizeof(CntrlMgrLog);
+  cout << "Data packet size: " << bytes << " bytes" << endl;
   bytes += sizeof(CntrlAllocLog);
+  cout << "Data packet size: " << bytes << " bytes" << endl;
   cout << endl;
 
   // Compute the number of records
@@ -166,7 +173,7 @@ int main(int argc, char* argv[]) {
   }
 
   AirdataOut* airdataLog = new AirdataOut [NumberRecords];
-  NavOut* navLog = new NavOut [NumberRecords];
+  NavLog* navLog = new NavLog [NumberRecords];
   MissMgrOut* missMgrLog = new MissMgrOut [NumberRecords];
   ExciteMgrLog* exciteMgrLog = new ExciteMgrLog [NumberRecords];
   CntrlMgrLog* cntrlMgrLog = new CntrlMgrLog [NumberRecords];
@@ -242,8 +249,8 @@ int main(int argc, char* argv[]) {
     airdataLog[i] = *(AirdataOut *)startByte;
     startByte += sizeof(AirdataOut);
 
-    navLog[i] = *(NavOut *)startByte;
-    startByte += sizeof(NavOut);
+    navLog[i] = *(NavLog *)startByte;
+    startByte += sizeof(NavLog);
 
     missMgrLog[i] = *(MissMgrOut *)startByte;
     startByte += sizeof(MissMgrOut);
@@ -260,6 +267,8 @@ int main(int argc, char* argv[]) {
 
 
   /* Save data into HDF5 */
+  short* data3Ds = new short [3*NumberRecords];
+
   float* data1D = new float [NumberRecords];
   float* data3D = new float [3*NumberRecords];
   float* data4D = new float [4*NumberRecords];
@@ -664,82 +673,82 @@ int main(int argc, char* argv[]) {
 
   m = 0;
   for (size_t k=0; k < NumberRecords; k++) {
-    data3Dd[m] = navLog[k].Euler_rad[0];
-    data3Dd[m+1] = navLog[k].Euler_rad[1];
-    data3Dd[m+2] = navLog[k].Euler_rad[2];
+    data3D[m] = navLog[k].Euler_rad[0];
+    data3D[m+1] = navLog[k].Euler_rad[1];
+    data3D[m+2] = navLog[k].Euler_rad[2];
     m = m + 3;
   }
   Logger.WriteData(GroupName,"Euler_rad",data3Dd,"Euler Roll, Pitch, Yaw Orientation, rad",NumberRecords,3);
 
   m = 0;
   for (size_t k=0; k < NumberRecords; k++) {
-    data4Dd[m] = navLog[k].Quaternion[0];
-    data4Dd[m+1] = navLog[k].Quaternion[1];
-    data4Dd[m+2] = navLog[k].Quaternion[2];
-    data4Dd[m+3] = navLog[k].Quaternion[3];
+    data3D[m] = navLog[k].Quaternion[0];
+    data3D[m+1] = navLog[k].Quaternion[1];
+    data3D[m+2] = navLog[k].Quaternion[2];
+    data3D[m+3] = navLog[k].Quaternion[3];
     m = m + 4;
   }
   Logger.WriteData(GroupName,"Quaternion",data4Dd,"Quaternion Orientation, nd",NumberRecords,4);
 
   m = 0;
   for (size_t k=0; k < NumberRecords; k++) {
-    data3Dd[m] = navLog[k].AccelBias_mss[0];
-    data3Dd[m+1] = navLog[k].AccelBias_mss[1];
-    data3Dd[m+2] = navLog[k].AccelBias_mss[2];
+    data3D[m] = navLog[k].AccelBias_mss[0];
+    data3D[m+1] = navLog[k].AccelBias_mss[1];
+    data3D[m+2] = navLog[k].AccelBias_mss[2];
     m = m + 3;
   }
   Logger.WriteData(GroupName,"AccelBias_mss",data3Dd,"Accel Bias X, Y, Z, mps2",NumberRecords,3);
 
   m = 0;
   for (size_t k=0; k < NumberRecords; k++) {
-    data3Dd[m] = navLog[k].GyroBias_rads[0];
-    data3Dd[m+1] = navLog[k].GyroBias_rads[1];
-    data3Dd[m+2] = navLog[k].GyroBias_rads[2];
+    data3D[m] = navLog[k].GyroBias_rads[0];
+    data3D[m+1] = navLog[k].GyroBias_rads[1];
+    data3D[m+2] = navLog[k].GyroBias_rads[2];
     m = m + 3;
   }
   Logger.WriteData(GroupName,"GyroBias_rads",data3Dd,"Gyro Bias X, Y, Z, rps",NumberRecords,3);
 
   m = 0;
   for (size_t k=0; k < NumberRecords; k++) {
-    data3Dd[m] = navLog[k].Pp[0];
-    data3Dd[m+1] = navLog[k].Pp[1];
-    data3Dd[m+2] = navLog[k].Pp[2];
+    data3Ds[m] = navLog[k].Pp[0];
+    data3Ds[m+1] = navLog[k].Pp[1];
+    data3Ds[m+2] = navLog[k].Pp[2];
     m = m + 3;
   }
   Logger.WriteData(GroupName,"Pp",data3Dd,"Position Covariance, rad",NumberRecords,3);
 
   m = 0;
   for (size_t k=0; k < NumberRecords; k++) {
-    data3Dd[m] = navLog[k].Pv[0];
-    data3Dd[m+1] = navLog[k].Pv[1];
-    data3Dd[m+2] = navLog[k].Pv[2];
+    data3Ds[m] = navLog[k].Pv[0];
+    data3Ds[m+1] = navLog[k].Pv[1];
+    data3Ds[m+2] = navLog[k].Pv[2];
     m = m + 3;
   }
   Logger.WriteData(GroupName,"Pv",data3Dd,"Velocity Covariance, mps",NumberRecords,3);
 
   m = 0;
   for (size_t k=0; k < NumberRecords; k++) {
-    data3Dd[m] = navLog[k].Pa[0];
-    data3Dd[m+1] = navLog[k].Pa[1];
-    data3Dd[m+2] = navLog[k].Pa[2];
+    data3Ds[m] = navLog[k].Pa[0];
+    data3Ds[m+1] = navLog[k].Pa[1];
+    data3Ds[m+2] = navLog[k].Pa[2];
     m = m + 3;
   }
   Logger.WriteData(GroupName,"Pa",data3Dd,"Angle Covariance, rad",NumberRecords,3);
 
   m = 0;
   for (size_t k=0; k < NumberRecords; k++) {
-    data3Dd[m] = navLog[k].Pab[0];
-    data3Dd[m+1] = navLog[k].Pab[1];
-    data3Dd[m+2] = navLog[k].Pab[2];
+    data3Ds[m] = navLog[k].Pab[0];
+    data3Ds[m+1] = navLog[k].Pab[1];
+    data3Ds[m+2] = navLog[k].Pab[2];
     m = m + 3;
   }
   Logger.WriteData(GroupName,"Pab",data3Dd,"Accel Bias Covariance, mps2",NumberRecords,3);
 
   m = 0;
   for (size_t k=0; k < NumberRecords; k++) {
-    data3Dd[m] = navLog[k].Pgb[0];
-    data3Dd[m+1] = navLog[k].Pgb[1];
-    data3Dd[m+2] = navLog[k].Pgb[2];
+    data3Ds[m] = navLog[k].Pgb[0];
+    data3Ds[m+1] = navLog[k].Pgb[1];
+    data3Ds[m+2] = navLog[k].Pgb[2];
     m = m + 3;
   }
   Logger.WriteData(GroupName,"Pgb",data3Dd,"Gyro Bias Covariance, rps",NumberRecords,3);

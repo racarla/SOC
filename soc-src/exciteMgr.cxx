@@ -328,7 +328,9 @@ ExciteMgrLog ExciteMgr::Log()
   exciteMgrLog.indxTest = exciteMgrOut_.indxTest;
   exciteMgrLog.timeExcite_s = exciteMgrOut_.timeExcite_s;
 
-  *(exciteMgrLog.cmdExcite) = *(exciteMgrOut_.cmdExcite).data();
+  for (int i = 0; i < kMaxExciteChan; i++) {
+    exciteMgrLog.cmdExcite[i] = exciteMgrOut_.cmdExcite[i];
+  }
 
   return exciteMgrLog;
 }

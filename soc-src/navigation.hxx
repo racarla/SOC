@@ -19,16 +19,16 @@
 struct NavLog {
   double Time_s;             // [sec], timestamp of NAV filter
   double LLA[3];             // Latitude (rad), Longitude (rad), Altitude (m)
-  double NEDVelocity_ms[3];  // NED Velocity, m/s
-  double Euler_rad[3];       // Euler angles, rad
-  double AccelBias_mss[3];   // x,y,z accelerometer bias, m/s/s
-  double GyroBias_rads[3];   // x,y,z gyro bias, rad/s
-  double Pp[3];              // [rad], covariance estimate for position
-  double Pv[3];              // [rad], covariance estimate for velocity
-  double Pa[3];              // [rad], covariance estimate for angles
-  double Pab[3];             // [rad], covariance estimate for accelerometer bias
-  double Pgb[3];             // [rad], covariance estimate for rate gyro bias
-  double Quaternion[4];      // Quaternion estimate
+  float NEDVelocity_ms[3];  // NED Velocity, m/s
+  float Euler_rad[3];       // Euler angles, rad
+  float AccelBias_mss[3];   // x,y,z accelerometer bias, m/s/s
+  float GyroBias_rads[3];   // x,y,z gyro bias, rad/s
+  float Pp[3];              // [rad], covariance estimate for position
+  float Pv[3];              // [rad], covariance estimate for velocity
+  float Pa[3];              // [rad], covariance estimate for angles
+  float Pab[3];             // [rad], covariance estimate for accelerometer bias
+  float Pgb[3];             // [rad], covariance estimate for rate gyro bias
+  float Quaternion[4];      // Quaternion estimate
 };
 
 struct NavOut {
@@ -60,6 +60,7 @@ class Navigation {
     NAVdata nav_;
     GPSdata gps_;
     IMUdata imu_;
+    NavOut navOut_;
 
     double PrevTime_;
 
