@@ -18,9 +18,8 @@ History:
 #include "cntrlMgr.hxx"
 
 
-
 // Mission Status Structure
-struct MissMgrStruct {
+struct MissMgrOut {
   float time_s;   // Mission time
   uint frame_cnt;   // Mission frame counter
 
@@ -41,11 +40,11 @@ class MissMgr {
   MissMgr() {};   // Constructor
   ~MissMgr() {};  // Destructor
   void Init();    // Initialize controllers and excitations
-  MissMgrStruct ModeMgr(const FmuData& FmuDataRef); // Manage mode 
+  MissMgrOut ModeMgr(const FmuData& FmuDataRef); // Manage mode 
   void Reset();   // Resets the controllers and test points with in the class
 
  private:
-  MissMgrStruct missMgrData_;
+  MissMgrOut missMgrData_;
   float time_s_;
   uint frame_cnt_;
 

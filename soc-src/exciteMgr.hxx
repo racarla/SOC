@@ -12,24 +12,32 @@ History:
 
 #include <math.h>
 #include <Eigen/Core>
-#include "exciteGenFunc.hxx"
 
 #ifndef kMaxExciteChan
-#define kMaxExciteChan 10
+#define kMaxExciteChan 4
 #endif
 
 #ifndef kMaxExciteElem
-#define kMaxExciteElem 10
+#define kMaxExciteElem 46
 #endif
+
+#include "exciteGenFunc.hxx"
 
 const float kHz2Rps = 2 * M_PI;
 
 // Exitation output structure
-struct ExciteMgrStruct {
+struct ExciteMgrOut {
   bool exciteMode;
   uint8_t indxTest;
   float timeExcite_s;
   VecChan cmdExcite;
+};
+
+struct ExciteMgrLog {
+  bool exciteMode;
+  uint8_t indxTest;
+  float timeExcite_s;
+  float cmdExcite[kMaxExciteChan] = {0};
 };
 
 class ExciteMgr {
@@ -39,10 +47,11 @@ class ExciteMgr {
   ~ExciteMgr() {};  // Destructor
 
   void Init();     // Initialize excitations
-  ExciteMgrStruct Compute(const bool& exciteMode, const uint8_t& indxTest, const float& time_s);
+  ExciteMgrOut Compute(const bool& exciteMode, const uint8_t& indxTest, const float& time_s);
+  ExciteMgrLog Log();
 
  private:
-  ExciteMgrStruct exciteMgrData_;
+  ExciteMgrOut exciteMgrOut_;
   float timeEngage_s_;
 
   ExciteMultisine exciteTest01_, exciteTest02_, exciteTest03_, exciteTest04_, exciteTest05_;
@@ -50,7 +59,6 @@ class ExciteMgr {
   ExciteDisc exciteTest10_, exciteTest11_, exciteTest12_;
   ExciteDisc exciteTest13_, exciteTest14_, exciteTest15_, exciteTest16_;
   ExciteDisc exciteTest17_, exciteTest18_, exciteTest19_;
-
 };
 
 

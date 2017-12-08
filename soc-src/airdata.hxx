@@ -11,6 +11,7 @@ History:
 #define AIRDATA_H_
 
 #include <stdint.h>
+
 #include "global-defs.hxx"
 
 
@@ -26,7 +27,7 @@ class Filt{ // Filter Class - FIXIT - Move into a seperate .hxx
   float x_, a_, b_, c_;
 };
 
-struct AirdataStruct {
+struct AirdataOut {
   float temp_C;
 
   float alt_m;
@@ -36,6 +37,7 @@ struct AirdataStruct {
   float vIasFilt_mps;
 };
 
+
 class Airdata {
  public:
   Airdata();   // Constructor
@@ -43,11 +45,11 @@ class Airdata {
   void Init();    // Initialize Bias Estimate and Filters
 
   void BiasEst(); // Compute the Airdata biases on startup
-  AirdataStruct Compute(const PitotData& pitotData);
+  AirdataOut Compute(const PitotData& pitotData);
 
  private:
   float kP0_Pa_, kK1_m_, kK2_nd_, kK3_mps_, kK4_nd_;
-  AirdataStruct airdata_;
+  AirdataOut airdata_;
 
   Filt filtVel_, filtAlt_;
 

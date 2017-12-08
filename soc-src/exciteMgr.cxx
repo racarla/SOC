@@ -210,102 +210,102 @@ void ExciteMgr::Init()
   exciteTest19_.Init(kDoublet3211, timeVecStart_s, timeVecOnePulse_s, ampVec_nd);
 }
 
-ExciteMgrStruct ExciteMgr::Compute(const bool& exciteMode, const uint8_t& indxTest, const float& time_s)
+ExciteMgrOut ExciteMgr::Compute(const bool& exciteMode, const uint8_t& indxTest, const float& time_s)
 {
-  exciteMgrData_.exciteMode = exciteMode;
-  exciteMgrData_.indxTest = indxTest;
-  exciteMgrData_.timeExcite_s = 0.0;
+  exciteMgrOut_.exciteMode = exciteMode;
+  exciteMgrOut_.indxTest = indxTest;
+  exciteMgrOut_.timeExcite_s = 0.0;
 
-  exciteMgrData_.cmdExcite.setZero(4);
+  exciteMgrOut_.cmdExcite.setZero(4);
   VecChan cmdExciteTemp(4);
   cmdExciteTemp.setZero();
 
   if (exciteMode == 1) {
 
-    exciteMgrData_.timeExcite_s = time_s - timeEngage_s_;
+    exciteMgrOut_.timeExcite_s = time_s - timeEngage_s_;
 
     switch (indxTest) {
       case 0:
         break;
       case 1:
-        cmdExciteTemp = exciteTest01_.Compute(exciteMgrData_.timeExcite_s);
-        exciteMgrData_.cmdExcite[1] = cmdExciteTemp[0];
+        cmdExciteTemp = exciteTest01_.Compute(exciteMgrOut_.timeExcite_s);
+        exciteMgrOut_.cmdExcite[1] = cmdExciteTemp[0];
         break;
       case 2:
-        cmdExciteTemp = exciteTest02_.Compute(exciteMgrData_.timeExcite_s);
-        exciteMgrData_.cmdExcite[0] = cmdExciteTemp[0];
+        cmdExciteTemp = exciteTest02_.Compute(exciteMgrOut_.timeExcite_s);
+        exciteMgrOut_.cmdExcite[0] = cmdExciteTemp[0];
         break;
       case 3:
-        cmdExciteTemp = exciteTest03_.Compute(exciteMgrData_.timeExcite_s);
-        exciteMgrData_.cmdExcite[2] = cmdExciteTemp[0];
+        cmdExciteTemp = exciteTest03_.Compute(exciteMgrOut_.timeExcite_s);
+        exciteMgrOut_.cmdExcite[2] = cmdExciteTemp[0];
         break;
       case 4:
-        cmdExciteTemp = exciteTest04_.Compute(exciteMgrData_.timeExcite_s);
-        exciteMgrData_.cmdExcite[0] = cmdExciteTemp[0];
-        exciteMgrData_.cmdExcite[1] = cmdExciteTemp[1];
+        cmdExciteTemp = exciteTest04_.Compute(exciteMgrOut_.timeExcite_s);
+        exciteMgrOut_.cmdExcite[0] = cmdExciteTemp[0];
+        exciteMgrOut_.cmdExcite[1] = cmdExciteTemp[1];
         break;
       case 5:
-        cmdExciteTemp = exciteTest05_.Compute(exciteMgrData_.timeExcite_s);
-        exciteMgrData_.cmdExcite[0] = cmdExciteTemp[0];
-        exciteMgrData_.cmdExcite[1] = cmdExciteTemp[1];
-        exciteMgrData_.cmdExcite[2] = cmdExciteTemp[2];
+        cmdExciteTemp = exciteTest05_.Compute(exciteMgrOut_.timeExcite_s);
+        exciteMgrOut_.cmdExcite[0] = cmdExciteTemp[0];
+        exciteMgrOut_.cmdExcite[1] = cmdExciteTemp[1];
+        exciteMgrOut_.cmdExcite[2] = cmdExciteTemp[2];
         break;
       case 6:
-        cmdExciteTemp = exciteTest06_.Compute(exciteMgrData_.timeExcite_s);
-        exciteMgrData_.cmdExcite[1] = cmdExciteTemp[0];
+        cmdExciteTemp = exciteTest06_.Compute(exciteMgrOut_.timeExcite_s);
+        exciteMgrOut_.cmdExcite[1] = cmdExciteTemp[0];
         break;
       case 7:
-        cmdExciteTemp = exciteTest07_.Compute(exciteMgrData_.timeExcite_s);
-        exciteMgrData_.cmdExcite[0] = cmdExciteTemp[0];
+        cmdExciteTemp = exciteTest07_.Compute(exciteMgrOut_.timeExcite_s);
+        exciteMgrOut_.cmdExcite[0] = cmdExciteTemp[0];
         break;
       case 8:
-        cmdExciteTemp = exciteTest08_.Compute(exciteMgrData_.timeExcite_s);
-        exciteMgrData_.cmdExcite[2] = cmdExciteTemp[0];
+        cmdExciteTemp = exciteTest08_.Compute(exciteMgrOut_.timeExcite_s);
+        exciteMgrOut_.cmdExcite[2] = cmdExciteTemp[0];
         break;
       case 9:
-        cmdExciteTemp = exciteTest09_.Compute(exciteMgrData_.timeExcite_s);
-        exciteMgrData_.cmdExcite[0] = cmdExciteTemp[0];
-        exciteMgrData_.cmdExcite[1] = cmdExciteTemp[1];
+        cmdExciteTemp = exciteTest09_.Compute(exciteMgrOut_.timeExcite_s);
+        exciteMgrOut_.cmdExcite[0] = cmdExciteTemp[0];
+        exciteMgrOut_.cmdExcite[1] = cmdExciteTemp[1];
         break;
       case 10:
-        cmdExciteTemp = exciteTest10_.Compute(exciteMgrData_.timeExcite_s);
-        exciteMgrData_.cmdExcite[1] = cmdExciteTemp[0];
+        cmdExciteTemp = exciteTest10_.Compute(exciteMgrOut_.timeExcite_s);
+        exciteMgrOut_.cmdExcite[1] = cmdExciteTemp[0];
         break;
       case 11:
-        cmdExciteTemp = exciteTest11_.Compute(exciteMgrData_.timeExcite_s);
-        exciteMgrData_.cmdExcite[0] = cmdExciteTemp[0];
+        cmdExciteTemp = exciteTest11_.Compute(exciteMgrOut_.timeExcite_s);
+        exciteMgrOut_.cmdExcite[0] = cmdExciteTemp[0];
         break;
       case 12:
-        cmdExciteTemp = exciteTest12_.Compute(exciteMgrData_.timeExcite_s);
-        exciteMgrData_.cmdExcite[2] = cmdExciteTemp[0];
+        cmdExciteTemp = exciteTest12_.Compute(exciteMgrOut_.timeExcite_s);
+        exciteMgrOut_.cmdExcite[2] = cmdExciteTemp[0];
         break;
       case 13:
-        cmdExciteTemp = exciteTest13_.Compute(exciteMgrData_.timeExcite_s);
-        exciteMgrData_.cmdExcite[1] = cmdExciteTemp[0];
+        cmdExciteTemp = exciteTest13_.Compute(exciteMgrOut_.timeExcite_s);
+        exciteMgrOut_.cmdExcite[1] = cmdExciteTemp[0];
         break;
       case 14:
-        cmdExciteTemp = exciteTest14_.Compute(exciteMgrData_.timeExcite_s);
-        exciteMgrData_.cmdExcite[0] = cmdExciteTemp[0];
+        cmdExciteTemp = exciteTest14_.Compute(exciteMgrOut_.timeExcite_s);
+        exciteMgrOut_.cmdExcite[0] = cmdExciteTemp[0];
         break;
       case 15:
-        cmdExciteTemp = exciteTest15_.Compute(exciteMgrData_.timeExcite_s);
-        exciteMgrData_.cmdExcite[2] = cmdExciteTemp[0];
+        cmdExciteTemp = exciteTest15_.Compute(exciteMgrOut_.timeExcite_s);
+        exciteMgrOut_.cmdExcite[2] = cmdExciteTemp[0];
         break;
       case 16:
-        cmdExciteTemp = exciteTest16_.Compute(exciteMgrData_.timeExcite_s);
-        exciteMgrData_.cmdExcite[0] = cmdExciteTemp[0];
+        cmdExciteTemp = exciteTest16_.Compute(exciteMgrOut_.timeExcite_s);
+        exciteMgrOut_.cmdExcite[0] = cmdExciteTemp[0];
         break;
       case 17:
-        cmdExciteTemp = exciteTest17_.Compute(exciteMgrData_.timeExcite_s);
-        exciteMgrData_.cmdExcite[1] = cmdExciteTemp[0];
+        cmdExciteTemp = exciteTest17_.Compute(exciteMgrOut_.timeExcite_s);
+        exciteMgrOut_.cmdExcite[1] = cmdExciteTemp[0];
         break;
       case 18:
-        cmdExciteTemp = exciteTest18_.Compute(exciteMgrData_.timeExcite_s);
-        exciteMgrData_.cmdExcite[0] = cmdExciteTemp[0];
+        cmdExciteTemp = exciteTest18_.Compute(exciteMgrOut_.timeExcite_s);
+        exciteMgrOut_.cmdExcite[0] = cmdExciteTemp[0];
         break;
       case 19:
-        cmdExciteTemp = exciteTest19_.Compute(exciteMgrData_.timeExcite_s);
-        exciteMgrData_.cmdExcite[2] = cmdExciteTemp[0];
+        cmdExciteTemp = exciteTest19_.Compute(exciteMgrOut_.timeExcite_s);
+        exciteMgrOut_.cmdExcite[2] = cmdExciteTemp[0];
         break;
 
     }
@@ -315,6 +315,20 @@ ExciteMgrStruct ExciteMgr::Compute(const bool& exciteMode, const uint8_t& indxTe
 
   }
 
-  return exciteMgrData_;
+  return exciteMgrOut_;
+}
 
+
+
+ExciteMgrLog ExciteMgr::Log()
+{
+  ExciteMgrLog exciteMgrLog;
+
+  exciteMgrLog.exciteMode = exciteMgrOut_.exciteMode;
+  exciteMgrLog.indxTest = exciteMgrOut_.indxTest;
+  exciteMgrLog.timeExcite_s = exciteMgrOut_.timeExcite_s;
+
+  *(exciteMgrLog.cmdExcite) = *(exciteMgrOut_.cmdExcite).data();
+
+  return exciteMgrLog;
 }

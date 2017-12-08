@@ -10,9 +10,9 @@ History:
 
 */
 
-#include "cntrlFunc.hxx"
 #include <iostream>
 
+#include "cntrlFunc.hxx"
 
 // CntrlManual
 // Constructor

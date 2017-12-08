@@ -12,17 +12,17 @@ History:
 
 #include <math.h>
 #include <Eigen/Dense>
-#include "cntrlAllocFunc.hxx"
-
 #include <stdint.h>
 
 #ifndef kMaxAllocObj
-#define kMaxAllocObj 5
+#define kMaxAllocObj 3
 #endif
 
 #ifndef kMaxAllocEff
-#define kMaxAllocEff 16
+#define kMaxAllocEff 6
 #endif
+
+#include "cntrlAllocFunc.hxx"
 
 struct CntrlAllocDef {
   MatCntrlEff cntrlEff;
@@ -33,9 +33,14 @@ struct CntrlAllocDef {
   VecEff uPref;
 };
 
-struct CntrlAllocStruct {
+struct CntrlAllocOut {
   VecEff cmdAlloc;
 };
+
+struct CntrlAllocLog {
+  float cmdAlloc[kMaxAllocEff] = {0};
+};
+
 
 class CntrlAllocMgr {
  public:
@@ -44,15 +49,15 @@ class CntrlAllocMgr {
   ~CntrlAllocMgr() {};  // Destructor
 
   void Init(const CntrlAllocDef& cntrlAllocDef); // Initialize excitations
-  CntrlAllocStruct Compute(const VecObj& vObj);
+  CntrlAllocOut Compute(const VecObj& vObj);
+  CntrlAllocLog Log();
 
  private:
   uint8_t numObj_;
   uint8_t numEff_;
 
   CntrlAllocDef cntrlAllocDef_;
-  CntrlAllocStruct cntrlAllocData_;
+  CntrlAllocOut cntrlAllocData_;
 };
-
 
 #endif // CNTRLALLOCMGR_HXX_

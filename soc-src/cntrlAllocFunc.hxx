@@ -10,20 +10,19 @@ History:
 #ifndef CNTRLALLOC_H
 #define CNTRLALLOC_H
 
+#include <stdint.h>
 #include <Eigen/Core>
 #include <Eigen/SVD>
 #include <Eigen/LU>
 //#include <Eigen/QR>
 
 #ifndef kMaxAllocObj
-#define kMaxAllocObj 5
+#define kMaxAllocObj 3
 #endif
 
 #ifndef kMaxAllocEff
-#define kMaxAllocEff 16
+#define kMaxAllocEff 6
 #endif
-
-#include <stdint.h>
 
 // Matrix<typename Scalar, int RowsAtCompileTime, int ColsAtCompileTime, int Options = 0, int MaxRowsAtCompileTime = RowsAtCompileTime, int MaxColsAtCompileTime = ColsAtCompileTime>
 typedef Eigen::Matrix<float, -1, -1, 0, kMaxAllocObj, kMaxAllocEff> MatCntrlEff;
@@ -34,6 +33,8 @@ typedef Eigen::Matrix<float, -1, -1, 0, kMaxAllocEff, kMaxAllocEff> MatEff;
 typedef Eigen::Matrix<float, -1, -1, 0, kMaxAllocEff, kMaxAllocObj> MatCntrlEffT;
 
 typedef Eigen::Matrix<uint8_t, -1, 1, 0, kMaxAllocEff, 1> VecEffInt;
+
+typedef Eigen::Matrix<float, kMaxAllocEff, 1> VecEffLog;
 
 #define kMaxSolvObj kMaxAllocObj // FIXIT - This is method dependent, may want to just allow dynamic sizing
 #define kMaxSolvEff kMaxAllocEff // FIXIT - This is method dependent, may want to just allow dynamic sizing

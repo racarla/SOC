@@ -7,9 +7,9 @@ History:
 2017-11-19 - Chris Regan - Created
 */
 
-#include "cntrlAllocMgr.hxx"
 #include <iostream>
 
+#include "cntrlAllocMgr.hxx"
 
 void CntrlAllocMgr::Init(const CntrlAllocDef& cntrlAllocDef)
 {
@@ -21,7 +21,7 @@ void CntrlAllocMgr::Init(const CntrlAllocDef& cntrlAllocDef)
   cntrlAllocData_.cmdAlloc = cntrlAllocDef_.uPref;
 }
 
-CntrlAllocStruct CntrlAllocMgr::Compute(const VecObj& vObj)
+CntrlAllocOut CntrlAllocMgr::Compute(const VecObj& vObj)
 {
   cntrlAllocData_.cmdAlloc = cntrlAllocDef_.uPref;
 
@@ -29,4 +29,15 @@ CntrlAllocStruct CntrlAllocMgr::Compute(const VecObj& vObj)
 
   return cntrlAllocData_;
 
+}
+
+
+CntrlAllocLog CntrlAllocMgr::Log()
+{
+
+  CntrlAllocLog cntrlAllocLog;
+
+  *(cntrlAllocLog.cmdAlloc) = *(cntrlAllocData_.cmdAlloc).data();
+
+  return cntrlAllocLog;
 }

@@ -1,14 +1,3 @@
-/*! \file nav_interface.h
- *	\brief Navigation filter interface header
- *
- *	\details This file declares the standard function prototypes for interfacing with the navigation filter.
- *	All navigation filters must include this file and instantiate the init_nav(), get_nav(), and close_nav() functions.
- *
- * \author University of Minnesota
- * \author Aerospace Engineering and Mechanics
- * \copyright Copyright 2011 Regents of the University of Minnesota. All rights reserved.
- *
- */
 
 #ifndef NAV_STRUCTS_HXX
 #define NAV_STRUCTS_HXX

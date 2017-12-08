@@ -32,7 +32,7 @@ void Airdata::Init() {
 
 
 
-AirdataStruct Airdata::Compute(const PitotData& pitotData) {
+AirdataOut Airdata::Compute(const PitotData& pitotData) {
 
   presStatic_Pa_ = pitotData.Static.Pressure_Pa;
   presDiff_Pa_ = pitotData.Diff.Pressure_Pa;

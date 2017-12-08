@@ -19,7 +19,7 @@ Datalogger::Datalogger() {
 }
 
 /* Logs the FMU data into the binary file that was created */
-void Datalogger::LogData(FmuData fmuData, AirdataStruct airdataData, NavigationData navData, MissMgrStruct missMgrData, ExciteMgrStruct exciteMgrData, CntrlMgrStruct cntrlMgrData, CntrlAllocStruct cntrlAllocData) {
+void Datalogger::LogData(FmuData fmuData, AirdataOut airdataLog, NavOut navLog, MissMgrOut missMgrLog, ExciteMgrLog exciteMgrLog, CntrlMgrLog cntrlMgrLog, CntrlAllocLog cntrlAllocLog) {
   fwrite(&fmuData.Time_us,sizeof(fmuData.Time_us),1,LogFile_);
   fwrite(&fmuData.InputVoltage,sizeof(Voltage),1,LogFile_);
   fwrite(&fmuData.RegulatedVoltage,sizeof(Voltage),1,LogFile_);
@@ -53,12 +53,12 @@ void Datalogger::LogData(FmuData fmuData, AirdataStruct airdataData, NavigationD
     fwrite(&fmuData.PwmVoltage[i],sizeof(Voltage),1,LogFile_);
   }
 
-  fwrite(&airdataData,sizeof(AirdataStruct),1,LogFile_);
-  fwrite(&navData,sizeof(NavigationData),1,LogFile_);
-  fwrite(&missMgrData,sizeof(MissMgrStruct),1,LogFile_);
-  fwrite(&exciteMgrData,sizeof(ExciteMgrStruct),1,LogFile_);
-  fwrite(&cntrlMgrData,sizeof(CntrlMgrStruct),1,LogFile_);
-  fwrite(&cntrlAllocData,sizeof(CntrlAllocStruct),1,LogFile_);
+  fwrite(&airdataLog,sizeof(AirdataOut),1,LogFile_);
+  fwrite(&navLog,sizeof(NavLog),1,LogFile_);
+  fwrite(&missMgrLog,sizeof(MissMgrOut),1,LogFile_);
+  fwrite(&exciteMgrLog,sizeof(ExciteMgrLog),1,LogFile_);
+  fwrite(&cntrlMgrLog,sizeof(CntrlMgrLog),1,LogFile_);
+  fwrite(&cntrlAllocLog,sizeof(CntrlAllocLog),1,LogFile_);
 
   fflush(LogFile_);
 }

@@ -5,12 +5,12 @@ Navigation::Navigation() {
   ekf_ = new EKF15();
 }
 
-void Navigation::InitializeNavigation(const FmuData FmuDataRef) {
-  GlobalDefsToImu(FmuDataRef,&imu_);
-  GlobalDefsToGps(FmuDataRef,&gps_);
+void Navigation::InitializeNavigation(const FmuData fmuData) {
+  GlobalDefsToImu(fmuData,&imu_);
+  GlobalDefsToGps(fmuData,&gps_);
 
   if (!Initialized) {
-    if (FmuDataRef.Gps[0].Fix) {
+    if (fmuData.Gps[0].Fix) {
       nav_ = ekf_->init(imu_,gps_);
       Initialized = true;
     } else {
@@ -19,43 +19,43 @@ void Navigation::InitializeNavigation(const FmuData FmuDataRef) {
   }
 }
 
-void Navigation::RunNavigation(const FmuData FmuDataRef, NavigationData *NavigationDataPtr) {
-  GlobalDefsToImu(FmuDataRef,&imu_);
-  GlobalDefsToGps(FmuDataRef,&gps_);
+void Navigation::RunNavigation(const FmuData fmuData, NavOut *NavOutPtr) {
+  GlobalDefsToImu(fmuData,&imu_);
+  GlobalDefsToGps(fmuData,&gps_);
   nav_ = ekf_->update(imu_,gps_);
-  NavToGlobalDefs(nav_,NavigationDataPtr);
+  NavToGlobalDefs(nav_,NavOutPtr);
 }
 
-void Navigation::GlobalDefsToImu(const FmuData FmuDataRef, IMUdata *ImuDataPtr) {
-  ImuDataPtr->time = FmuDataRef.Time_us/1000000.0L;
+void Navigation::GlobalDefsToImu(const FmuData fmuData, IMUdata *ImuDataPtr) {
+  ImuDataPtr->time = fmuData.Time_us/1000000.0L;
 
-  ImuDataPtr->p = FmuDataRef.Mpu9250.Gyro_rads(0,0);
-  ImuDataPtr->q = FmuDataRef.Mpu9250.Gyro_rads(1,0);
-  ImuDataPtr->r = FmuDataRef.Mpu9250.Gyro_rads(2,0);
+  ImuDataPtr->p = fmuData.Mpu9250.Gyro_rads[0];
+  ImuDataPtr->q = fmuData.Mpu9250.Gyro_rads[1];
+  ImuDataPtr->r = fmuData.Mpu9250.Gyro_rads[2];
 
-  ImuDataPtr->ax = FmuDataRef.Mpu9250.Accel_mss(0,0);
-  ImuDataPtr->ay = FmuDataRef.Mpu9250.Accel_mss(1,0);
-  ImuDataPtr->az = FmuDataRef.Mpu9250.Accel_mss(2,0);
+  ImuDataPtr->ax = fmuData.Mpu9250.Accel_mss[0];
+  ImuDataPtr->ay = fmuData.Mpu9250.Accel_mss[1];
+  ImuDataPtr->az = fmuData.Mpu9250.Accel_mss[2];
 
-  ImuDataPtr->hx = FmuDataRef.Mpu9250.Mag_uT(0,0) * uT2G_;
-  ImuDataPtr->hy = FmuDataRef.Mpu9250.Mag_uT(1,0) * uT2G_;
-  ImuDataPtr->hz = FmuDataRef.Mpu9250.Mag_uT(2,0) * uT2G_;
+  ImuDataPtr->hx = fmuData.Mpu9250.Mag_uT[0] * uT2G_;
+  ImuDataPtr->hy = fmuData.Mpu9250.Mag_uT[1] * uT2G_;
+  ImuDataPtr->hz = fmuData.Mpu9250.Mag_uT[2] * uT2G_;
 
-  ImuDataPtr->temp = FmuDataRef.Mpu9250.Temp_C;
+  ImuDataPtr->temp = fmuData.Mpu9250.Temp_C;
 }
 
-void Navigation::GlobalDefsToGps(const FmuData FmuDataRef, GPSdata *GpsDataPtr) {
-  GpsDataPtr->time = FmuDataRef.Gps[0].Sec;
+void Navigation::GlobalDefsToGps(const FmuData fmuData, GPSdata *GpsDataPtr) {
+  GpsDataPtr->time = fmuData.Gps[0].Sec;
   
-  GpsDataPtr->lat = FmuDataRef.Gps[0].LLA(0,0);
-  GpsDataPtr->lon = FmuDataRef.Gps[0].LLA(1,0);
-  GpsDataPtr->alt = FmuDataRef.Gps[0].LLA(2,0);
+  GpsDataPtr->lat = fmuData.Gps[0].LLA[0];
+  GpsDataPtr->lon = fmuData.Gps[0].LLA[1];
+  GpsDataPtr->alt = fmuData.Gps[0].LLA[2];
 
-  GpsDataPtr->vn = FmuDataRef.Gps[0].NEDVelocity_ms(0,0);
-  GpsDataPtr->ve = FmuDataRef.Gps[0].NEDVelocity_ms(1,0);
-  GpsDataPtr->vd = FmuDataRef.Gps[0].NEDVelocity_ms(2,0);
+  GpsDataPtr->vn = fmuData.Gps[0].NEDVelocity_ms[0];
+  GpsDataPtr->ve = fmuData.Gps[0].NEDVelocity_ms[1];
+  GpsDataPtr->vd = fmuData.Gps[0].NEDVelocity_ms[2];
 
-  GpsDataPtr->sats = FmuDataRef.Gps[0].NumberSatellites;
+  GpsDataPtr->sats = fmuData.Gps[0].NumberSatellites;
   
   if (GpsDataPtr->time != PrevTime_) {
     GpsDataPtr->newData = true;
@@ -65,51 +65,51 @@ void Navigation::GlobalDefsToGps(const FmuData FmuDataRef, GPSdata *GpsDataPtr) 
   }
 }
 
-void Navigation::NavToGlobalDefs(const NAVdata NavDataRef, NavigationData *NavigationDataPtr) {
-  NavigationDataPtr->Time_s = NavDataRef.time;
+void Navigation::NavToGlobalDefs(const NAVdata navData, NavOut *NavOutPtr) {
+  NavOutPtr->Time_s = navData.time;
   
-  NavigationDataPtr->LLA(0,0) = NavDataRef.lat;
-  NavigationDataPtr->LLA(1,0) = NavDataRef.lon;
-  NavigationDataPtr->LLA(2,0) = NavDataRef.alt;
+  NavOutPtr->LLA[0] = navData.lat;
+  NavOutPtr->LLA[1] = navData.lon;
+  NavOutPtr->LLA[2] = navData.alt;
 
-  NavigationDataPtr->NEDVelocity_ms(0,0) = NavDataRef.vn;
-  NavigationDataPtr->NEDVelocity_ms(1,0) = NavDataRef.ve;
-  NavigationDataPtr->NEDVelocity_ms(2,0) = NavDataRef.vd;
+  NavOutPtr->NEDVelocity_ms[0] = navData.vn;
+  NavOutPtr->NEDVelocity_ms[1] = navData.ve;
+  NavOutPtr->NEDVelocity_ms[2] = navData.vd;
 
-  NavigationDataPtr->Euler_rad(0,0) = NavDataRef.phi;
-  NavigationDataPtr->Euler_rad(1,0) = NavDataRef.the;
-  NavigationDataPtr->Euler_rad(2,0) = NavDataRef.psi;
+  NavOutPtr->Euler_rad[0] = navData.phi;
+  NavOutPtr->Euler_rad[1] = navData.the;
+  NavOutPtr->Euler_rad[2] = navData.psi;
 
-  NavigationDataPtr->Quaternion(0,0) = NavDataRef.qw;
-  NavigationDataPtr->Quaternion(1,0) = NavDataRef.qx;
-  NavigationDataPtr->Quaternion(2,0) = NavDataRef.qy;
-  NavigationDataPtr->Quaternion(3,0) = NavDataRef.qz;
+  NavOutPtr->Quaternion[0] = navData.qw;
+  NavOutPtr->Quaternion[1] = navData.qx;
+  NavOutPtr->Quaternion[2] = navData.qy;
+  NavOutPtr->Quaternion[3] = navData.qz;
 
-  NavigationDataPtr->AccelBias_mss(0,0) = NavDataRef.abx;
-  NavigationDataPtr->AccelBias_mss(1,0) = NavDataRef.aby;
-  NavigationDataPtr->AccelBias_mss(2,0) = NavDataRef.abz;
+  NavOutPtr->AccelBias_mss[0] = navData.abx;
+  NavOutPtr->AccelBias_mss[1] = navData.aby;
+  NavOutPtr->AccelBias_mss[2] = navData.abz;
 
-  NavigationDataPtr->GyroBias_rads(0,0) = NavDataRef.gbx;
-  NavigationDataPtr->GyroBias_rads(1,0) = NavDataRef.gby;
-  NavigationDataPtr->GyroBias_rads(2,0) = NavDataRef.gbz;
+  NavOutPtr->GyroBias_rads[0] = navData.gbx;
+  NavOutPtr->GyroBias_rads[1] = navData.gby;
+  NavOutPtr->GyroBias_rads[2] = navData.gbz;
 
-  NavigationDataPtr->Pp(0,0) = NavDataRef.Pp0;
-  NavigationDataPtr->Pp(1,0) = NavDataRef.Pp1;
-  NavigationDataPtr->Pp(2,0) = NavDataRef.Pp2;
+  NavOutPtr->Pp[0] = navData.Pp0;
+  NavOutPtr->Pp[1] = navData.Pp1;
+  NavOutPtr->Pp[2] = navData.Pp2;
 
-  NavigationDataPtr->Pv(0,0) = NavDataRef.Pv0;
-  NavigationDataPtr->Pv(1,0) = NavDataRef.Pv1;
-  NavigationDataPtr->Pv(2,0) = NavDataRef.Pv2;
+  NavOutPtr->Pv[0] = navData.Pv0;
+  NavOutPtr->Pv[1] = navData.Pv1;
+  NavOutPtr->Pv[2] = navData.Pv2;
 
-  NavigationDataPtr->Pa(0,0) = NavDataRef.Pa0;
-  NavigationDataPtr->Pa(1,0) = NavDataRef.Pa1;
-  NavigationDataPtr->Pa(2,0) = NavDataRef.Pa2;
+  NavOutPtr->Pa[0] = navData.Pa0;
+  NavOutPtr->Pa[1] = navData.Pa1;
+  NavOutPtr->Pa[2] = navData.Pa2;
 
-  NavigationDataPtr->Pab(0,0) = NavDataRef.Pabx;
-  NavigationDataPtr->Pab(1,0) = NavDataRef.Paby;
-  NavigationDataPtr->Pab(2,0) = NavDataRef.Pabz;
+  NavOutPtr->Pab[0] = navData.Pabx;
+  NavOutPtr->Pab[1] = navData.Paby;
+  NavOutPtr->Pab[2] = navData.Pabz;
 
-  NavigationDataPtr->Pgb(0,0) = NavDataRef.Pgbx;
-  NavigationDataPtr->Pgb(1,0) = NavDataRef.Pgby;
-  NavigationDataPtr->Pgb(2,0) = NavDataRef.Pgbz;
+  NavOutPtr->Pgb[0] = navData.Pgbx;
+  NavOutPtr->Pgb[1] = navData.Pgby;
+  NavOutPtr->Pgb[2] = navData.Pgbz;
 }

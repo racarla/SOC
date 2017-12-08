@@ -10,17 +10,27 @@ History:
 #ifndef CNTRLMGR_HXX_
 #define CNTRLMGR_HXX_
 
-#include "cntrlFunc.hxx"
 #include <Eigen/Core>
 
 #ifndef kMaxCntrlCmd
 #define kMaxCntrlCmd 4
 #endif
 
+#include "cntrlFunc.hxx"
+
 typedef Eigen::Matrix<float, -1, 1, 0, kMaxCntrlCmd, 1> VecCmd;
 
-struct CntrlMgrStruct {
-  VecCmd cmdBase, cmdRes, cmd;
+struct CntrlMgrOut {
+  VecCmd cmdBase;
+  VecCmd cmdRes;
+  VecCmd cmd;
+  CntrlMode mode;
+};
+
+struct CntrlMgrLog {
+  float cmdBase[kMaxCntrlCmd] = {0};
+  float cmdRes[kMaxCntrlCmd] = {0};
+  float cmd[kMaxCntrlCmd] = {0};
   CntrlMode mode;
 };
 
@@ -35,9 +45,11 @@ class CntrlMgr {
 
   VecCmd CmdBase(const VecCmd& refVec, float time_s);
   VecCmd CmdRes(const VecCmd& refVec, const VecCmd& measVec, const VecCmd& dMeasVec, float time_s);
-  CntrlMgrStruct Cmd();      // Compute Controller Commands
+  CntrlMgrOut Cmd();      // Compute Controller Commands
+  CntrlMgrLog Log();
+
  private:
-  CntrlMgrStruct cntrlMgrData_;
+  CntrlMgrOut cntrlMgrOut_;
 
   float timePrevBase_s_, timePrevRes_s_;
 

@@ -13,14 +13,14 @@ History:
 
 void CntrlMgr::Init()
 {
-  cntrlMgrData_.mode = kCntrlReset; // Controller mode
+  cntrlMgrOut_.mode = kCntrlReset; // Controller mode
 
   timePrevBase_s_ = 0.0;
   timePrevRes_s_ = 0.0;
 
-  cntrlMgrData_.cmdBase.setZero(4);
-  cntrlMgrData_.cmdRes.setZero(4);
-  cntrlMgrData_.cmd.setZero(4);
+  cntrlMgrOut_.cmdBase.setZero(kMaxCntrlCmd);
+  cntrlMgrOut_.cmdRes.setZero(kMaxCntrlCmd);
+  cntrlMgrOut_.cmd.setZero(kMaxCntrlCmd);
 
 
   CntrlBaseDef();
@@ -30,9 +30,9 @@ void CntrlMgr::Init()
 
 void CntrlMgr::Mode(CntrlMode mode)
 {
-  cntrlMgrData_.mode = mode;
+  cntrlMgrOut_.mode = mode;
 
-  switch (cntrlMgrData_.mode) {
+  switch (cntrlMgrOut_.mode) {
     case kCntrlReset:
       baseRoll_.mode_ = kCntrlEngage;
       basePitch_.mode_ = kCntrlEngage;
@@ -102,15 +102,15 @@ VecCmd CntrlMgr::CmdBase(const VecCmd& refVec, float time_s)
   timePrevBase_s_ = time_s;
 
   // Zero the Command - FIXIT shouldn't be required, variable size
-  cntrlMgrData_.cmdBase.setZero(4);
+  cntrlMgrOut_.cmdBase.setZero(kMaxCntrlCmd);
 
   // Run the Controllers
-  cntrlMgrData_.cmdBase[0] = baseRoll_.Compute(refVec[0]);
-  cntrlMgrData_.cmdBase[1] = basePitch_.Compute(refVec[1]);
-  cntrlMgrData_.cmdBase[2] = baseYaw_.Compute(refVec[2]);
-  cntrlMgrData_.cmdBase[3] = baseSpeed_.Compute(refVec[3]);
+  cntrlMgrOut_.cmdBase[0] = baseRoll_.Compute(refVec[0]);
+  cntrlMgrOut_.cmdBase[1] = basePitch_.Compute(refVec[1]);
+  cntrlMgrOut_.cmdBase[2] = baseYaw_.Compute(refVec[2]);
+  cntrlMgrOut_.cmdBase[3] = baseSpeed_.Compute(refVec[3]);
 
-  return cntrlMgrData_.cmdBase;
+  return cntrlMgrOut_.cmdBase;
 }
 
 // Define the Research Controller - FIXIT
@@ -121,16 +121,16 @@ VecCmd CntrlMgr::CmdRes(const VecCmd& refVec, const VecCmd& measVec, const VecCm
   timePrevRes_s_ = time_s;
 
   // Zero the Command - FIXIT shouldn't be required, variable size
-  cntrlMgrData_.cmdRes.setZero(4);
+  cntrlMgrOut_.cmdRes.setZero(kMaxCntrlCmd);
 
   // Run the Controllers
-  cntrlMgrData_.cmdRes[0] = resRoll_.Compute(refVec[0], dMeasVec[0]);
-  cntrlMgrData_.cmdRes[1] = resPitch_.Compute(refVec[1], dMeasVec[1]);
-  cntrlMgrData_.cmdRes[2] = resYaw_.Compute(refVec[2], dMeasVec[2]);
-  //cntrlMgrData_.cmdRes[0] = resRoll_.Compute(refVec[0], measVec[0], dMeasVec[0], dt_s);
-  //cntrlMgrData_.cmdRes[1] = resPitch_.Compute(refVec[1], measVec[1], dMeasVec[1], dt_s);
-  //cntrlMgrData_.cmdRes[2] = resYaw_.Compute(refVec[2], measVec[2], dMeasVec[2], dt_s);
-  cntrlMgrData_.cmdRes[3] = resSpeed_.Compute(refVec[3], measVec[3], dt_s);
+  cntrlMgrOut_.cmdRes[0] = resRoll_.Compute(refVec[0], dMeasVec[0]);
+  cntrlMgrOut_.cmdRes[1] = resPitch_.Compute(refVec[1], dMeasVec[1]);
+  cntrlMgrOut_.cmdRes[2] = resYaw_.Compute(refVec[2], dMeasVec[2]);
+  //cntrlMgrOut_.cmdRes[0] = resRoll_.Compute(refVec[0], measVec[0], dMeasVec[0], dt_s);
+  //cntrlMgrOut_.cmdRes[1] = resPitch_.Compute(refVec[1], measVec[1], dMeasVec[1], dt_s);
+  //cntrlMgrOut_.cmdRes[2] = resYaw_.Compute(refVec[2], measVec[2], dMeasVec[2], dt_s);
+  cntrlMgrOut_.cmdRes[3] = resSpeed_.Compute(refVec[3], measVec[3], dt_s);
 
 //std::cout << resRoll_.iErr_ << "\t";
 //std::cout << resPitch_.iErr_ << "\t";
@@ -138,31 +138,31 @@ VecCmd CntrlMgr::CmdRes(const VecCmd& refVec, const VecCmd& measVec, const VecCm
 //std::cout << refVec[3] << "\t";
 //std::cout << measVec[3] << "\t";
 //std::cout << resSpeed_.iErr_ << "\t";
-//std::cout << cntrlMgrData_.cmdRes[3] << "\t";
+//std::cout << cntrlMgrOut_.cmdRes[3] << "\t";
 
-  return cntrlMgrData_.cmdRes;
+  return cntrlMgrOut_.cmdRes;
 }
 
-CntrlMgrStruct CntrlMgr::Cmd() {
+CntrlMgrOut CntrlMgr::Cmd() {
 
   // Zero the Command - FIXIT shouldn't be required, variable size
-  cntrlMgrData_.cmd.setZero(4);
+  cntrlMgrOut_.cmd.setZero(kMaxCntrlCmd);
 
   // Switch the Command output to the Research Controller when engaged
-  if (cntrlMgrData_.mode == kCntrlEngage)
+  if (cntrlMgrOut_.mode == kCntrlEngage)
   {
-    cntrlMgrData_.cmd = cntrlMgrData_.cmdRes;
+    cntrlMgrOut_.cmd = cntrlMgrOut_.cmdRes;
   } else {
-    cntrlMgrData_.cmd = cntrlMgrData_.cmdBase;
+    cntrlMgrOut_.cmd = cntrlMgrOut_.cmdBase;
   }
 
-  return cntrlMgrData_;
+  return cntrlMgrOut_;
 }
 
 // Baseline Controller Definition
 void CntrlMgr::CntrlBaseDef()
 {
-  int numCmd = 4;
+  int numCmd = kMaxCntrlCmd;
 
   // Command Range Limits, stick -1 to 1, converts to ref -100 to 100
   VecCmd refScale(numCmd);
@@ -194,7 +194,7 @@ void CntrlMgr::CntrlBaseDef()
 // Research Control Law
 void CntrlMgr::CntrlResDef()
 {
-  int numCmd = 4;
+  int numCmd = kMaxCntrlCmd;
 
   // Command Range Limits, stick -1 to 1, converts to ref -60 to 60
   VecCmd refScale(numCmd);
@@ -235,4 +235,17 @@ void CntrlMgr::CntrlResDef()
   resPitch_.mode_ = kCntrlReset;
   resYaw_.mode_ = kCntrlReset;
   resSpeed_.mode_ = kCntrlReset;
+}
+
+
+CntrlMgrLog CntrlMgr::Log()
+{
+  CntrlMgrLog cntrlMgrLog;
+
+  cntrlMgrLog.mode = cntrlMgrOut_.mode;
+  *(cntrlMgrLog.cmdBase) = *(cntrlMgrOut_.cmdBase).data();
+  *(cntrlMgrLog.cmdRes) = *(cntrlMgrOut_.cmdRes).data();
+  *(cntrlMgrLog.cmd) = *(cntrlMgrOut_.cmd).data();
+
+  return cntrlMgrLog;
 }
