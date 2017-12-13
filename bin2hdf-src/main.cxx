@@ -35,7 +35,6 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SO
 #include "../soc-src/missionMgr.hxx"
 #include "../soc-src/cntrlMgr.hxx"
 #include "../soc-src/exciteMgr.hxx"
-#include "../soc-src/cntrlAllocMgr.hxx"
 
 #include <H5Cpp.h>
 #include <iostream>
@@ -93,18 +92,15 @@ int main(int argc, char* argv[]) {
   bytes += fmuData.PwmVoltage.size() * sizeof(Voltage);
   cout << "Data packet size: " << bytes << " bytes" << endl;
 
-  bytes += sizeof(AirdataOut);
+  bytes += sizeof(AirdataLog);
   cout << "Data packet size: " << bytes << " bytes" << endl;
   bytes += sizeof(NavLog);
   cout << "Data packet size: " << bytes << " bytes" << endl;
-  bytes += sizeof(MissMgrOut);
+  bytes += sizeof(MissMgrLog);
   cout << "Data packet size: " << bytes << " bytes" << endl;
   bytes += sizeof(ExciteMgrLog);
   cout << "Data packet size: " << bytes << " bytes" << endl;
   bytes += sizeof(CntrlMgrLog);
-  cout << "Data packet size: " << bytes << " bytes" << endl;
-  bytes += sizeof(CntrlAllocLog);
-  cout << "Data packet size: " << bytes << " bytes" << endl;
   cout << endl;
 
   // Compute the number of records
@@ -172,12 +168,11 @@ int main(int argc, char* argv[]) {
     PwmVoltage[i] = new Voltage [NumberRecords];
   }
 
-  AirdataOut* airdataLog = new AirdataOut [NumberRecords];
+  AirdataLog* airdataLog = new AirdataLog [NumberRecords];
   NavLog* navLog = new NavLog [NumberRecords];
-  MissMgrOut* missMgrLog = new MissMgrOut [NumberRecords];
+  MissMgrLog* missMgrLog = new MissMgrLog [NumberRecords];
   ExciteMgrLog* exciteMgrLog = new ExciteMgrLog [NumberRecords];
   CntrlMgrLog* cntrlMgrLog = new CntrlMgrLog [NumberRecords];
-  CntrlAllocLog* cntrlAllocLog = new CntrlAllocLog [NumberRecords];
 
   uint8_t* startByte;
   size_t lenByte;
@@ -246,23 +241,20 @@ int main(int argc, char* argv[]) {
       startByte += sizeof(Voltage);
     }
 
-    airdataLog[i] = *(AirdataOut *)startByte;
-    startByte += sizeof(AirdataOut);
+    airdataLog[i] = *(AirdataLog *)startByte;
+    startByte += sizeof(AirdataLog);
 
     navLog[i] = *(NavLog *)startByte;
     startByte += sizeof(NavLog);
 
-    missMgrLog[i] = *(MissMgrOut *)startByte;
-    startByte += sizeof(MissMgrOut);
+    missMgrLog[i] = *(MissMgrLog *)startByte;
+    startByte += sizeof(MissMgrLog);
 
     exciteMgrLog[i] = *(ExciteMgrLog *)startByte;
     startByte += sizeof(ExciteMgrLog);
 
     cntrlMgrLog[i] = *(CntrlMgrLog *)startByte;
     startByte += sizeof(CntrlMgrLog);
-
-    cntrlAllocLog[i] = *(CntrlAllocLog *)startByte;
-    startByte += sizeof(CntrlAllocLog);
   }
 
 
@@ -274,6 +266,7 @@ int main(int argc, char* argv[]) {
   float* data4D = new float [4*NumberRecords];
   float* data5D = new float [5*NumberRecords];
   float* data6D = new float [6*NumberRecords];
+  float* data7D = new float [7*NumberRecords];
 
   double* data1Dd = new double [NumberRecords];
   double* data3Dd = new double [3*NumberRecords];
@@ -780,16 +773,6 @@ int main(int argc, char* argv[]) {
   Logger.WriteData(GroupName,"cntrlMode",data1Di8,"Control System Mode, int",NumberRecords,1);
 
   for (size_t k=0; k < NumberRecords; k++) {
-    data1Du8[k] = missMgrLog[k].trigArm;
-  }
-  Logger.WriteData(GroupName,"trigArm",data1Du8,"Trigger Armed, bool",NumberRecords,1);
-
-  for (size_t k=0; k < NumberRecords; k++) {
-    data1Du8[k] = missMgrLog[k].trigEngage;
-  }
-  Logger.WriteData(GroupName,"trigEngage",data1Du8,"Trigger Engaged, bool",NumberRecords,1);
-
-  for (size_t k=0; k < NumberRecords; k++) {
     data1Du8[k] = missMgrLog[k].testArm;
   }
   Logger.WriteData(GroupName,"testArm",data1Du8,"Tester Armed, bool",NumberRecords,1);
@@ -803,11 +786,6 @@ int main(int argc, char* argv[]) {
     data1Du8[k] = missMgrLog[k].indxTest;
   }
   Logger.WriteData(GroupName,"indxTest",data1Du8,"Tester Index, cnt",NumberRecords,1);
-
-  for (size_t k=0; k < NumberRecords; k++) {
-    data1Du8[k] = missMgrLog[k].numTest;
-  }
-  Logger.WriteData(GroupName,"numTest",data1Du8,"Tester Total, cnt",NumberRecords,1);
 
 
   // Excitation Manager
@@ -848,57 +826,72 @@ int main(int argc, char* argv[]) {
 
   m = 0;
   for (size_t k=0; k < NumberRecords; k++) {
-    data4D[m] = cntrlMgrLog[k].cmdBase[0];
-    data4D[m+1] = cntrlMgrLog[k].cmdBase[1];
-    data4D[m+2] = cntrlMgrLog[k].cmdBase[2];
-    data4D[m+3] = cntrlMgrLog[k].cmdBase[3];
+    data4D[m] = cntrlMgrLog[k].cmdCntrlBase[0];
+    data4D[m+1] = cntrlMgrLog[k].cmdCntrlBase[1];
+    data4D[m+2] = cntrlMgrLog[k].cmdCntrlBase[2];
+    data4D[m+3] = cntrlMgrLog[k].cmdCntrlBase[3];
     m = m + 4;
   }
-  Logger.WriteData(GroupName,"cmdBase",data4D,"Controller Baseline Commands, Roll [rps], Pitch [rps], Yaw [rps], Throttle [nd]",NumberRecords,4);
+  Logger.WriteData(GroupName,"cmdCntrlBase",data4D,"Controller Baseline Commands, Roll [rps], Pitch [rps], Yaw [rps], Throttle [nd]",NumberRecords,4);
   
   m = 0;
   for (size_t k=0; k < NumberRecords; k++) {
-    data4D[m] = cntrlMgrLog[k].cmdRes[0];
-    data4D[m+1] = cntrlMgrLog[k].cmdRes[1];
-    data4D[m+2] = cntrlMgrLog[k].cmdRes[2];
-    data4D[m+3] = cntrlMgrLog[k].cmdRes[3];
+    data4D[m] = cntrlMgrLog[k].cmdCntrlRes[0];
+    data4D[m+1] = cntrlMgrLog[k].cmdCntrlRes[1];
+    data4D[m+2] = cntrlMgrLog[k].cmdCntrlRes[2];
+    data4D[m+3] = cntrlMgrLog[k].cmdCntrlRes[3];
     m = m + 4;
   }
-  Logger.WriteData(GroupName,"cmdRes",data4D,"Controller Research Commands, Roll [rps], Pitch [rps], Yaw [rps], Throttle [nd]",NumberRecords,4);
+  Logger.WriteData(GroupName,"cmdCntrlRes",data4D,"Controller Research Commands, Roll [rps], Pitch [rps], Yaw [rps], Throttle [nd]",NumberRecords,4);
 
   m = 0;
   for (size_t k=0; k < NumberRecords; k++) {
-    data4D[m] = cntrlMgrLog[k].cmd[0];
-    data4D[m+1] = cntrlMgrLog[k].cmd[1];
-    data4D[m+2] = cntrlMgrLog[k].cmd[2];
-    data4D[m+3] = cntrlMgrLog[k].cmd[3];
+    data4D[m] = cntrlMgrLog[k].cmdCntrl[0];
+    data4D[m+1] = cntrlMgrLog[k].cmdCntrl[1];
+    data4D[m+2] = cntrlMgrLog[k].cmdCntrl[2];
+    data4D[m+3] = cntrlMgrLog[k].cmdCntrl[3];
     m = m + 4;
   }
-  Logger.WriteData(GroupName,"cmd",data4D,"Controller Commands, Roll [rps], Pitch [rps], Yaw [rps], Throttle [nd]",NumberRecords,4);
+  Logger.WriteData(GroupName,"cmdCntrl",data4D,"Controller Commands, Roll [rps], Pitch [rps], Yaw [rps], Throttle [nd]",NumberRecords,4);
 
   for (size_t k=0; k < NumberRecords; k++) {
     data1Di8[k] = cntrlMgrLog[k].mode;
   }
   Logger.WriteData(GroupName,"mode",data1Di8,"Mode, int",NumberRecords,1);
 
-
-  // Control Allocation Manager
-  GroupName = "/CntrlAlloc";
-
-  Logger.CreateGroup(GroupName);
+  m = 0;
+  for (size_t k=0; k < NumberRecords; k++) {
+    data3D[m] = cntrlMgrLog[k].vObj[0];
+    data3D[m+1] = cntrlMgrLog[k].vObj[1];
+    data3D[m+2] = cntrlMgrLog[k].vObj[2];
+    m = m + 3;
+  }
+  Logger.WriteData(GroupName,"vObj",data3D,"Control Allocation Objective",NumberRecords,3);
 
   m = 0;
   for (size_t k=0; k < NumberRecords; k++) {
-    data6D[m] = cntrlAllocLog[k].cmdAlloc[0];
-    data6D[m+1] = cntrlAllocLog[k].cmdAlloc[1];
-    data6D[m+2] = cntrlAllocLog[k].cmdAlloc[2];
-    data6D[m+3] = cntrlAllocLog[k].cmdAlloc[3];
-    data6D[m+4] = cntrlAllocLog[k].cmdAlloc[4];
-    data6D[m+5] = cntrlAllocLog[k].cmdAlloc[5];
+    data6D[m] = cntrlMgrLog[k].cmdAlloc[0];
+    data6D[m+1] = cntrlMgrLog[k].cmdAlloc[1];
+    data6D[m+2] = cntrlMgrLog[k].cmdAlloc[2];
+    data6D[m+3] = cntrlMgrLog[k].cmdAlloc[3];
+    data6D[m+4] = cntrlMgrLog[k].cmdAlloc[4];
+    data6D[m+5] = cntrlMgrLog[k].cmdAlloc[5];
     m = m + 6;
   }
   Logger.WriteData(GroupName,"cmdAlloc",data6D,"Control Allocation Commands, Elev, Rud, AilR, FlapR, FlapL, AilL",NumberRecords,6);
 
+  m = 0;
+  for (size_t k=0; k < NumberRecords; k++) {
+    data7D[m] = cntrlMgrLog[k].cmdEff[0];
+    data7D[m+1] = cntrlMgrLog[k].cmdEff[1];
+    data7D[m+2] = cntrlMgrLog[k].cmdEff[2];
+    data7D[m+3] = cntrlMgrLog[k].cmdEff[3];
+    data7D[m+4] = cntrlMgrLog[k].cmdEff[4];
+    data7D[m+5] = cntrlMgrLog[k].cmdEff[5];
+    data7D[m+6] = cntrlMgrLog[k].cmdEff[6];
+    m = m + 7;
+  }
+  Logger.WriteData(GroupName,"cmdEff",data7D,"Control Effector Commands, Throt (nd), Elev, Rud, AilR, FlapR, FlapL, AilL",NumberRecords,7);
 
 	return 0;
 }

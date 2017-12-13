@@ -37,6 +37,15 @@ struct AirdataOut {
   float vIasFilt_mps;
 };
 
+struct AirdataLog {
+  float temp_C;
+
+  float alt_m;
+  float altFilt_m;
+
+  float vIas_mps;
+  float vIasFilt_mps;
+};
 
 class Airdata {
  public:
@@ -46,6 +55,9 @@ class Airdata {
 
   void BiasEst(); // Compute the Airdata biases on startup
   AirdataOut Compute(const PitotData& pitotData);
+  
+  AirdataLog Log(const AirdataOut& airdataOut);
+
 
  private:
   float kP0_Pa_, kK1_m_, kK2_nd_, kK3_mps_, kK4_nd_;

@@ -48,7 +48,8 @@ class ExciteMgr {
 
   void Init();     // Initialize excitations
   ExciteMgrOut Compute(const bool& exciteMode, const uint8_t& indxTest, const float& time_s);
-  ExciteMgrLog Log();
+
+  ExciteMgrLog Log(const ExciteMgrOut& exciteMgrOut);
 
  private:
   ExciteMgrOut exciteMgrOut_;

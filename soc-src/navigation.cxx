@@ -116,26 +116,26 @@ void Navigation::NavToGlobalDefs(const NAVdata navData, NavOut *NavOutPtr) {
   NavOutPtr->Pgb[2] = navData.Pgbz;
 }
 
-NavLog Navigation::Log()
+NavLog Navigation::Log(const NavOut& navOut)
 {
   NavLog navLog;
 
-  navLog.Time_s = navOut_.Time_s;
+  navLog.Time_s = navOut.Time_s;
 
   for (int i = 0; i < 3; i++) {
-    navLog.LLA[i] = navOut_.LLA[i];
-    navLog.NEDVelocity_ms[i] = (float) navOut_.NEDVelocity_ms[i];
-    navLog.Euler_rad[i] = (float) navOut_.Euler_rad[i];
-    navLog.AccelBias_mss[i] = (float) navOut_.AccelBias_mss[i];
-    navLog.GyroBias_rads[i] = (float) navOut_.GyroBias_rads[i];
-    navLog.Pp[i] = (float) navOut_.Pp[i];
-    navLog.Pv[i] = (float) navOut_.Pv[i];
-    navLog.Pa[i] = (float) navOut_.Pa[i];
-    navLog.Pab[i] = (float) navOut_.Pab[i];
-    navLog.Pgb[i] = (float) navOut_.Pgb[i];
+    navLog.LLA[i] = navOut.LLA[i];
+    navLog.NEDVelocity_ms[i] = (float) navOut.NEDVelocity_ms[i];
+    navLog.Euler_rad[i] = (float) navOut.Euler_rad[i];
+    navLog.AccelBias_mss[i] = (float) navOut.AccelBias_mss[i];
+    navLog.GyroBias_rads[i] = (float) navOut.GyroBias_rads[i];
+    navLog.Pp[i] = (float) navOut.Pp[i];
+    navLog.Pv[i] = (float) navOut.Pv[i];
+    navLog.Pa[i] = (float) navOut.Pa[i];
+    navLog.Pab[i] = (float) navOut.Pab[i];
+    navLog.Pgb[i] = (float) navOut.Pgb[i];
   }
   for (int i = 0; i < 4; i++) {
-    navLog.Quaternion[i] = (float) navOut_.Quaternion[i];
+    navLog.Quaternion[i] = (float) navOut.Quaternion[i];
   }
 
   return navLog;

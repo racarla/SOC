@@ -23,10 +23,11 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SO
 #include <iostream>
 #include <iomanip>      // std::setw
 
+#define kMaxCntrlCmd 4 // Controller Dimension
+#define kMaxCntrlEff 7 // Effectors
 #define kMaxAllocObj 3 // Allocator Objectives
 #define kMaxAllocEff 6 // Allocator Effectors
-#define kMaxCntrlCmd 4 // Controller Dimension
-#define kMaxExciteChan 4 // Excitation Channels
+#define kMaxExciteChan kMaxCntrlCmd // Excitation Channels
 #define kMaxExciteElem 46 // Excitation Elements (Multisine components)
 
 #include "navigation.hxx"
@@ -39,7 +40,6 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SO
 #include "global-defs.hxx"
 #include "missionMgr.hxx"
 #include "cntrlMgr.hxx"
-#include "cntrlAllocMgr.hxx"
 #include "exciteMgr.hxx"
 
 #define EIGEN_INITIALIZE_MATRICES_BY_ZERO 1
@@ -87,9 +87,6 @@ int main(int argc, char* argv[]) {
 
   // Define Controller Manager and Controllers
   CntrlMgr cntrlMgr; // Create the Controller Manager
-  cntrlMgr.Init();   // Define the Baseline and Research Controller
-  CntrlMgrOut cntrlMgrOut; // Struct
-//std::cout << "CntrlMgr" << "\t";
 
   // Define Excitation Manager and Excitations
   ExciteMgr exciteMgr; // Create the Excitation Manager
@@ -98,9 +95,7 @@ int main(int argc, char* argv[]) {
 //std::cout << "ExciteMgr" << "\t";
 
   // Define Control Allocation
-  CntrlAllocMgr cntrlAllocMgr; // Create the Control Allocator
   CntrlAllocDef cntrlAllocDef; // Structure for control allocation definition
-  CntrlAllocOut cntrlAllocOut; // Structure for control allocation data
 
   uint8_t numObj = 3;
   uint8_t numEff = 6;
@@ -115,14 +110,19 @@ int main(int argc, char* argv[]) {
   // Control Allocation Definition
   // Surface Order - Elev, Rud, AilR, FlapR, FlapL, AilL
   // Objectives Order - Roll Rate, Pitch Rate, Yaw Rate
-//  cntrlAllocDef.cntrlEff <<  0.0000,  5.0084, -78.235, -33.013,  33.013,  78.235,
+//  cntrlAllocDef.cntrlEff <<  0.0000, -5.0084, -78.235, -33.013,  33.013,  78.235,
 //                            -133.69,  0.0047,  3.0002,  2.6238,  2.6238,  3.0002,
-//                             0.0000,  82.041,  5.7521,  1.7941, -1.7941, -5.7521; // rad/s per deg
+//                             0.0000, -82.041,  5.7521,  1.7941, -1.7941, -5.7521; // rad/s per deg
 
   // Objectives Order - Roll Rate, Pitch Rate, Yaw Rate
-  cntrlAllocDef.cntrlEff <<  0.0000,  5.0084, -78.235, -33.013,  33.013,  78.235,
+//  cntrlAllocDef.cntrlEff <<  0.0000, -5.0084, -78.235, -33.013,  33.013,  78.235,
+//                            -133.69,  0.0000,  0.0000,  0.0000,  0.0000,  0.0000,
+//                             0.0000, -82.041,  5.7521,  1.7941, -1.7941, -5.7521; // rad/s per deg
+
+  // Objectives Order - Roll Rate, Pitch Rate, Yaw Rate
+  cntrlAllocDef.cntrlEff <<  0.0000,  0.0000, -78.235,  0.0000,  0.0000,  78.235,
                             -133.69,  0.0000,  0.0000,  0.0000,  0.0000,  0.0000,
-                             0.0000,  82.041,  5.7521,  1.7941, -1.7941, -5.7521; // rad/s per deg
+                             0.0000, -82.041,  0.0000,  0.0000,  0.0000,  0.0000; // rad/s per deg
 
   cntrlAllocDef.cntrlEff *= kD2R; // Convert to rad/s per rad
 
@@ -133,7 +133,9 @@ int main(int argc, char* argv[]) {
   cntrlAllocDef.wtObj.setIdentity();
   cntrlAllocDef.wtEff.setIdentity();
 
-  cntrlAllocMgr.Init(cntrlAllocDef);     // Initialize Control Allocator
+  cntrlMgr.Init(cntrlAllocDef);   // Define the Baseline and Research Controller, and Allocator
+  CntrlMgrOut cntrlMgrOut; // Struct
+//std::cout << "CntrlMgr" << "\t";
 //std::cout << "CntrlAllocMgr" << "\t";
 
   /* main loop */
@@ -180,9 +182,9 @@ std::cout << (int) missMgrOut.indxTest << "\t";
 std::cout << std::setw(10);
 
 //std::cout << airdataOut.alt_m << "\t";
-std::cout << airdataOut.altFilt_m << "\t\t";
+//std::cout << airdataOut.altFilt_m << "\t\t";
 //std::cout << airdataOut.vIas_mps << "\t";
-std::cout << airdataOut.vIasFilt_mps << "\t\t";
+//std::cout << airdataOut.vIasFilt_mps << "\t\t";
 
 //std::cout << fmuData.PressureTransducer[0].Pressure_Pa << "\t";
 //std::cout << fmuData.PressureTransducer[1].Pressure_Pa << "\t";
@@ -218,51 +220,45 @@ std::cout << airdataOut.vIasFilt_mps << "\t\t";
       dMeasVec[3] = 0.0;
 //std::cout << dMeasVec.transpose() << "\t";
 
-      // Run the controllers
-      cntrlMgr.CmdBase(refVecBase, missMgrOut.time_s);
-      cntrlMgr.CmdRes(refVecRes, measVec, dMeasVec, missMgrOut.time_s);
-      cntrlMgrOut = cntrlMgr.Cmd();
-//std::cout << cntrlMgrOut.cmd.transpose() << "\t";
-//std::cout << cntrlMgrOut.cmd[0] << "\t\t";
-
-      // Allocate control surfaces
-      VecObj objAlloc = cntrlMgrOut.cmd.head(kMaxAllocObj);
-      cntrlAllocOut = cntrlAllocMgr.Compute(objAlloc);
-//std::cout << cntrlAllocOut.cmdAlloc.transpose()/kD2R << "\t";
-
       // Apply command excitations
       exciteMgrOut = exciteMgr.Compute(missMgrOut.testEngage, missMgrOut.indxTest, missMgrOut.time_s);
 //std::cout << exciteMgrOut.cmdExcite.transpose()/kD2R << "\t";
 
+      // Run the controllers
+      cntrlMgr.CmdCntrlBase(refVecBase, missMgrOut.time_s);
+      cntrlMgr.CmdCntrlRes(refVecRes, measVec, dMeasVec, missMgrOut.time_s);
+      cntrlMgrOut = cntrlMgr.CmdCntrl();
+//std::cout << cntrlMgrOut.cmdCntrl.transpose() << "\t";
+//std::cout << cntrlMgrOut.cmdCntrl[0] << "\t\t";
+
       // OUTPUT PROCESSING
       // send control surface commands
-      std::vector<float> cmdEff;
-      cmdEff.resize(configData.NumberEffectors);
+      cntrlMgrOut.cmdEff.resize(configData.NumberEffectors);
       std::vector<uint8_t> cmdEffSerial;
-      cmdEffSerial.resize(cmdEff.size()*sizeof(float));
+      cmdEffSerial.resize(cntrlMgrOut.cmdEff.size()*sizeof(float));
 
-      cmdEff[0] = cntrlMgrOut.cmd[3]; // Throttle 
-      cmdEff[1] = cntrlAllocOut.cmdAlloc[0] + exciteMgrOut.cmdExcite[1]; // Elevator
-      cmdEff[2] = cntrlAllocOut.cmdAlloc[1] + exciteMgrOut.cmdExcite[2]; // Rudder
-      cmdEff[3] = cntrlAllocOut.cmdAlloc[2] - exciteMgrOut.cmdExcite[0]; // Ail R
-      cmdEff[4] = cntrlAllocOut.cmdAlloc[3] + fmuData.SbusRx[0].Inceptors[3]; // Flap R
-      cmdEff[5] = cntrlAllocOut.cmdAlloc[4] + fmuData.SbusRx[0].Inceptors[3]; // Flap L
-      cmdEff[6] = cntrlAllocOut.cmdAlloc[5] + exciteMgrOut.cmdExcite[0]; // Ail L
+      cntrlMgrOut.cmdEff[0] = cntrlMgrOut.cmdCntrl[3]; // Throttle 
+      cntrlMgrOut.cmdEff[1] = cntrlMgrOut.cmdAlloc[0] + exciteMgrOut.cmdExcite[1]; // Elevator
+      cntrlMgrOut.cmdEff[2] = cntrlMgrOut.cmdAlloc[1] + exciteMgrOut.cmdExcite[2]; // Rudder
+      cntrlMgrOut.cmdEff[3] = cntrlMgrOut.cmdAlloc[2] - exciteMgrOut.cmdExcite[0]; // Ail R
+      cntrlMgrOut.cmdEff[4] = cntrlMgrOut.cmdAlloc[3] + fmuData.SbusRx[0].Inceptors[3]; // Flap R
+      cntrlMgrOut.cmdEff[5] = cntrlMgrOut.cmdAlloc[4] + fmuData.SbusRx[0].Inceptors[3]; // Flap L
+      cntrlMgrOut.cmdEff[6] = cntrlMgrOut.cmdAlloc[5] + exciteMgrOut.cmdExcite[0]; // Ail L
+//std::cout << cntrlMgrOut.cmdEff.transpose() << "\t\t";
 
-      memcpy(cmdEffSerial.data(), cmdEff.data(), cmdEffSerial.size());
+      memcpy(cmdEffSerial.data(), cntrlMgrOut.cmdEff.data(), cmdEffSerial.size());
+
+      // Write the Effector Commands to the FMU
       fmu.WriteMessage(kEffectorAngleCmd, cmdEffSerial.size(), cmdEffSerial.data());
 
       // DATA LOG
-      NavLog navLog = NavFilter.Log();
-      CntrlMgrLog cntrlMgrLog = cntrlMgr.Log();
-      CntrlAllocLog cntrlAllocLog = cntrlAllocMgr.Log();
-      ExciteMgrLog exciteMgrLog = exciteMgr.Log();
+      MissMgrLog missMgrLog = missMgr.Log(missMgrOut);
+      AirdataLog airdataLog = airdata.Log(airdataOut);
+      NavLog navLog = NavFilter.Log(navOut);
+      CntrlMgrLog cntrlMgrLog = cntrlMgr.Log(cntrlMgrOut);
+      ExciteMgrLog exciteMgrLog = exciteMgr.Log(exciteMgrOut);
 
-std::cout << cntrlAllocLog.cmdAlloc[0] << "\t";
-std::cout << cntrlAllocLog.cmdAlloc[1] << "\t";
-std::cout << cntrlAllocLog.cmdAlloc[2] << "\t";
-
-      log.LogData(fmuData, airdataOut, navLog, missMgrOut, exciteMgrLog, cntrlMgrLog, cntrlAllocLog);
+      log.LogData(fmuData, airdataLog, navLog, missMgrLog, exciteMgrLog, cntrlMgrLog);
 
       // telemetry
 

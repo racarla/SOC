@@ -25,7 +25,7 @@
 class Datalogger {
   public:
     Datalogger();
-    void LogData(FmuData fmuData, AirdataOut airdataLog, NavLog navLog, MissMgrOut missMgrLog, ExciteMgrLog exciteMgrLog, CntrlMgrLog cntrlMgrLog, CntrlAllocLog cntrlAllocLog);
+    void LogData(FmuData fmuData, AirdataLog airdataLog, NavLog navLog, MissMgrLog missMgrLog, ExciteMgrLog exciteMgrLog, CntrlMgrLog cntrlMgrLog);
   private:
     FILE *LogFile_;
     bool FileExists(const std::string &FileName);

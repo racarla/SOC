@@ -26,13 +26,38 @@ struct MissMgrOut {
   bool autoEngage;   // Mission autoEngage flag
   CntrlMode cntrlMode;   // Mission controller mode
 
-  bool trigArm; // Arm flag for the trigger
-  bool trigEngage; // Engage flag for the trigger
-
   bool testArm;    // Arm flag for the test system
   bool testEngage; // Engage flag for the test system
   uint8_t indxTest; // Index number of the current test
   uint8_t numTest; // Number of test points
+
+  float timeSens_ms;
+  float timeMissMgr_ms;
+  float timeSensProc_ms;
+  float timeExciteMgr_ms;
+  float timeGuidMgr_ms;
+  float timeCntrlMgr_ms;
+  float timeCmd_ms;
+};
+
+struct MissMgrLog {
+  float time_s;
+  uint frame_cnt;
+
+  bool autoEngage;
+  CntrlMode cntrlMode;
+
+  bool testArm;
+  bool testEngage;
+  uint8_t indxTest;
+
+  float timeSens_ms;
+  float timeMissMgr_ms;
+  float timeSensProc_ms;
+  float timeExciteMgr_ms;
+  float timeGuidMgr_ms;
+  float timeCntrlMgr_ms;
+  float timeCmd_ms;
 };
 
 class MissMgr {
@@ -42,6 +67,8 @@ class MissMgr {
   void Init();    // Initialize controllers and excitations
   MissMgrOut ModeMgr(const FmuData& FmuDataRef); // Manage mode 
   void Reset();   // Resets the controllers and test points with in the class
+
+  MissMgrLog Log(const MissMgrOut& missMgrOut);
 
  private:
   MissMgrOut missMgrData_;

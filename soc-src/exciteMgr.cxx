@@ -319,17 +319,16 @@ ExciteMgrOut ExciteMgr::Compute(const bool& exciteMode, const uint8_t& indxTest,
 }
 
 
-
-ExciteMgrLog ExciteMgr::Log()
+ExciteMgrLog ExciteMgr::Log(const ExciteMgrOut& ExciteMgrOut)
 {
   ExciteMgrLog exciteMgrLog;
 
-  exciteMgrLog.exciteMode = exciteMgrOut_.exciteMode;
-  exciteMgrLog.indxTest = exciteMgrOut_.indxTest;
-  exciteMgrLog.timeExcite_s = exciteMgrOut_.timeExcite_s;
+  exciteMgrLog.exciteMode = ExciteMgrOut.exciteMode;
+  exciteMgrLog.indxTest = ExciteMgrOut.indxTest;
+  exciteMgrLog.timeExcite_s = ExciteMgrOut.timeExcite_s;
 
   for (int i = 0; i < kMaxExciteChan; i++) {
-    exciteMgrLog.cmdExcite[i] = exciteMgrOut_.cmdExcite[i];
+    exciteMgrLog.cmdExcite[i] = ExciteMgrOut.cmdExcite[i];
   }
 
   return exciteMgrLog;

@@ -52,7 +52,7 @@ class Navigation {
     void InitializeNavigation(const FmuData fmuData);
     void RunNavigation(const FmuData fmuData, NavOut *NavOutPtr);
     bool Initialized = false;
-    NavLog Log();
+    NavLog Log(const NavOut& navOut);
 
   private:
     EKF15 *ekf_;

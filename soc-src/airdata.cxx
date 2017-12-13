@@ -110,3 +110,18 @@ float Filt::LowPass1(const float& meas)
 	return y;
 }
 
+AirdataLog Airdata::Log(const AirdataOut& airdataOut)
+{
+  AirdataLog airdataLog;
+
+  airdataLog.temp_C = airdataOut.temp_C;
+
+  airdataLog.alt_m = airdataOut.alt_m;
+  airdataLog.altFilt_m = airdataOut.altFilt_m;
+
+  airdataLog.vIas_mps = airdataOut.vIas_mps;
+  airdataLog.vIas_mps = airdataOut.vIas_mps;
+
+  return airdataLog;
+}
+

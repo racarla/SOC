@@ -11,20 +11,26 @@ History:
 #include <iostream>
 
 
-void CntrlMgr::Init()
+void CntrlMgr::Init(const CntrlAllocDef& cntrlAllocDef)
 {
   cntrlMgrOut_.mode = kCntrlReset; // Controller mode
 
   timePrevBase_s_ = 0.0;
   timePrevRes_s_ = 0.0;
 
-  cntrlMgrOut_.cmdBase.setZero(kMaxCntrlCmd);
-  cntrlMgrOut_.cmdRes.setZero(kMaxCntrlCmd);
-  cntrlMgrOut_.cmd.setZero(kMaxCntrlCmd);
+  cntrlMgrOut_.cmdCntrlBase.setZero(kMaxCntrlCmd);
+  cntrlMgrOut_.cmdCntrlRes.setZero(kMaxCntrlCmd);
+  cntrlMgrOut_.cmdCntrl.setZero(kMaxCntrlCmd);
+  cntrlMgrOut_.cmdEff.setZero(kMaxCntrlEff);
 
 
   CntrlBaseDef();
   CntrlResDef();
+
+  cntrlAllocDef_ = cntrlAllocDef;
+
+  numObj_ = cntrlAllocDef_.cntrlEff.rows();
+  numEff_ = cntrlAllocDef_.cntrlEff.cols();
 };
 
 
@@ -96,68 +102,76 @@ void CntrlMgr::Mode(CntrlMode mode)
 }
 
 // Define the Baseline Controller - FIXIT
-VecCmd CntrlMgr::CmdBase(const VecCmd& refVec, float time_s)
+VecCmd CntrlMgr::CmdCntrlBase(const VecCmd& refVec, float time_s)
 {
   if (timePrevBase_s_ <= 0.0) timePrevBase_s_ = time_s;
   timePrevBase_s_ = time_s;
 
   // Zero the Command - FIXIT shouldn't be required, variable size
-  cntrlMgrOut_.cmdBase.setZero(kMaxCntrlCmd);
+  cntrlMgrOut_.cmdCntrlBase.setZero(kMaxCntrlCmd);
 
   // Run the Controllers
-  cntrlMgrOut_.cmdBase[0] = baseRoll_.Compute(refVec[0]);
-  cntrlMgrOut_.cmdBase[1] = basePitch_.Compute(refVec[1]);
-  cntrlMgrOut_.cmdBase[2] = baseYaw_.Compute(refVec[2]);
-  cntrlMgrOut_.cmdBase[3] = baseSpeed_.Compute(refVec[3]);
+  cntrlMgrOut_.cmdCntrlBase[0] = baseRoll_.Compute(refVec[0]);
+  cntrlMgrOut_.cmdCntrlBase[1] = basePitch_.Compute(refVec[1]);
+  cntrlMgrOut_.cmdCntrlBase[2] = baseYaw_.Compute(refVec[2]);
+  cntrlMgrOut_.cmdCntrlBase[3] = baseSpeed_.Compute(refVec[3]);
 
-  return cntrlMgrOut_.cmdBase;
+  return cntrlMgrOut_.cmdCntrlBase;
 }
 
 // Define the Research Controller - FIXIT
-VecCmd CntrlMgr::CmdRes(const VecCmd& refVec, const VecCmd& measVec, const VecCmd& dMeasVec, float time_s)
+VecCmd CntrlMgr::CmdCntrlRes(const VecCmd& refVec, const VecCmd& measVec, const VecCmd& dMeasVec, float time_s)
 {
   if (timePrevRes_s_ <= 0.0) timePrevRes_s_ = time_s;
   float dt_s = time_s - timePrevRes_s_;
   timePrevRes_s_ = time_s;
 
   // Zero the Command - FIXIT shouldn't be required, variable size
-  cntrlMgrOut_.cmdRes.setZero(kMaxCntrlCmd);
+  cntrlMgrOut_.cmdCntrlRes.setZero(kMaxCntrlCmd);
 
   // Run the Controllers
-  cntrlMgrOut_.cmdRes[0] = resRoll_.Compute(refVec[0], dMeasVec[0]);
-  cntrlMgrOut_.cmdRes[1] = resPitch_.Compute(refVec[1], dMeasVec[1]);
-  cntrlMgrOut_.cmdRes[2] = resYaw_.Compute(refVec[2], dMeasVec[2]);
-  //cntrlMgrOut_.cmdRes[0] = resRoll_.Compute(refVec[0], measVec[0], dMeasVec[0], dt_s);
-  //cntrlMgrOut_.cmdRes[1] = resPitch_.Compute(refVec[1], measVec[1], dMeasVec[1], dt_s);
-  //cntrlMgrOut_.cmdRes[2] = resYaw_.Compute(refVec[2], measVec[2], dMeasVec[2], dt_s);
-  cntrlMgrOut_.cmdRes[3] = resSpeed_.Compute(refVec[3], measVec[3], dt_s);
+  cntrlMgrOut_.cmdCntrlRes[0] = resRoll_.Compute(refVec[0], dMeasVec[0]);
+  cntrlMgrOut_.cmdCntrlRes[1] = resPitch_.Compute(refVec[1], dMeasVec[1]);
+  cntrlMgrOut_.cmdCntrlRes[2] = resYaw_.Compute(refVec[2], dMeasVec[2]);
+  //cntrlMgrOut_.cmdCntrlRes[0] = resRoll_.Compute(refVec[0], measVec[0], dMeasVec[0], dt_s);
+  //cntrlMgrOut_.cmdCntrlRes[1] = resPitch_.Compute(refVec[1], measVec[1], dMeasVec[1], dt_s);
+  //cntrlMgrOut_.cmdCntrlRes[2] = resYaw_.Compute(refVec[2], measVec[2], dMeasVec[2], dt_s);
+  cntrlMgrOut_.cmdCntrlRes[3] = resSpeed_.Compute(refVec[3], measVec[3], dt_s);
 
-//std::cout << resRoll_.iErr_ << "\t";
-//std::cout << resPitch_.iErr_ << "\t";
-//std::cout << resYaw_.iErr_ << "\t";
-//std::cout << refVec[3] << "\t";
-//std::cout << measVec[3] << "\t";
-//std::cout << resSpeed_.iErr_ << "\t";
-//std::cout << cntrlMgrOut_.cmdRes[3] << "\t";
 
-  return cntrlMgrOut_.cmdRes;
+  return cntrlMgrOut_.cmdCntrlRes;
 }
 
-CntrlMgrOut CntrlMgr::Cmd() {
+CntrlMgrOut CntrlMgr::CmdCntrl() {
 
   // Zero the Command - FIXIT shouldn't be required, variable size
-  cntrlMgrOut_.cmd.setZero(kMaxCntrlCmd);
+  cntrlMgrOut_.cmdCntrl.setZero(kMaxCntrlCmd);
 
   // Switch the Command output to the Research Controller when engaged
   if (cntrlMgrOut_.mode == kCntrlEngage)
   {
-    cntrlMgrOut_.cmd = cntrlMgrOut_.cmdRes;
+    cntrlMgrOut_.cmdCntrl = cntrlMgrOut_.cmdCntrlRes;
   } else {
-    cntrlMgrOut_.cmd = cntrlMgrOut_.cmdBase;
+    cntrlMgrOut_.cmdCntrl = cntrlMgrOut_.cmdCntrlBase;
   }
+
+  cntrlMgrOut_.vObj = cntrlMgrOut_.cmdCntrl.head(kMaxAllocObj); // FIXIT - Want roll, pitch, yaw components
+  cntrlMgrOut_.cmdAlloc = AllocCompute(cntrlMgrOut_.vObj);
 
   return cntrlMgrOut_;
 }
+
+
+VecAllocEff CntrlMgr::AllocCompute(const VecAllocObj& vObj)
+{
+  VecAllocEff cmdAlloc = cntrlAllocDef_.uPref;
+
+  cmdAlloc = CntrlAllocPseudo(cntrlAllocDef_.cntrlEff, vObj, cntrlAllocDef_.uPref);
+
+  return cmdAlloc;
+
+}
+
 
 // Baseline Controller Definition
 void CntrlMgr::CntrlBaseDef()
@@ -166,7 +180,7 @@ void CntrlMgr::CntrlBaseDef()
 
   // Command Range Limits, stick -1 to 1, converts to ref -100 to 100
   VecCmd refScale(numCmd);
-  refScale[0] = 100*kD2R; // Roll rate range [rad/s]
+  refScale[0] = 60*kD2R; // Roll rate range [rad/s]
   refScale[1] = 60*kD2R;  // Pitch rate range [rad/s]
   refScale[2] = 30*kD2R;  // Yaw rate range [rad/s]
   refScale[3] = 1;        // Throttle range [nd]
@@ -198,17 +212,17 @@ void CntrlMgr::CntrlResDef()
 
   // Command Range Limits, stick -1 to 1, converts to ref -60 to 60
   VecCmd refScale(numCmd);
-  refScale[0] = 100*kD2R; // Roll rate range [rad/s]
+  refScale[0] = 60*kD2R; // Roll rate range [rad/s]
   refScale[1] = 60*kD2R;  // Pitch rate range [rad/s]
   refScale[2] = 30*kD2R;  // Yaw rate range [rad/s]
   refScale[3] = 30;      // Speed range [m/s]
 
   // Command Range Limits, limits of the aircraft capability
   VecCmd cmdRngMin(numCmd), cmdRngMax(numCmd);
-  cmdRngMax[0]  = refScale[0]; cmdRngMin[0] = -cmdRngMax[0]; // Roll rate command range [rad/s]
-  cmdRngMax[1]  = refScale[1]; cmdRngMin[1] = -cmdRngMax[1]; // Pitch rate command range [rad/s]
-  cmdRngMax[2]  = refScale[2]; cmdRngMin[2] = -cmdRngMax[2]; // Yaw rate command range [rad/s]
-  cmdRngMax[3]  = 1; cmdRngMin[3] = 0; // Throttle command range [nd]
+  cmdRngMax[0] = refScale[0]; cmdRngMin[0] = -cmdRngMax[0]; // Roll rate command range [rad/s]
+  cmdRngMax[1] = refScale[1]; cmdRngMin[1] = -cmdRngMax[1]; // Pitch rate command range [rad/s]
+  cmdRngMax[2] = refScale[2]; cmdRngMin[2] = -cmdRngMax[2]; // Yaw rate command range [rad/s]
+  cmdRngMax[3] = 1; cmdRngMin[3] = 0; // Throttle command range [nd]
 
   // Correct for the reference and command range scales
   VecCmd cmdScale(numCmd);
@@ -219,10 +233,10 @@ void CntrlMgr::CntrlResDef()
 
   // Controller Parameters, corrected to the normalized I/O ranges
   VecCmd Kp(numCmd), Ki(numCmd), Kd(numCmd);
-  Kp[0] = 0.52 * cmdScale[0], Ki[0] = 0.385 * Kp[0], Kd[0] = 10 * -0.08; // FIXIT Gains
-  Kp[1] = 0.84 * cmdScale[1], Ki[1] = 0.274 * Kp[1], Kd[1] = 10 * -0.08;
-  Kp[2] = 0.50 * cmdScale[2], Ki[2] = 0.000 * Kp[2], Kd[2] = 10 * -0.08;
-  Kp[3] = 0.50 * cmdScale[3], Ki[3] = 0.219 * Kp[3], Kd[3] = 0.0;
+  Kp[0] = 0.40 * cmdScale[0], Ki[0] = 0.400 * Kp[0], Kd[0] = 0.08;
+  Kp[1] = 0.75 * cmdScale[1], Ki[1] = 0.500 * Kp[1], Kd[1] = 0.10;
+  Kp[2] = 0.04 * cmdScale[2], Ki[2] = 0.000 * Kp[2], Kd[2] = 0.12;
+  Kp[3] = 3.00 * cmdScale[3], Ki[3] = 0.350 * Kp[3], Kd[3] = 0.00;
 
   // Initialize Individual Controllers
   resRoll_.Init(refScale[0], cmdRngMin[0], cmdRngMax[0], Kd[0]);
@@ -238,16 +252,28 @@ void CntrlMgr::CntrlResDef()
 }
 
 
-CntrlMgrLog CntrlMgr::Log()
+CntrlMgrLog CntrlMgr::Log(const CntrlMgrOut& cntrlMgrOut)
 {
   CntrlMgrLog cntrlMgrLog;
 
-  cntrlMgrLog.mode = cntrlMgrOut_.mode;
+  cntrlMgrLog.mode = cntrlMgrOut.mode;
 
   for (int i = 0; i < kMaxCntrlCmd; i++) {
-    cntrlMgrLog.cmdBase[i] = cntrlMgrOut_.cmdBase[i];
-    cntrlMgrLog.cmdRes[i] = cntrlMgrOut_.cmdRes[i];
-    cntrlMgrLog.cmd[i] = cntrlMgrOut_.cmd[i];
+    cntrlMgrLog.cmdCntrlBase[i] = cntrlMgrOut.cmdCntrlBase[i];
+    cntrlMgrLog.cmdCntrlRes[i] = cntrlMgrOut.cmdCntrlRes[i];
+    cntrlMgrLog.cmdCntrl[i] = cntrlMgrOut.cmdCntrl[i];
+  }
+
+  for (int i = 0; i < kMaxAllocEff; i++) {
+    cntrlMgrLog.cmdAlloc[i] = cntrlMgrOut.cmdAlloc[i];
+  }
+
+  for (int i = 0; i < kMaxCntrlEff; i++) {
+    cntrlMgrLog.cmdEff[i] = cntrlMgrOut.cmdEff[i];
+  }
+
+  for (int i = 0; i < kMaxAllocObj; i++) {
+    cntrlMgrLog.vObj[i] = cntrlMgrOut.vObj[i];
   }
 
   return cntrlMgrLog;

@@ -94,15 +94,16 @@ MissMgrOut MissMgr::ModeMgr(const FmuData& FmuDataRef)
         } else if (testEngage_ == 1) {
           testEngage_ = 0;
         }
-
-      } else if ((testSwitch < -0.5) & (testEngage_== 0)) {
+      } else if ((testSwitch <= -0.5) & (testEngage_== 0)) {
         indxTest_--;
         if (indxTest_ <= 1) indxTest_ = 1;
 
-      } else if ((testSwitch > 0.5) & (testEngage_== 0))  {
+      } else if ((testSwitch >= 0.5) & (testEngage_== 0))  {
         indxTest_++;
         if (indxTest_ >= numTest_) indxTest_ = numTest_;
       }
+    } else if ((testSwitch <= -0.5) | (testSwitch >= 0.5)) { // Exit testEngage if the select switch isn't in middle position
+      testEngage_ = 0;
     } // If Trigger
 
   } else {
@@ -117,9 +118,6 @@ MissMgrOut MissMgr::ModeMgr(const FmuData& FmuDataRef)
 
   missMgrData_.cntrlMode = cntrlMode_;
   missMgrData_.numTest = numTest_; // Number of test points
-
-  missMgrData_.trigArm = trigArm_;
-  missMgrData_.trigEngage = trigEngage_;
 
   missMgrData_.testArm = testArm_;
   missMgrData_.testEngage = testEngage_; // Flag to engage excitation
@@ -144,4 +142,29 @@ void MissMgr::Reset()
 
   testArm_ = 0;
   testEngage_ = 0;
+}
+
+
+MissMgrLog MissMgr::Log(const MissMgrOut& missMgrOut)
+{
+  MissMgrLog missMgrLog;
+
+  missMgrLog.time_s = missMgrOut.time_s;
+  missMgrLog.frame_cnt = missMgrOut.frame_cnt;
+
+  missMgrLog.autoEngage = missMgrOut.autoEngage;
+  missMgrLog.cntrlMode = missMgrOut.cntrlMode;
+
+  missMgrLog.testArm = missMgrOut.testArm;
+  missMgrLog.testEngage = missMgrOut.testEngage;
+  missMgrLog.indxTest = missMgrOut.indxTest;
+
+  missMgrLog.timeSens_ms = missMgrOut.timeSens_ms;
+  missMgrLog.timeMissMgr_ms = missMgrOut.timeMissMgr_ms;
+  missMgrLog.timeSensProc_ms = missMgrOut.timeSensProc_ms;
+  missMgrLog.timeExciteMgr_ms = missMgrOut.timeExciteMgr_ms;
+  missMgrLog.timeGuidMgr_ms = missMgrOut.timeGuidMgr_ms;
+  missMgrLog.timeCmd_ms = missMgrOut.timeCmd_ms;
+
+  return missMgrLog;
 }

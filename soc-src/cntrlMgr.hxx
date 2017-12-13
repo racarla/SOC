@@ -11,28 +11,64 @@ History:
 #define CNTRLMGR_HXX_
 
 #include <Eigen/Core>
+#include <math.h>
+#include <stdint.h>
 
 #ifndef kMaxCntrlCmd
 #define kMaxCntrlCmd 4
 #endif
 
+#ifndef kMaxCntrlEff
+#define kMaxCntrlEff 7
+#endif
+
+#ifndef kMaxAllocObj
+#define kMaxAllocObj 3
+#endif
+
+#ifndef kMaxAllocEff
+#define kMaxAllocEff 6
+#endif
+
 #include "cntrlFunc.hxx"
+#include "cntrlAllocFunc.hxx"
 
 typedef Eigen::Matrix<float, -1, 1, 0, kMaxCntrlCmd, 1> VecCmd;
+typedef Eigen::Matrix<float, -1, 1, 0, kMaxCntrlEff, 1> VecEff;
+
+typedef Eigen::Matrix<float, -1, 1, 0, kMaxAllocObj, 1> VecAllocObj;
+typedef Eigen::Matrix<float, -1, 1, 0, kMaxAllocEff, 1> VecAllocEff;
 
 struct CntrlMgrOut {
-  VecCmd cmdBase;
-  VecCmd cmdRes;
-  VecCmd cmd;
   CntrlMode mode;
+  VecCmd cmdCntrlBase;
+  VecCmd cmdCntrlRes;
+  VecCmd cmdCntrl;
+  VecAllocObj vObj;
+  VecAllocEff cmdAlloc;
+  VecEff cmdEff;
 };
 
 struct CntrlMgrLog {
-  float cmdBase[kMaxCntrlCmd] = {0};
-  float cmdRes[kMaxCntrlCmd] = {0};
-  float cmd[kMaxCntrlCmd] = {0};
   CntrlMode mode;
+  float cmdCntrlBase[kMaxCntrlCmd] = {0};
+  float cmdCntrlRes[kMaxCntrlCmd] = {0};
+  float cmdCntrl[kMaxCntrlCmd] = {0};
+  float cmdEff[kMaxCntrlEff] = {0};
+
+  float vObj[kMaxAllocObj] = {0};
+  float cmdAlloc[kMaxAllocEff] = {0};
 };
+
+struct CntrlAllocDef {
+  MatCntrlEff cntrlEff;
+  MatObj wtObj;
+  MatEff wtEff;
+  VecAllocEff uMin;
+  VecAllocEff uMax;
+  VecAllocEff uPref;
+};
+
 
 class CntrlMgr {
  public:
@@ -40,15 +76,20 @@ class CntrlMgr {
   CntrlMgr() {};   // Constructor
   ~CntrlMgr() {};  // Destructor
 
-  void Init();     // Initialize controllers and excitations
+  void Init(const CntrlAllocDef& cntrlAllocDef);     // Initialize controllers and excitations
   void Mode(CntrlMode mode);     // Control the Mode of all the controllers
 
-  VecCmd CmdBase(const VecCmd& refVec, float time_s);
-  VecCmd CmdRes(const VecCmd& refVec, const VecCmd& measVec, const VecCmd& dMeasVec, float time_s);
-  CntrlMgrOut Cmd();      // Compute Controller Commands
-  CntrlMgrLog Log();
+  VecCmd CmdCntrlBase(const VecCmd& refVec, float time_s);
+  VecCmd CmdCntrlRes(const VecCmd& refVec, const VecCmd& measVec, const VecCmd& dMeasVec, float time_s);
+  CntrlMgrOut CmdCntrl();      // Compute Controller Commands
 
+  VecAllocEff AllocCompute(const VecAllocObj& vObj);
+
+  CntrlMgrLog Log(const CntrlMgrOut& cntrlMgrOut);
+  
  private:
+  uint8_t numObj_;
+  uint8_t numEff_;
   CntrlMgrOut cntrlMgrOut_;
 
   float timePrevBase_s_, timePrevRes_s_;
@@ -60,6 +101,9 @@ class CntrlMgr {
 
   void CntrlBaseDef();
   void CntrlResDef();
+
+  CntrlAllocDef cntrlAllocDef_;
 };
+
 
 #endif // CNTRLMGR_HXX_

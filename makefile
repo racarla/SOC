@@ -41,7 +41,6 @@ $(DIR_FLIGHT)/cntrlMgr.cxx \
 $(DIR_FLIGHT)/cntrlFunc.cxx \
 $(DIR_FLIGHT)/exciteMgr.cxx \
 $(DIR_FLIGHT)/exciteGenFunc.cxx \
-$(DIR_FLIGHT)/cntrlAllocMgr.cxx \
 $(DIR_FLIGHT)/cntrlAllocFunc.cxx \
 $(DIR_FLIGHT)/main.cxx
 
