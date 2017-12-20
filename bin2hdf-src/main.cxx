@@ -811,9 +811,9 @@ int main(int argc, char* argv[]) {
   m = 0;
   for (size_t k=0; k < NumberRecords; k++) {
     data4D[m] = exciteMgrLog[k].cmdExcite[0];
-    data4D[m+1] = exciteMgrLog[k].cmdExcite[0];
-    data4D[m+2] = exciteMgrLog[k].cmdExcite[0];
-    data4D[m+3] = exciteMgrLog[k].cmdExcite[0];
+    data4D[m+1] = exciteMgrLog[k].cmdExcite[1];
+    data4D[m+2] = exciteMgrLog[k].cmdExcite[2];
+    data4D[m+3] = exciteMgrLog[k].cmdExcite[3];
     m = m + 4;
   }
   Logger.WriteData(GroupName,"cmdExcite",data4D,"Excitation Commands, mag",NumberRecords,4);

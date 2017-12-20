@@ -101,11 +101,19 @@ void CntrlMgr::Mode(CntrlMode mode)
   }
 }
 
+
 // Define the Baseline Controller - FIXIT
-VecCmd CntrlMgr::CmdCntrlBase(const VecCmd& refVec, float time_s)
+VecCmd CntrlMgr::CmdCntrlBase(const float& time_s, const FmuData& fmuData, const NavOut& navOut, const AirdataOut& airdataOut)
 {
   if (timePrevBase_s_ <= 0.0) timePrevBase_s_ = time_s;
   timePrevBase_s_ = time_s;
+
+
+  VecCmd refVec(kMaxCntrlCmd);
+  refVec[0] = fmuData.SbusRx[0].Inceptors[0];
+  refVec[1] = fmuData.SbusRx[0].Inceptors[1];
+  refVec[2] = fmuData.SbusRx[0].Inceptors[2];
+  refVec[3] = fmuData.SbusRx[0].Inceptors[4];
 
   // Zero the Command - FIXIT shouldn't be required, variable size
   cntrlMgrOut_.cmdCntrlBase.setZero(kMaxCntrlCmd);
@@ -120,22 +128,38 @@ VecCmd CntrlMgr::CmdCntrlBase(const VecCmd& refVec, float time_s)
 }
 
 // Define the Research Controller - FIXIT
-VecCmd CntrlMgr::CmdCntrlRes(const VecCmd& refVec, const VecCmd& measVec, const VecCmd& dMeasVec, float time_s)
+VecCmd CntrlMgr::CmdCntrlRes(const float& time_s, const FmuData& fmuData, const NavOut& navOut, const AirdataOut& airdataOut)
 {
   if (timePrevRes_s_ <= 0.0) timePrevRes_s_ = time_s;
   float dt_s = time_s - timePrevRes_s_;
   timePrevRes_s_ = time_s;
 
+
+  VecCmd refVec(kMaxCntrlCmd);
+  refVec[0] = fmuData.SbusRx[0].Inceptors[0];
+  refVec[1] = fmuData.SbusRx[0].Inceptors[1];
+  refVec[2] = fmuData.SbusRx[0].Inceptors[2];
+  refVec[3] = 17; // Command speed - FIXIT - Pass-in
+
+  VecCmd measVec(kMaxCntrlCmd);
+  measVec[0] = navOut.Euler_rad[0];
+  measVec[1] = navOut.Euler_rad[1];
+  measVec[2] = navOut.Euler_rad[2];
+  measVec[3] = airdataOut.vIasFilt_mps;
+
+  VecCmd dMeasVec(kMaxCntrlCmd);
+  dMeasVec[0] = fmuData.Mpu9250.Gyro_rads[0];
+  dMeasVec[1] = fmuData.Mpu9250.Gyro_rads[1];
+  dMeasVec[2] = fmuData.Mpu9250.Gyro_rads[2];
+  dMeasVec[3] = 0.0;
+
   // Zero the Command - FIXIT shouldn't be required, variable size
   cntrlMgrOut_.cmdCntrlRes.setZero(kMaxCntrlCmd);
 
   // Run the Controllers
-  cntrlMgrOut_.cmdCntrlRes[0] = resRoll_.Compute(refVec[0], dMeasVec[0]);
-  cntrlMgrOut_.cmdCntrlRes[1] = resPitch_.Compute(refVec[1], dMeasVec[1]);
-  cntrlMgrOut_.cmdCntrlRes[2] = resYaw_.Compute(refVec[2], dMeasVec[2]);
-  //cntrlMgrOut_.cmdCntrlRes[0] = resRoll_.Compute(refVec[0], measVec[0], dMeasVec[0], dt_s);
-  //cntrlMgrOut_.cmdCntrlRes[1] = resPitch_.Compute(refVec[1], measVec[1], dMeasVec[1], dt_s);
-  //cntrlMgrOut_.cmdCntrlRes[2] = resYaw_.Compute(refVec[2], measVec[2], dMeasVec[2], dt_s);
+  cntrlMgrOut_.cmdCntrlRes[0] = resRoll_.Compute(refVec[0], measVec[0], dMeasVec[0], dt_s);
+  cntrlMgrOut_.cmdCntrlRes[1] = resPitch_.Compute(refVec[1], measVec[1], dMeasVec[1], dt_s);
+  cntrlMgrOut_.cmdCntrlRes[2] = resYaw_.Compute(refVec[2], measVec[2], dMeasVec[2], dt_s);
   cntrlMgrOut_.cmdCntrlRes[3] = resSpeed_.Compute(refVec[3], measVec[3], dt_s);
 
 
@@ -171,7 +195,6 @@ VecAllocEff CntrlMgr::AllocCompute(const VecAllocObj& vObj)
   return cmdAlloc;
 
 }
-
 
 // Baseline Controller Definition
 void CntrlMgr::CntrlBaseDef()
@@ -233,15 +256,15 @@ void CntrlMgr::CntrlResDef()
 
   // Controller Parameters, corrected to the normalized I/O ranges
   VecCmd Kp(numCmd), Ki(numCmd), Kd(numCmd);
-  Kp[0] = 0.40 * cmdScale[0], Ki[0] = 0.400 * Kp[0], Kd[0] = 0.08;
-  Kp[1] = 0.75 * cmdScale[1], Ki[1] = 0.500 * Kp[1], Kd[1] = 0.10;
-  Kp[2] = 0.04 * cmdScale[2], Ki[2] = 0.000 * Kp[2], Kd[2] = 0.12;
-  Kp[3] = 3.00 * cmdScale[3], Ki[3] = 0.350 * Kp[3], Kd[3] = 0.00;
+  Kp[0] = 0.64 * cmdScale[0], Ki[0] = 0.20 * cmdScale[0], Kd[0] = 0.070;
+  Kp[1] = 0.90 * cmdScale[1], Ki[1] = 0.30 * cmdScale[1], Kd[1] = 0.080;
+  Kp[2] = 0.00 * cmdScale[2], Ki[2] = 0.00 * cmdScale[2], Kd[2] = 0.000;
+  Kp[3] = 4.50 * cmdScale[3], Ki[3] = 1.20 * cmdScale[3], Kd[3] = 0.000;
 
   // Initialize Individual Controllers
-  resRoll_.Init(refScale[0], cmdRngMin[0], cmdRngMax[0], Kd[0]);
-  resPitch_.Init(refScale[1], cmdRngMin[1], cmdRngMax[1], Kd[1]);
-  resYaw_.Init(refScale[2], cmdRngMin[2], cmdRngMax[2], Kd[2]);
+  resRoll_.Init(refScale[0], cmdRngMin[0], cmdRngMax[0], Kp[0], Ki[0], Kd[0]);
+  resPitch_.Init(refScale[1], cmdRngMin[1], cmdRngMax[1], Kp[1], Ki[1], Kd[1]);
+  resYaw_.Init(refScale[2], cmdRngMin[2], cmdRngMax[2], Kp[2], Ki[2], Kd[2]);
   resSpeed_.Init(1.0, cmdRngMin[3], cmdRngMax[3], Kp[3], Ki[3]);
 
   // Set the initial controller mode

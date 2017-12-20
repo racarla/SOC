@@ -345,10 +345,10 @@ float CntrlPiDamp::CalcCmd(const float& err, const float& dErr)
 	// saturate cmd, set iErr to limit that produces saturated cmd
 	if (cmd <= cmdMin_) {
 		cmd = cmdMin_;
-		//InitState(cmd, err, 0.0); // Re-compute the integrator state
+		InitState(cmd, err, 0.0); // Re-compute the integrator state
 	} else if (cmd >= cmdMax_) {
 		cmd = cmdMax_;
-		//InitState(cmd, err, 0.0); // Re-compute the integrator state
+		InitState(cmd, err, 0.0); // Re-compute the integrator state
 	}
 //std::cout << "CMD   \n" << err << "\t" << pCmd << "\t" << iErr_ << "\t" <<  iCmd << "\t" <<  dCmd << "\t" << cmd << std::endl;
 }

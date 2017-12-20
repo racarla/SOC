@@ -171,15 +171,15 @@ int main(int argc, char* argv[]) {
       // Execute inner-loop control law
       cntrlMgr.Mode(missMgrOut.cntrlMode); // Transfer the Mission Control mode to the Controller Manager
 
-std::cout << missMgrOut.time_s << "\t";
-std::cout << missMgrOut.frame_cnt << "\t";
-std::cout << missMgrOut.autoEngage << "  ";
-std::cout << missMgrOut.cntrlMode << "  ";
-std::cout << missMgrOut.testArm << "  ";
-std::cout << missMgrOut.testEngage << "  ";
-std::cout << (int) missMgrOut.indxTest << "\t";
+//std::cout << missMgrOut.time_s << "\t";
+//std::cout << missMgrOut.frame_cnt << "\t";
+//std::cout << missMgrOut.autoEngage << "  ";
+//std::cout << missMgrOut.cntrlMode << "  ";
+//std::cout << missMgrOut.testArm << "  ";
+//std::cout << missMgrOut.testEngage << "  ";
+//std::cout << (int) missMgrOut.indxTest << "\t";
 
-std::cout << std::setw(10);
+//std::cout << std::setw(10);
 
 //std::cout << airdataOut.alt_m << "\t";
 //std::cout << airdataOut.altFilt_m << "\t\t";
@@ -191,42 +191,14 @@ std::cout << std::setw(10);
 //std::cout << fmuData.PressureTransducer[2].Pressure_Pa << "\t";
 //std::cout << fmuData.PressureTransducer[3].Pressure_Pa << "\t";
 
-      VecCmd refVecBase(kMaxCntrlCmd);
-      refVecBase[0] = fmuData.SbusRx[0].Inceptors[0];
-      refVecBase[1] = fmuData.SbusRx[0].Inceptors[1];
-      refVecBase[2] = fmuData.SbusRx[0].Inceptors[2];
-      refVecBase[3] = fmuData.SbusRx[0].Inceptors[4];
-//std::cout << refVecBase.transpose() << "\t\t";
-//std::cout << refVecBase[0] << "\t\t";
-
-      VecCmd refVecRes(kMaxCntrlCmd);
-      refVecRes[0] = fmuData.SbusRx[0].Inceptors[0];
-      refVecRes[1] = fmuData.SbusRx[0].Inceptors[1];
-      refVecRes[2] = fmuData.SbusRx[0].Inceptors[2];
-      refVecRes[3] = 17; // Command speed
-//std::cout << refVecRes.transpose() << "\t\t";
-
-      VecCmd measVec(kMaxCntrlCmd);
-      measVec[0] = navOut.Euler_rad[0];
-      measVec[1] = navOut.Euler_rad[1];
-      measVec[2] = navOut.Euler_rad[2];
-      measVec[3] = airdataOut.vIasFilt_mps;
-//std::cout << measVec.transpose() << "\t";
-
-      VecCmd dMeasVec(kMaxCntrlCmd);
-      dMeasVec[0] = fmuData.Mpu9250.Gyro_rads[0];
-      dMeasVec[1] = fmuData.Mpu9250.Gyro_rads[1];
-      dMeasVec[2] = fmuData.Mpu9250.Gyro_rads[2];
-      dMeasVec[3] = 0.0;
-//std::cout << dMeasVec.transpose() << "\t";
 
       // Apply command excitations
       exciteMgrOut = exciteMgr.Compute(missMgrOut.testEngage, missMgrOut.indxTest, missMgrOut.time_s);
 //std::cout << exciteMgrOut.cmdExcite.transpose()/kD2R << "\t";
 
       // Run the controllers
-      cntrlMgr.CmdCntrlBase(refVecBase, missMgrOut.time_s);
-      cntrlMgr.CmdCntrlRes(refVecRes, measVec, dMeasVec, missMgrOut.time_s);
+      cntrlMgr.CmdCntrlBase(missMgrOut.time_s, fmuData, navOut, airdataOut);
+      cntrlMgr.CmdCntrlRes(missMgrOut.time_s, fmuData, navOut, airdataOut);
       cntrlMgrOut = cntrlMgr.CmdCntrl();
 //std::cout << cntrlMgrOut.cmdCntrl.transpose() << "\t";
 //std::cout << cntrlMgrOut.cmdCntrl[0] << "\t\t";
@@ -262,7 +234,7 @@ std::cout << std::setw(10);
 
       // telemetry
 
-      std::cout << std::endl;
+// std::cout << std::endl;
     }
   }
 

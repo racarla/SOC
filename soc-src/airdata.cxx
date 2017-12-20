@@ -120,7 +120,7 @@ AirdataLog Airdata::Log(const AirdataOut& airdataOut)
   airdataLog.altFilt_m = airdataOut.altFilt_m;
 
   airdataLog.vIas_mps = airdataOut.vIas_mps;
-  airdataLog.vIas_mps = airdataOut.vIas_mps;
+  airdataLog.vIasFilt_mps = airdataOut.vIasFilt_mps;
 
   return airdataLog;
 }

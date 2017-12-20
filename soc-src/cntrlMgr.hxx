@@ -32,6 +32,11 @@ History:
 
 #include "cntrlFunc.hxx"
 #include "cntrlAllocFunc.hxx"
+#include "cntrlAllocFunc.hxx"
+#include "navigation.hxx"
+#include "structs.hxx"
+#include "airdata.hxx"
+#include "fmu.hxx"
 
 typedef Eigen::Matrix<float, -1, 1, 0, kMaxCntrlCmd, 1> VecCmd;
 typedef Eigen::Matrix<float, -1, 1, 0, kMaxCntrlEff, 1> VecEff;
@@ -79,14 +84,14 @@ class CntrlMgr {
   void Init(const CntrlAllocDef& cntrlAllocDef);     // Initialize controllers and excitations
   void Mode(CntrlMode mode);     // Control the Mode of all the controllers
 
-  VecCmd CmdCntrlBase(const VecCmd& refVec, float time_s);
-  VecCmd CmdCntrlRes(const VecCmd& refVec, const VecCmd& measVec, const VecCmd& dMeasVec, float time_s);
+  VecCmd CmdCntrlBase(const float& time_s, const FmuData& fmuData, const NavOut& navOut, const AirdataOut& airdataOut);
+  VecCmd CmdCntrlRes(const float& time_s, const FmuData& fmuData, const NavOut& navOut, const AirdataOut& airdataOut);
   CntrlMgrOut CmdCntrl();      // Compute Controller Commands
 
   VecAllocEff AllocCompute(const VecAllocObj& vObj);
 
   CntrlMgrLog Log(const CntrlMgrOut& cntrlMgrOut);
-  
+
  private:
   uint8_t numObj_;
   uint8_t numEff_;
@@ -94,9 +99,10 @@ class CntrlMgr {
 
   float timePrevBase_s_, timePrevRes_s_;
 
-  CntrlManual baseRoll_, basePitch_, baseYaw_, baseSpeed_;
-  //CntrlPiDamp resRoll_, resPitch_, resYaw_, resSpeed_;
-  CntrlDamp resRoll_, resPitch_, resYaw_;
+  CntrlManual baseRoll_, basePitch_, baseYaw_;
+  CntrlManual baseSpeed_;
+  
+  CntrlPiDamp resRoll_, resPitch_, resYaw_;
   CntrlPi resSpeed_;
 
   void CntrlBaseDef();
