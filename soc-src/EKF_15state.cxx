@@ -112,8 +112,8 @@ NAVdata EKF15::init(IMUdata imu, GPSdata gps) {
     nav.Pgbx = P(12,12);  nav.Pgby = P(13,13);  nav.Pgbz = P(14,14);
 	
     // .. then initialize states with GPS Data
-    nav.lat = gps.lat*D2R;
-    nav.lon = gps.lon*D2R;
+    nav.lat = gps.lat;
+    nav.lon = gps.lon;
     nav.alt = gps.alt;
 	
     nav.vn = gps.vn;
@@ -288,8 +288,8 @@ NAVdata EKF15::update(IMUdata imu, GPSdata gps) {
 	pos_ref(2) = 0.0;
 	pos_ins_ned = ecef2ned(pos_ins_ecef, pos_ref);
 		
-	pos_gps(0) = gps.lat*D2R;
-	pos_gps(1) = gps.lon*D2R;
+	pos_gps(0) = gps.lat;
+	pos_gps(1) = gps.lon;
 	pos_gps(2) = gps.alt;
 		
 	pos_gps_ecef = lla2ecef(pos_gps);
