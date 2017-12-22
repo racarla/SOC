@@ -125,7 +125,7 @@ NAVdata EKF15::init(IMUdata imu, GPSdata gps) {
     nav.the = asin(imu.ax/g); 
     // phi from Ay, aircraft at rest
     nav.phi = asin(imu.ay/(g*cos(nav.the))); 
-    nav.psi = 90*D2R - atan2(imu.hx, imu.hy);
+    nav.psi = M_PI / 2.0f - atan2(imu.hx, imu.hy);
 	
     quat = eul2quat(nav.phi, nav.the, nav.psi);
     nav.qw = quat.w();

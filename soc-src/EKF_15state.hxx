@@ -28,7 +28,6 @@ using namespace Eigen;
 
 // usefule constants
 const double g = 9.814;
-const double D2R = M_PI / 180.0;
 
 // define some types for notational convenience and consistency
 typedef Matrix<double,6,6> Matrix6d;
