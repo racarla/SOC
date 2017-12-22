@@ -20,7 +20,6 @@
 #include "missionMgr.hxx"
 #include "exciteMgr.hxx"
 #include "cntrlMgr.hxx"
-#include "cntrlAllocMgr.hxx"
 
 class Datalogger {
   public:
