@@ -657,12 +657,12 @@ int main(int argc, char* argv[]) {
 
   m = 0;
   for (size_t k=0; k < NumberRecords; k++) {
-    data3Dd[m] = navLog[k].NEDVelocity_ms[0];
-    data3Dd[m+1] = navLog[k].NEDVelocity_ms[1];
-    data3Dd[m+2] = navLog[k].NEDVelocity_ms[2];
+    data3D[m] = navLog[k].NEDVelocity_ms[0];
+    data3D[m+1] = navLog[k].NEDVelocity_ms[1];
+    data3D[m+2] = navLog[k].NEDVelocity_ms[2];
     m = m + 3;
   }
-  Logger.WriteData(GroupName,"NEDVelocity_ms",data3Dd,"North, East, Down Velocity, m/s",NumberRecords,3);
+  Logger.WriteData(GroupName,"NEDVelocity_ms",data3D,"North, East, Down Velocity, m/s",NumberRecords,3);
 
   m = 0;
   for (size_t k=0; k < NumberRecords; k++) {
@@ -671,17 +671,17 @@ int main(int argc, char* argv[]) {
     data3D[m+2] = navLog[k].Euler_rad[2];
     m = m + 3;
   }
-  Logger.WriteData(GroupName,"Euler_rad",data3Dd,"Euler Roll, Pitch, Yaw Orientation, rad",NumberRecords,3);
+  Logger.WriteData(GroupName,"Euler_rad",data3D,"Euler Roll, Pitch, Yaw Orientation, rad",NumberRecords,3);
 
   m = 0;
   for (size_t k=0; k < NumberRecords; k++) {
-    data3D[m] = navLog[k].Quaternion[0];
-    data3D[m+1] = navLog[k].Quaternion[1];
-    data3D[m+2] = navLog[k].Quaternion[2];
-    data3D[m+3] = navLog[k].Quaternion[3];
+    data4D[m] = navLog[k].Quaternion[0];
+    data4D[m+1] = navLog[k].Quaternion[1];
+    data4D[m+2] = navLog[k].Quaternion[2];
+    data4D[m+3] = navLog[k].Quaternion[3];
     m = m + 4;
   }
-  Logger.WriteData(GroupName,"Quaternion",data4Dd,"Quaternion Orientation, nd",NumberRecords,4);
+  Logger.WriteData(GroupName,"Quaternion",data4D,"Quaternion Orientation, nd",NumberRecords,4);
 
   m = 0;
   for (size_t k=0; k < NumberRecords; k++) {
@@ -690,7 +690,7 @@ int main(int argc, char* argv[]) {
     data3D[m+2] = navLog[k].AccelBias_mss[2];
     m = m + 3;
   }
-  Logger.WriteData(GroupName,"AccelBias_mss",data3Dd,"Accel Bias X, Y, Z, mps2",NumberRecords,3);
+  Logger.WriteData(GroupName,"AccelBias_mss",data3D,"Accel Bias X, Y, Z, mps2",NumberRecords,3);
 
   m = 0;
   for (size_t k=0; k < NumberRecords; k++) {
@@ -699,52 +699,52 @@ int main(int argc, char* argv[]) {
     data3D[m+2] = navLog[k].GyroBias_rads[2];
     m = m + 3;
   }
-  Logger.WriteData(GroupName,"GyroBias_rads",data3Dd,"Gyro Bias X, Y, Z, rps",NumberRecords,3);
+  Logger.WriteData(GroupName,"GyroBias_rads",data3D,"Gyro Bias X, Y, Z, rps",NumberRecords,3);
 
   m = 0;
   for (size_t k=0; k < NumberRecords; k++) {
-    data3Ds[m] = navLog[k].Pp[0];
-    data3Ds[m+1] = navLog[k].Pp[1];
-    data3Ds[m+2] = navLog[k].Pp[2];
+    data3D[m] = navLog[k].Pp[0];
+    data3D[m+1] = navLog[k].Pp[1];
+    data3D[m+2] = navLog[k].Pp[2];
     m = m + 3;
   }
-  Logger.WriteData(GroupName,"Pp",data3Dd,"Position Covariance, rad",NumberRecords,3);
+  Logger.WriteData(GroupName,"Pp",data3D,"Position Covariance, rad",NumberRecords,3);
 
   m = 0;
   for (size_t k=0; k < NumberRecords; k++) {
-    data3Ds[m] = navLog[k].Pv[0];
-    data3Ds[m+1] = navLog[k].Pv[1];
-    data3Ds[m+2] = navLog[k].Pv[2];
+    data3D[m] = navLog[k].Pv[0];
+    data3D[m+1] = navLog[k].Pv[1];
+    data3D[m+2] = navLog[k].Pv[2];
     m = m + 3;
   }
-  Logger.WriteData(GroupName,"Pv",data3Dd,"Velocity Covariance, mps",NumberRecords,3);
+  Logger.WriteData(GroupName,"Pv",data3D,"Velocity Covariance, mps",NumberRecords,3);
 
   m = 0;
   for (size_t k=0; k < NumberRecords; k++) {
-    data3Ds[m] = navLog[k].Pa[0];
-    data3Ds[m+1] = navLog[k].Pa[1];
-    data3Ds[m+2] = navLog[k].Pa[2];
+    data3D[m] = navLog[k].Pa[0];
+    data3D[m+1] = navLog[k].Pa[1];
+    data3D[m+2] = navLog[k].Pa[2];
     m = m + 3;
   }
-  Logger.WriteData(GroupName,"Pa",data3Dd,"Angle Covariance, rad",NumberRecords,3);
+  Logger.WriteData(GroupName,"Pa",data3D,"Angle Covariance, rad",NumberRecords,3);
 
   m = 0;
   for (size_t k=0; k < NumberRecords; k++) {
-    data3Ds[m] = navLog[k].Pab[0];
-    data3Ds[m+1] = navLog[k].Pab[1];
-    data3Ds[m+2] = navLog[k].Pab[2];
+    data3D[m] = navLog[k].Pab[0];
+    data3D[m+1] = navLog[k].Pab[1];
+    data3D[m+2] = navLog[k].Pab[2];
     m = m + 3;
   }
-  Logger.WriteData(GroupName,"Pab",data3Dd,"Accel Bias Covariance, mps2",NumberRecords,3);
+  Logger.WriteData(GroupName,"Pab",data3D,"Accel Bias Covariance, mps2",NumberRecords,3);
 
   m = 0;
   for (size_t k=0; k < NumberRecords; k++) {
-    data3Ds[m] = navLog[k].Pgb[0];
-    data3Ds[m+1] = navLog[k].Pgb[1];
-    data3Ds[m+2] = navLog[k].Pgb[2];
+    data3D[m] = navLog[k].Pgb[0];
+    data3D[m+1] = navLog[k].Pgb[1];
+    data3D[m+2] = navLog[k].Pgb[2];
     m = m + 3;
   }
-  Logger.WriteData(GroupName,"Pgb",data3Dd,"Gyro Bias Covariance, rps",NumberRecords,3);
+  Logger.WriteData(GroupName,"Pgb",data3D,"Gyro Bias Covariance, rps",NumberRecords,3);
 
 
   // Mission Manager
