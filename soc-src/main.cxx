@@ -22,6 +22,10 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SO
 
 #include <iostream>
 #include <iomanip>      // std::setw
+#include <time.h>
+
+#define kTIC2SEC 1/CLOCKS_PER_SEC; // Convert CPU tics to seconds
+#define kTIC2MS 1000/CLOCKS_PER_SEC; // Convert CPU tics to milli-seconds
 
 #define kMaxCntrlCmd 4 // Controller Dimension
 #define kMaxCntrlEff 7 // Effectors
@@ -138,9 +142,25 @@ int main(int argc, char* argv[]) {
 //std::cout << "CntrlMgr" << "\t";
 //std::cout << "CntrlAllocMgr" << "\t";
 
+  clock_t frameStart_tic; // Start the in-frame timer
+  clock_t frameStartNav_tic, frameStartExcite_tic, frameStartCntrl; // Intermidiate in-frame timers
+
   /* main loop */
   while (1) {
+    frameStart_tic = clock();
+
+
+
+
+
+
+
+
+
+
     if (fmu.GetSensorData(&fmuData)) {
+      missMgrOut.tDurSens_ms = ((double) (clock() - frameStart_tic)) * kTIC2MS;
+
       // INPUT PROCESSING
 
       // MISSION MANAGER
@@ -159,6 +179,7 @@ int main(int argc, char* argv[]) {
       }
 
       // navigation filter
+      frameStartNav_tic = clock();
       if (fmuData.Gps.size() > 0) {
         if (!NavFilter.Initialized) {
           NavFilter.InitializeNavigation(fmuData);
@@ -166,6 +187,7 @@ int main(int argc, char* argv[]) {
           NavFilter.RunNavigation(fmuData,&navOut);
         }
       }
+      missMgrOut.tDurNav_ms = ((double) (clock() - frameStartNav_tic)) * kTIC2MS;
 
       // CONTROL LAWS
       // Execute inner-loop control law
@@ -179,24 +201,29 @@ int main(int argc, char* argv[]) {
 //std::cout << missMgrOut.testEngage << "  ";
 //std::cout << (int) missMgrOut.indxTest << "\t";
 
-//std::cout << std::setw(10);
+// std::cout << std::setw(12);
 
-//std::cout << airdataOut.alt_m << "\t";
-//std::cout << airdataOut.altFilt_m << "\t\t";
-//std::cout << airdataOut.vIas_mps << "\t";
-//std::cout << airdataOut.vIasFilt_mps << "\t\t";
+// std::cout << airdataOut.alt_m << "\t";
+// std::cout << airdataOut.altFilt_m << "\t\t";
+// std::cout << airdataOut.vIas_mps << "\t";
+// std::cout << airdataOut.vIasFilt_mps << "\t\t";
 
-//std::cout << fmuData.PressureTransducer[0].Pressure_Pa << "\t";
-//std::cout << fmuData.PressureTransducer[1].Pressure_Pa << "\t";
-//std::cout << fmuData.PressureTransducer[2].Pressure_Pa << "\t";
-//std::cout << fmuData.PressureTransducer[3].Pressure_Pa << "\t";
+// std::cout << fmuData.Pitot[0].Static.Pressure_Pa << "\t";
+// std::cout << fmuData.Pitot[0].Diff.Pressure_Pa << "\t";
+// std::cout << fmuData.PressureTransducer[0].Pressure_Pa << "\t";
+// std::cout << fmuData.PressureTransducer[1].Pressure_Pa << "\t";
+// std::cout << fmuData.PressureTransducer[2].Pressure_Pa << "\t";
+// std::cout << fmuData.PressureTransducer[3].Pressure_Pa << "\t";
 
 
-      // Apply command excitations
+      // Generate command excitations
+      frameStartExcite_tic = clock();
       exciteMgrOut = exciteMgr.Compute(missMgrOut.testEngage, missMgrOut.indxTest, missMgrOut.time_s);
+      missMgrOut.tDurExcite_ms = ((double) (clock() - frameStartExcite_tic)) * kTIC2MS;
 //std::cout << exciteMgrOut.cmdExcite.transpose()/kD2R << "\t";
 
       // Run the controllers
+      frameStartCntrl = clock();
       cntrlMgr.CmdCntrlBase(missMgrOut.time_s, fmuData, navOut, airdataOut);
       cntrlMgr.CmdCntrlRes(missMgrOut.time_s, fmuData, navOut, airdataOut);
       cntrlMgrOut = cntrlMgr.CmdCntrl();
@@ -205,7 +232,8 @@ int main(int argc, char* argv[]) {
 
       // OUTPUT PROCESSING
       // send control surface commands
-      cntrlMgrOut.cmdEff.resize(configData.NumberEffectors);
+std::cout << configData.NumberEffectors << "\t";
+      cntrlMgrOut.cmdEff.resize(7);
       std::vector<uint8_t> cmdEffSerial;
       cmdEffSerial.resize(cntrlMgrOut.cmdEff.size()*sizeof(float));
 
@@ -216,6 +244,9 @@ int main(int argc, char* argv[]) {
       cntrlMgrOut.cmdEff[4] = cntrlMgrOut.cmdAlloc[3] + fmuData.SbusRx[0].Inceptors[3]; // Flap R
       cntrlMgrOut.cmdEff[5] = cntrlMgrOut.cmdAlloc[4] + fmuData.SbusRx[0].Inceptors[3]; // Flap L
       cntrlMgrOut.cmdEff[6] = cntrlMgrOut.cmdAlloc[5] + exciteMgrOut.cmdExcite[0]; // Ail L
+
+      missMgrOut.tDurCntrl_ms = ((double) (clock() - frameStartCntrl)) * kTIC2MS;
+
 //std::cout << cntrlMgrOut.cmdEff.transpose() << "\t\t";
 
       memcpy(cmdEffSerial.data(), cntrlMgrOut.cmdEff.data(), cmdEffSerial.size());
@@ -223,6 +254,7 @@ int main(int argc, char* argv[]) {
       // Write the Effector Commands to the FMU
       fmu.WriteMessage(kEffectorAngleCmd, cmdEffSerial.size(), cmdEffSerial.data());
 
+      missMgrOut.tCmd_ms = ((double) (clock() - frameStart_tic)) * kTIC2MS;
       // DATA LOG
       MissMgrLog missMgrLog = missMgr.Log(missMgrOut);
       AirdataLog airdataLog = airdata.Log(airdataOut);
@@ -232,6 +264,7 @@ int main(int argc, char* argv[]) {
 
       log.LogData(fmuData, airdataLog, navLog, missMgrLog, exciteMgrLog, cntrlMgrLog);
 
+      missMgrOut.tFrame_ms = ((double) (clock() - frameStart_tic)) * kTIC2MS;
       // telemetry
 
 // std::cout << std::endl;

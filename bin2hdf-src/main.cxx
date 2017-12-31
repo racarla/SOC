@@ -788,6 +788,38 @@ int main(int argc, char* argv[]) {
   Logger.WriteData(GroupName,"indxTest",data1Du8,"Tester Index, cnt",NumberRecords,1);
 
 
+
+  for (size_t k=0; k < NumberRecords; k++) {
+    data1Dd[k] = missMgrLog[k].tDurSens_ms;
+  }
+  Logger.WriteData(GroupName,"tDurSens_ms",data1Dd,"Sensor Processing Duration, ms",NumberRecords,1);
+
+  for (size_t k=0; k < NumberRecords; k++) {
+    data1Dd[k] = missMgrLog[k].tDurNav_ms;
+  }
+  Logger.WriteData(GroupName,"tDurNav_ms",data1Dd,"Nav Filter Duration, ms",NumberRecords,1);
+
+  for (size_t k=0; k < NumberRecords; k++) {
+    data1Dd[k] = missMgrLog[k].tDurExcite_ms;
+  }
+  Logger.WriteData(GroupName,"tDurExcite_ms",data1Dd,"Excitation Generation Duration, ms",NumberRecords,1);
+
+  for (size_t k=0; k < NumberRecords; k++) {
+    data1Dd[k] = missMgrLog[k].tDurCntrl_ms;
+  }
+  Logger.WriteData(GroupName,"tDurCntrl_ms",data1Dd,"Control Law Duration, ms",NumberRecords,1);
+
+  for (size_t k=0; k < NumberRecords; k++) {
+    data1Dd[k] = missMgrLog[k].tCmd_ms;
+  }
+  Logger.WriteData(GroupName,"tCmd_ms",data1Dd,"Command Message Sent Time, ms",NumberRecords,1);
+  
+  for (size_t k=0; k < NumberRecords; k++) {
+    data1Dd[k] = missMgrLog[k].tFrame_ms;
+  }
+  Logger.WriteData(GroupName,"tFrame_ms",data1Dd,"Total Frame Duration, ms",NumberRecords,1);
+
+
   // Excitation Manager
   GroupName = "/Excite";
 

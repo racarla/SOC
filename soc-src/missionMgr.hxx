@@ -31,13 +31,12 @@ struct MissMgrOut {
   uint8_t indxTest; // Index number of the current test
   uint8_t numTest; // Number of test points
 
-  float timeSens_ms;
-  float timeMissMgr_ms;
-  float timeSensProc_ms;
-  float timeExciteMgr_ms;
-  float timeGuidMgr_ms;
-  float timeCntrlMgr_ms;
-  float timeCmd_ms;
+  float tDurSens_ms;
+  float tDurNav_ms;
+  float tDurExcite_ms;
+  float tDurCntrl_ms;
+  float tCmd_ms;
+  float tFrame_ms;
 };
 
 struct MissMgrLog {
@@ -51,13 +50,12 @@ struct MissMgrLog {
   bool testEngage;
   uint8_t indxTest;
 
-  float timeSens_ms;
-  float timeMissMgr_ms;
-  float timeSensProc_ms;
-  float timeExciteMgr_ms;
-  float timeGuidMgr_ms;
-  float timeCntrlMgr_ms;
-  float timeCmd_ms;
+  float tDurSens_ms;
+  float tDurNav_ms;
+  float tDurExcite_ms;
+  float tDurCntrl_ms;
+  float tCmd_ms;
+  float tFrame_ms;
 };
 
 class MissMgr {

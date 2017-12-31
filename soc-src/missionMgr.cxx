@@ -159,12 +159,12 @@ MissMgrLog MissMgr::Log(const MissMgrOut& missMgrOut)
   missMgrLog.testEngage = missMgrOut.testEngage;
   missMgrLog.indxTest = missMgrOut.indxTest;
 
-  missMgrLog.timeSens_ms = missMgrOut.timeSens_ms;
-  missMgrLog.timeMissMgr_ms = missMgrOut.timeMissMgr_ms;
-  missMgrLog.timeSensProc_ms = missMgrOut.timeSensProc_ms;
-  missMgrLog.timeExciteMgr_ms = missMgrOut.timeExciteMgr_ms;
-  missMgrLog.timeGuidMgr_ms = missMgrOut.timeGuidMgr_ms;
-  missMgrLog.timeCmd_ms = missMgrOut.timeCmd_ms;
+  missMgrLog.tDurSens_ms = missMgrOut.tDurSens_ms;
+  missMgrLog.tDurNav_ms = missMgrOut.tDurNav_ms;
+  missMgrLog.tDurExcite_ms = missMgrOut.tDurExcite_ms;
+  missMgrLog.tDurCntrl_ms = missMgrOut.tDurCntrl_ms;
+  missMgrLog.tCmd_ms = missMgrOut.tCmd_ms;
+  missMgrLog.tFrame_ms = missMgrOut.tFrame_ms;
 
   return missMgrLog;
 }
