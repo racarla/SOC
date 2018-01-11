@@ -1,24 +1,9 @@
 /*
 main.cxx
-Brian R Taylor
-brian.taylor@bolderflight.com
-2017-04-18
-Copyright (c) 2017 Bolder Flight Systems
-Permission is hereby granted, free of charge, to any person obtaining a copy of this software 
-and associated documentation files (the "Software"), to deal in the Software without restriction, 
-including without limitation the rights to use, copy, modify, merge, publish, distribute, 
-sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is 
-furnished to do so, subject to the following conditions:
-The above copyright notice and this permission notice shall be included in all copies or 
-substantial portions of the Software.
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING 
-BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND 
-NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, 
-DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, 
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+See: LICENSE.md for Copyright and License Agreement
+
 */
-
-
 
 #include <iostream>
 #include <iomanip>      // std::setw
@@ -149,17 +134,9 @@ int main(int argc, char* argv[]) {
   while (1) {
     frameStart_tic = clock();
 
-
-
-
-
-
-
-
-
-
     if (fmu.GetSensorData(&fmuData)) {
       missMgrOut.tDurSens_ms = ((double) (clock() - frameStart_tic)) * kTIC2MS;
+// std::cout << missMgrOut.tDurSens_ms << "\t";
 
       // INPUT PROCESSING
 
@@ -188,6 +165,7 @@ int main(int argc, char* argv[]) {
         }
       }
       missMgrOut.tDurNav_ms = ((double) (clock() - frameStartNav_tic)) * kTIC2MS;
+// std::cout << missMgrOut.tDurNav_ms << "\t";
 
       // CONTROL LAWS
       // Execute inner-loop control law
@@ -201,25 +179,23 @@ int main(int argc, char* argv[]) {
 //std::cout << missMgrOut.testEngage << "  ";
 //std::cout << (int) missMgrOut.indxTest << "\t";
 
-// std::cout << std::setw(12);
+//std::cout << std::setw(10);
 
-// std::cout << airdataOut.alt_m << "\t";
-// std::cout << airdataOut.altFilt_m << "\t\t";
-// std::cout << airdataOut.vIas_mps << "\t";
-// std::cout << airdataOut.vIasFilt_mps << "\t\t";
+//std::cout << airdataOut.alt_m << "\t";
+//std::cout << airdataOut.altFilt_m << "\t\t";
+//std::cout << airdataOut.vIas_mps << "\t";
+//std::cout << airdataOut.vIasFilt_mps << "\t\t";
 
-// std::cout << fmuData.Pitot[0].Static.Pressure_Pa << "\t";
-// std::cout << fmuData.Pitot[0].Diff.Pressure_Pa << "\t";
-// std::cout << fmuData.PressureTransducer[0].Pressure_Pa << "\t";
-// std::cout << fmuData.PressureTransducer[1].Pressure_Pa << "\t";
-// std::cout << fmuData.PressureTransducer[2].Pressure_Pa << "\t";
-// std::cout << fmuData.PressureTransducer[3].Pressure_Pa << "\t";
-
+//std::cout << fmuData.PressureTransducer[0].Pressure_Pa << "\t";
+//std::cout << fmuData.PressureTransducer[1].Pressure_Pa << "\t";
+//std::cout << fmuData.PressureTransducer[2].Pressure_Pa << "\t";
+//std::cout << fmuData.PressureTransducer[3].Pressure_Pa << "\t";
 
       // Generate command excitations
       frameStartExcite_tic = clock();
       exciteMgrOut = exciteMgr.Compute(missMgrOut.testEngage, missMgrOut.indxTest, missMgrOut.time_s);
       missMgrOut.tDurExcite_ms = ((double) (clock() - frameStartExcite_tic)) * kTIC2MS;
+// std::cout << missMgrOut.tDurExcite_ms << "\t";
 //std::cout << exciteMgrOut.cmdExcite.transpose()/kD2R << "\t";
 
       // Run the controllers
@@ -232,7 +208,6 @@ int main(int argc, char* argv[]) {
 
       // OUTPUT PROCESSING
       // send control surface commands
-std::cout << configData.NumberEffectors << "\t";
       cntrlMgrOut.cmdEff.resize(7);
       std::vector<uint8_t> cmdEffSerial;
       cmdEffSerial.resize(cntrlMgrOut.cmdEff.size()*sizeof(float));
@@ -244,10 +219,10 @@ std::cout << configData.NumberEffectors << "\t";
       cntrlMgrOut.cmdEff[4] = cntrlMgrOut.cmdAlloc[3] + fmuData.SbusRx[0].Inceptors[3]; // Flap R
       cntrlMgrOut.cmdEff[5] = cntrlMgrOut.cmdAlloc[4] + fmuData.SbusRx[0].Inceptors[3]; // Flap L
       cntrlMgrOut.cmdEff[6] = cntrlMgrOut.cmdAlloc[5] + exciteMgrOut.cmdExcite[0]; // Ail L
+//std::cout << cntrlMgrOut.cmdEff.transpose() << "\t\t";
 
       missMgrOut.tDurCntrl_ms = ((double) (clock() - frameStartCntrl)) * kTIC2MS;
-
-//std::cout << cntrlMgrOut.cmdEff.transpose() << "\t\t";
+// std::cout << missMgrOut.tDurCntrl_ms << "\t";
 
       memcpy(cmdEffSerial.data(), cntrlMgrOut.cmdEff.data(), cmdEffSerial.size());
 
@@ -255,6 +230,8 @@ std::cout << configData.NumberEffectors << "\t";
       fmu.WriteMessage(kEffectorAngleCmd, cmdEffSerial.size(), cmdEffSerial.data());
 
       missMgrOut.tCmd_ms = ((double) (clock() - frameStart_tic)) * kTIC2MS;
+// std::cout << missMgrOut.tCmd_ms << "\t";
+
       // DATA LOG
       MissMgrLog missMgrLog = missMgr.Log(missMgrOut);
       AirdataLog airdataLog = airdata.Log(airdataOut);
@@ -265,6 +242,7 @@ std::cout << configData.NumberEffectors << "\t";
       log.LogData(fmuData, airdataLog, navLog, missMgrLog, exciteMgrLog, cntrlMgrLog);
 
       missMgrOut.tFrame_ms = ((double) (clock() - frameStart_tic)) * kTIC2MS;
+// std::cout << missMgrOut.tFrame_ms << "\t";
       // telemetry
 
 // std::cout << std::endl;

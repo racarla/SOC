@@ -3,8 +3,6 @@ Control System Manager - Defines Controllers, Mangages mode switching
 
 See: LICENSE.md for Copyright and License Agreement
 
-History:
-2017-11-19 - Chris Regan - Created
 */
 
 #include "cntrlMgr.hxx"
@@ -139,7 +137,8 @@ VecCmd CntrlMgr::CmdCntrlRes(const float& time_s, const FmuData& fmuData, const 
   refVec[0] = fmuData.SbusRx[0].Inceptors[0];
   refVec[1] = fmuData.SbusRx[0].Inceptors[1];
   refVec[2] = fmuData.SbusRx[0].Inceptors[2];
-  refVec[3] = 17; // Command speed - FIXIT - Pass-in
+  // refVec[3] = 23; // 23 m/s
+  refVec[3] = 17; // 17 m/s
 
   VecCmd measVec(kMaxCntrlCmd);
   measVec[0] = navOut.Euler_rad[0];
@@ -256,10 +255,15 @@ void CntrlMgr::CntrlResDef()
 
   // Controller Parameters, corrected to the normalized I/O ranges
   VecCmd Kp(numCmd), Ki(numCmd), Kd(numCmd);
-  Kp[0] = 0.64 * cmdScale[0], Ki[0] = 0.20 * cmdScale[0], Kd[0] = 0.070;
-  Kp[1] = 0.90 * cmdScale[1], Ki[1] = 0.30 * cmdScale[1], Kd[1] = 0.080;
-  Kp[2] = 0.00 * cmdScale[2], Ki[2] = 0.00 * cmdScale[2], Kd[2] = 0.000;
-  Kp[3] = 4.50 * cmdScale[3], Ki[3] = 1.20 * cmdScale[3], Kd[3] = 0.000;
+  // Kp[0] = 0.30 * cmdScale[0], Ki[0] = 0.115 * cmdScale[0], Kd[0] = 0.070; // 23 m/s
+  // Kp[1] = 0.50 * cmdScale[1], Ki[1] = 0.137 * cmdScale[1], Kd[1] = 0.080; // 23 m/s
+  // Kp[2] = 0.00 * cmdScale[2], Ki[2] = 0.000 * cmdScale[2], Kd[2] = 0.000; // 23 m/s
+  // Kp[3] = 2.73 * cmdScale[3], Ki[3] = 0.600 * cmdScale[3], Kd[3] = 0.000; // 23 m/s
+
+  Kp[0] = 0.549 * cmdScale[0], Ki[0] = 0.211 * cmdScale[0], Kd[0] = 0.070; // 17 m/s
+  Kp[1] = 0.750 * cmdScale[1], Ki[1] = 0.300 * cmdScale[1], Kd[1] = 0.080; // 17 m/s
+  Kp[2] = 0.000 * cmdScale[2], Ki[2] = 0.000 * cmdScale[2], Kd[2] = 0.000; // 17 m/s
+  Kp[3] = 4.200 * cmdScale[3], Ki[3] = 0.990 * cmdScale[3], Kd[3] = 0.000; // 17 m/s
 
   // Initialize Individual Controllers
   resRoll_.Init(refScale[0], cmdRngMin[0], cmdRngMax[0], Kp[0], Ki[0], Kd[0]);

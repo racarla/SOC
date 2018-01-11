@@ -3,10 +3,7 @@ Mission Manager - Translate Transmitter and C2 Link inputs into usable sources f
 
 See: LICENSE.md for Copyright and License Agreement
 
-History:
-2017-11-15 - Chris Regan - Created
 */
-
 
 #ifndef MISSION_MGR_HXX_
 #define MISSION_MGR_HXX_

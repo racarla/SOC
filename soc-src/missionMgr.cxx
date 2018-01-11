@@ -3,8 +3,6 @@ Mission Manager - Define the mission parameters, control system modes
 
 See: LICENSE.md for Copyright and License Agreement
 
-History:
-2017-11-15 - Chris Regan - Created
 */
 
 #include "missionMgr.hxx"

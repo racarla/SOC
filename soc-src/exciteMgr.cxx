@@ -124,7 +124,8 @@ void ExciteMgr::Init()
   exciteTest09_.Init(kLinear, timeVecStart_s, timeVecDur_s, freqVecStart_rps, freqVecEnd_rps, ampVecStart_nd, ampVecEnd_nd);
 
  // Excitation 10: Doublet, Elevator
-  timeStart_s = 1.0; timeOnePulse_s = 0.23; amp_nd = 4 * kD2R;
+  // timeStart_s = 1.0; timeOnePulse_s = 0.23; amp_nd = 4 * kD2R; // 23 m/s
+  timeStart_s = 1.0; timeOnePulse_s = 0.27; amp_nd = 4 * kD2R; // 17 m/s
 
   numChan = 1;
 
@@ -135,7 +136,8 @@ void ExciteMgr::Init()
   exciteTest10_.Init(kDoublet, timeVecStart_s, timeVecOnePulse_s, ampVec_nd);
 
   // Excitation 11: Doublet, Aileron
-  timeStart_s = 1.0; timeOnePulse_s = 0.54; amp_nd = 4 * kD2R;
+  // timeStart_s = 1.0; timeOnePulse_s = 0.54; amp_nd = 4 * kD2R; // 23 m/s
+  timeStart_s = 1.0; timeOnePulse_s = 0.72; amp_nd = 4 * kD2R; // 17 m/s
 
   numChan = 1;
 
@@ -149,7 +151,8 @@ void ExciteMgr::Init()
   exciteTest12_.Init(kDoublet, timeVecStart_s, timeVecOnePulse_s, ampVec_nd);
 
   // Excitation 13: Pulse, Elevator
-  timeStart_s = 1.0; timeOnePulse_s = 0.23; amp_nd = 4 * kD2R;
+  // timeStart_s = 1.0; timeOnePulse_s = 0.23; amp_nd = 4 * kD2R; // 23 m/s
+  timeStart_s = 1.0; timeOnePulse_s = 0.27; amp_nd = 4 * kD2R; // 17 m/s
 
   numChan = 1;
 
@@ -160,7 +163,8 @@ void ExciteMgr::Init()
   exciteTest13_.Init(kPulse, timeVecStart_s, timeVecOnePulse_s, ampVec_nd);
 
   // Excitation 14: Pulse, Aileron
-  timeStart_s = 1.0; timeOnePulse_s = 0.54; amp_nd = 4 * kD2R;
+  // timeStart_s = 1.0; timeOnePulse_s = 0.54; amp_nd = 4 * kD2R; // 23 m/s
+  timeStart_s = 1.0; timeOnePulse_s = 0.72; amp_nd = 4 * kD2R; // 17 m/s
 
   numChan = 1;
 
@@ -174,7 +178,8 @@ void ExciteMgr::Init()
   exciteTest15_.Init(kPulse, timeVecStart_s, timeVecOnePulse_s, ampVec_nd);
 
   // Excitation 16: Pulse, Aileron (wider)
-  timeStart_s = 1.0; timeOnePulse_s = 0.6; amp_nd = 25 * kD2R;
+  // timeStart_s = 1.0; timeOnePulse_s = 0.6; amp_nd = 25 * kD2R; // 23 m/s
+  timeStart_s = 1.0; timeOnePulse_s = 0.6; amp_nd = 4 * kD2R; // 17 m/s
 
   numChan = 1;
 
@@ -185,7 +190,8 @@ void ExciteMgr::Init()
   exciteTest16_.Init(kPulse, timeVecStart_s, timeVecOnePulse_s, ampVec_nd);
 
   // Excitation 17: Doublet3211, Elevator
-  timeStart_s = 1.0; timeOnePulse_s = 0.23; amp_nd = 4 * kD2R;
+  // timeStart_s = 1.0; timeOnePulse_s = 0.23; amp_nd = 4 * kD2R; // 23 m/s
+  timeStart_s = 1.0; timeOnePulse_s = 0.27; amp_nd = 4 * kD2R; // 17 m/s
 
   numChan = 1;
 
@@ -196,7 +202,8 @@ void ExciteMgr::Init()
   exciteTest17_.Init(kDoublet3211, timeVecStart_s, timeVecOnePulse_s, ampVec_nd);
 
   // Excitation 18: Doublet3211, Aileron
-  timeStart_s = 1.0; timeOnePulse_s = 0.54; amp_nd = 4 * kD2R;
+  // timeStart_s = 1.0; timeOnePulse_s = 0.54; amp_nd = 4 * kD2R; // 23 m/s
+  timeStart_s = 1.0; timeOnePulse_s = 0.72; amp_nd = 4 * kD2R; // 17 m/s
 
   numChan = 1;
 
