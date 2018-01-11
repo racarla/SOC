@@ -166,6 +166,14 @@ bool Fmu::ParseBfsMessage(uint8_t RxBuffer,BfsMessage *MessageId,uint16_t *Paylo
   } else if (ParserState == 4) { // payload length
     PayloadSizeBuffer[1] = RxBuffer;
     pSize = ((uint16_t)PayloadSizeBuffer[1] << 8) | PayloadSizeBuffer[0];
+    if (pSize > sizeof(Buffer)) {
+      Checksum[0] = 0;
+      Checksum[1] = 0;
+      PayloadSizeBuffer[0] = 0;
+      PayloadSizeBuffer[1] = 0;
+      ParserState = 0;
+      return false;      
+    }
     ChecksumIteration(RxBuffer, Checksum);
     ParserState++;
   } else if ((ParserState>=5)&&(ParserState<(pSize+5))) { // payload
