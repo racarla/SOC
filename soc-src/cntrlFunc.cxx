@@ -35,7 +35,7 @@ void CntrlManual::Init(const float& refScale, const float& cmdMin, const float& 
 float CntrlManual::Compute(const float& ref)
 {
   float err = (refScale_ * ref) - 0.0;
-  float cmd;
+  float cmd = 0.0;
 
 
   switch(mode_) {
@@ -182,7 +182,7 @@ float CntrlPi::Compute(const float& ref, const float& meas, float& dt_s)
   if (dt_s <= 0.0 ) {
     dt_s = 0.0; // Prevents the Integrator state from changing
   }
-  float cmd;
+  float cmd = 0.0;
 
   switch(mode_) {
     case kCntrlReset: // Zero the state and command
@@ -248,6 +248,8 @@ float CntrlPi::CalcCmd(const float& err)
     cmd = cmdMax_;
     InitState(cmd, 0.0); // Re-compute the integrator state
   }
+
+  return cmd;
 }
 
 
@@ -278,11 +280,10 @@ float CntrlPiDamp::Compute(const float& ref, const float& meas, const float& dMe
 {
   float err = (refScale_ * ref) - meas; // Compute the Error
 	float dErr = 0.0 - dMeas; // Measurement for the Damper
-
   if (dt_s <= 0.0 ) {
     dt_s = 0.0; // Prevents the Integrator state from changing
   }
-  float cmd;
+  float cmd = 0.0;
 
 	switch(mode_) {
 		case kCntrlReset: // Zero the state and command
@@ -317,6 +318,7 @@ float CntrlPiDamp::Compute(const float& ref, const float& meas, const float& dMe
       }
 
 			cmd = CalcCmd(err, dErr);
+
      	break;
 	}
 
@@ -340,7 +342,6 @@ float CntrlPiDamp::CalcCmd(const float& err, const float& dErr)
 	float iCmd = KI_ * iErr_;
 	float dCmd = KD_ * dErr;
 	float cmd = pCmd + iCmd + dCmd;
-//std::cout << "TEST\n" << err << "\t" << pCmd << "\t" << iErr_ << "\t" <<  iCmd << "\t" <<  dCmd << "\t" << cmd << std::endl;
 
 	// saturate cmd, set iErr to limit that produces saturated cmd
 	if (cmd <= cmdMin_) {
@@ -350,7 +351,8 @@ float CntrlPiDamp::CalcCmd(const float& err, const float& dErr)
 		cmd = cmdMax_;
 		InitState(cmd, err, 0.0); // Re-compute the integrator state
 	}
-//std::cout << "CMD   \n" << err << "\t" << pCmd << "\t" << iErr_ << "\t" <<  iCmd << "\t" <<  dCmd << "\t" << cmd << std::endl;
+
+  return cmd;
 }
 
 
@@ -391,7 +393,7 @@ float CntrlPid::Compute(const float& ref, const float& meas, float& dt_s)
     dErr = 0.0;
   }
 
-  float cmd;
+  float cmd = 0.0;
 
   // Update the previous error state
   errPrev_ = err;

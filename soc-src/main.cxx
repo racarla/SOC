@@ -127,7 +127,7 @@ int main(int argc, char* argv[]) {
 //std::cout << "CntrlMgr" << "\t";
 //std::cout << "CntrlAllocMgr" << "\t";
 
-  clock_t frameStart_tic; // Start the in-frame timer
+  clock_t frameStart_tic = clock(); // Start the in-frame timer
   clock_t frameStartNav_tic, frameStartExcite_tic, frameStartCntrl; // Intermidiate in-frame timers
 
   /* main loop */
@@ -135,24 +135,34 @@ int main(int argc, char* argv[]) {
     frameStart_tic = clock();
 
     if (fmu.GetSensorData(&fmuData)) {
-      missMgrOut.tDurSens_ms = ((double) (clock() - frameStart_tic)) * kTIC2MS;
-// std::cout << missMgrOut.tDurSens_ms << "\t";
+      missMgrOut.tDurSens_ms = ((float) (clock() - frameStart_tic)) * kTIC2MS;
 
       // INPUT PROCESSING
 
       // MISSION MANAGER
       // Mode Switching
       missMgrOut = missMgr.ModeMgr(fmuData);
-//std::cout << "missMgrOut" << "\t";
+// std::cout << "missMgrOut" << "\t";
 
       // SENSOR PROCESSING
       // Airdata
       airdataOut = airdata.Compute(fmuData.Pitot[0]);
-//std::cout << "Airdata" << "\t";
+// std::cout << "Airdata" << "\t";
 
       // Compute the Airdata Biases during startup, 10 seconds @ 50 Hz
       if (missMgrOut.frame_cnt < (500)) {
         airdata.BiasEst();
+
+        // Check that the Pressure Sensors are in a sensible range
+        if ((fmuData.Pitot[0].Static.Pressure_Pa < 70000) || (fmuData.Pitot[0].Static.Pressure_Pa > 120000)) {
+          std::cout << "Pitot Static Sensor out of range: " << fmuData.Pitot[0].Static.Pressure_Pa << std::endl;
+        }
+
+        // Check that the Pressure Sensors are in a sensible range
+        if ((fmuData.PressureTransducer[0].Pressure_Pa < 70000) || (fmuData.PressureTransducer[0].Pressure_Pa > 120000)) {
+          std::cout << "5-Hole Static Sensor out of range: " << fmuData.PressureTransducer[0].Pressure_Pa << std::endl;
+        }
+
       }
 
       // navigation filter
@@ -164,38 +174,42 @@ int main(int argc, char* argv[]) {
           NavFilter.RunNavigation(fmuData,&navOut);
         }
       }
-      missMgrOut.tDurNav_ms = ((double) (clock() - frameStartNav_tic)) * kTIC2MS;
-// std::cout << missMgrOut.tDurNav_ms << "\t";
+      missMgrOut.tDurNav_ms = ((float) (clock() - frameStartNav_tic)) * kTIC2MS;
+// std::cout << "Stick: " << fmuData.SbusRx[0].Inceptors[0] << "\t";
+// std::cout << "Rate: " << fmuData.Mpu9250.Gyro_rads[0] << "\t";
+// std::cout << "Euler: " << navOut.Euler_rad[0] << "\t";
 
       // CONTROL LAWS
       // Execute inner-loop control law
       cntrlMgr.Mode(missMgrOut.cntrlMode); // Transfer the Mission Control mode to the Controller Manager
 
-//std::cout << missMgrOut.time_s << "\t";
-//std::cout << missMgrOut.frame_cnt << "\t";
-//std::cout << missMgrOut.autoEngage << "  ";
-//std::cout << missMgrOut.cntrlMode << "  ";
-//std::cout << missMgrOut.testArm << "  ";
-//std::cout << missMgrOut.testEngage << "  ";
-//std::cout << (int) missMgrOut.indxTest << "\t";
+// std::cout << missMgrOut.time_s << "\t";
+// std::cout << missMgrOut.frame_cnt << "\t";
+// std::cout << missMgrOut.autoEngage << "  ";
+// std::cout << missMgrOut.cntrlMode << "  ";
+// std::cout << missMgrOut.testArm << "  ";
+// std::cout << missMgrOut.testEngage << "  ";
+// std::cout << (int) missMgrOut.indxTest << "\t";
 
-//std::cout << std::setw(10);
+// std::cout << std::setw(10);
 
-//std::cout << airdataOut.alt_m << "\t";
-//std::cout << airdataOut.altFilt_m << "\t\t";
-//std::cout << airdataOut.vIas_mps << "\t";
-//std::cout << airdataOut.vIasFilt_mps << "\t\t";
+// std::cout << fmuData.Pitot[0].Static.Pressure_Pa << "\t";
+// std::cout << fmuData.Pitot[0].Diff.Pressure_Pa << "\t\t";
 
-//std::cout << fmuData.PressureTransducer[0].Pressure_Pa << "\t";
-//std::cout << fmuData.PressureTransducer[1].Pressure_Pa << "\t";
-//std::cout << fmuData.PressureTransducer[2].Pressure_Pa << "\t";
-//std::cout << fmuData.PressureTransducer[3].Pressure_Pa << "\t";
+// std::cout << airdataOut.alt_m << "\t";
+// std::cout << airdataOut.altFilt_m << "\t\t";
+// std::cout << airdataOut.vIas_mps << "\t";
+// std::cout << airdataOut.vIasFilt_mps << "\t\t";
+
+// std::cout << fmuData.PressureTransducer[0].Pressure_Pa << "\t";
+// std::cout << fmuData.PressureTransducer[1].Pressure_Pa << "\t";
+// std::cout << fmuData.PressureTransducer[2].Pressure_Pa << "\t";
+// std::cout << fmuData.PressureTransducer[3].Pressure_Pa << "\t";
 
       // Generate command excitations
       frameStartExcite_tic = clock();
       exciteMgrOut = exciteMgr.Compute(missMgrOut.testEngage, missMgrOut.indxTest, missMgrOut.time_s);
-      missMgrOut.tDurExcite_ms = ((double) (clock() - frameStartExcite_tic)) * kTIC2MS;
-// std::cout << missMgrOut.tDurExcite_ms << "\t";
+      missMgrOut.tDurExcite_ms = ((float) (clock() - frameStartExcite_tic)) * kTIC2MS;
 //std::cout << exciteMgrOut.cmdExcite.transpose()/kD2R << "\t";
 
       // Run the controllers
@@ -203,7 +217,7 @@ int main(int argc, char* argv[]) {
       cntrlMgr.CmdCntrlBase(missMgrOut.time_s, fmuData, navOut, airdataOut);
       cntrlMgr.CmdCntrlRes(missMgrOut.time_s, fmuData, navOut, airdataOut);
       cntrlMgrOut = cntrlMgr.CmdCntrl();
-//std::cout << cntrlMgrOut.cmdCntrl.transpose() << "\t";
+// std::cout << cntrlMgrOut.cmdCntrlRes.transpose() << "\t";
 //std::cout << cntrlMgrOut.cmdCntrl[0] << "\t\t";
 
       // OUTPUT PROCESSING
@@ -221,16 +235,14 @@ int main(int argc, char* argv[]) {
       cntrlMgrOut.cmdEff[6] = cntrlMgrOut.cmdAlloc[5] + exciteMgrOut.cmdExcite[0]; // Ail L
 //std::cout << cntrlMgrOut.cmdEff.transpose() << "\t\t";
 
-      missMgrOut.tDurCntrl_ms = ((double) (clock() - frameStartCntrl)) * kTIC2MS;
-// std::cout << missMgrOut.tDurCntrl_ms << "\t";
+      missMgrOut.tDurCntrl_ms = ((float) (clock() - frameStartCntrl)) * kTIC2MS;
 
       memcpy(cmdEffSerial.data(), cntrlMgrOut.cmdEff.data(), cmdEffSerial.size());
 
       // Write the Effector Commands to the FMU
       fmu.WriteMessage(kEffectorAngleCmd, cmdEffSerial.size(), cmdEffSerial.data());
 
-      missMgrOut.tCmd_ms = ((double) (clock() - frameStart_tic)) * kTIC2MS;
-// std::cout << missMgrOut.tCmd_ms << "\t";
+      missMgrOut.tCmd_ms = ((float) (clock() - frameStart_tic)) * kTIC2MS;
 
       // DATA LOG
       MissMgrLog missMgrLog = missMgr.Log(missMgrOut);
@@ -241,7 +253,14 @@ int main(int argc, char* argv[]) {
 
       log.LogData(fmuData, airdataLog, navLog, missMgrLog, exciteMgrLog, cntrlMgrLog);
 
-      missMgrOut.tFrame_ms = ((double) (clock() - frameStart_tic)) * kTIC2MS;
+      missMgrOut.tFrame_ms = ((float) (clock() - frameStart_tic)) * kTIC2MS;
+
+// std::cout << "Time: " << "\t";
+// std::cout << missMgrOut.tDurSens_ms << "\t";
+// std::cout << missMgrOut.tDurNav_ms << "\t";
+// std::cout << missMgrOut.tDurExcite_ms << "\t";
+// std::cout << missMgrOut.tDurCntrl_ms << "\t";
+// std::cout << missMgrOut.tCmd_ms << "\t";
 // std::cout << missMgrOut.tFrame_ms << "\t";
       // telemetry
 

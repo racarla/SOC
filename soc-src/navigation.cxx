@@ -47,7 +47,7 @@ void Navigation::GlobalDefsToImu(const FmuData fmuData, IMUdata *ImuDataPtr) {
 }
 
 void Navigation::GlobalDefsToGps(const FmuData fmuData, GPSdata *GpsDataPtr) {
-  GpsDataPtr->time = fmuData.Gps[0].Sec;
+  GpsDataPtr->time = fmuData.Gps[0].Sec;  
   
   GpsDataPtr->lat = fmuData.Gps[0].LLA[0];
   GpsDataPtr->lon = fmuData.Gps[0].LLA[1];
@@ -58,10 +58,11 @@ void Navigation::GlobalDefsToGps(const FmuData fmuData, GPSdata *GpsDataPtr) {
   GpsDataPtr->vd = fmuData.Gps[0].NEDVelocity_ms[2];
 
   GpsDataPtr->sats = fmuData.Gps[0].NumberSatellites;
-  
-  if (GpsDataPtr->time != PrevTime_) {
+
+  // Use changes in TOW to determine if new data has been aqcuired off the GPS.
+  if (fmuData.Gps[0].TOW != PrevTime_) {
     GpsDataPtr->newData = true;
-    PrevTime_ = GpsDataPtr->time;
+    PrevTime_ = fmuData.Gps[0].TOW;
   } else {
     GpsDataPtr->newData = false;
   }

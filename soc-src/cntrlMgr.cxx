@@ -161,7 +161,6 @@ VecCmd CntrlMgr::CmdCntrlRes(const float& time_s, const FmuData& fmuData, const 
   cntrlMgrOut_.cmdCntrlRes[2] = resYaw_.Compute(refVec[2], measVec[2], dMeasVec[2], dt_s);
   cntrlMgrOut_.cmdCntrlRes[3] = resSpeed_.Compute(refVec[3], measVec[3], dt_s);
 
-
   return cntrlMgrOut_.cmdCntrlRes;
 }
 
