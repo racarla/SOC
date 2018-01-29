@@ -34,10 +34,19 @@ void Airdata::Init() {
 
 AirdataOut Airdata::Compute(const PitotData& pitotData) {
 
-  presStatic_Pa_ = pitotData.Static.Pressure_Pa;
-  presDiff_Pa_ = pitotData.Diff.Pressure_Pa;
+  // The most common fault in the pressure transducers is a failed read. In that scenario the temperature is also faild, and takes an unreasonable value.
+  // Use the temperature on each transducer to detect a pressure sensor fault. 
+
+  if ((pitotData.Static.Temp_C > -25.0) | (pitotData.Static.Temp_C < 85.0)) { // Check if the temp is in valid range, only update pressure if true
+    presStatic_Pa_ = pitotData.Static.Pressure_Pa;
+  }
+
+  if ((pitotData.Diff.Temp_C > -25.0) | (pitotData.Diff.Temp_C < 85.0)) { // Check if the temp is in valid range, only update pressure if true
+    presDiff_Pa_ = pitotData.Diff.Pressure_Pa;
+  }
 
   airdata_.temp_C = 0.5 * (pitotData.Static.Temp_C + pitotData.Diff.Temp_C);
+
 
   airdata_.alt_m = ComputeAlt(presStatic_Pa_);
   airdata_.altFilt_m = FiltAlt(airdata_.alt_m);

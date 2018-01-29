@@ -127,15 +127,22 @@ int main(int argc, char* argv[]) {
 //std::cout << "CntrlMgr" << "\t";
 //std::cout << "CntrlAllocMgr" << "\t";
 
-  clock_t frameStart_tic = clock(); // Start the in-frame timer
+  clock_t frameStart_tic, frameStartTemp_tic; // Start the in-frame timer
   clock_t frameStartNav_tic, frameStartExcite_tic, frameStartCntrl; // Intermidiate in-frame timers
 
   /* main loop */
   while (1) {
-    frameStart_tic = clock();
+    
+    frameStartTemp_tic = clock();
+    if(frameStartTemp_tic != -1) {
+      frameStart_tic = frameStartTemp_tic;
+    }
 
-    if (fmu.GetSensorData(&fmuData)) {
-      missMgrOut.tDurSens_ms = ((float) (clock() - frameStart_tic)) * kTIC2MS;
+    // Attempt to Read the FMU, return 1 on success
+    bool fmuReadSuccess_bool = fmu.GetSensorData(&fmuData);
+    missMgrOut.tDurSens_ms = ((float) (clock() - frameStart_tic)) * kTIC2MS; // 
+
+    if (fmuReadSuccess_bool) { // Run the major frame
 
       // INPUT PROCESSING
 
@@ -265,8 +272,8 @@ int main(int argc, char* argv[]) {
       // telemetry
 
 // std::cout << std::endl;
-    }
-  }
+    } // FMU Read, Major frame
+  } // While 1
 
 	return 0;
-}
+} // main
