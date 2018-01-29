@@ -140,9 +140,9 @@ int main(int argc, char* argv[]) {
 
     // Attempt to Read the FMU, return 1 on success
     bool fmuReadSuccess_bool = fmu.GetSensorData(&fmuData);
-    missMgrOut.tDurSens_ms = ((float) (clock() - frameStart_tic)) * kTIC2MS; // 
 
     if (fmuReadSuccess_bool) { // Run the major frame
+      missMgrOut.tDurSens_ms = ((float) (clock() - frameStart_tic)) * kTIC2MS; // 
 
       // INPUT PROCESSING
 
