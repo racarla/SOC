@@ -130,6 +130,8 @@ int main(int argc, char* argv[]) {
   clock_t frameStart_tic, frameStartTemp_tic; // Start the in-frame timer
   clock_t frameStartNav_tic, frameStartExcite_tic, frameStartCntrl; // Intermidiate in-frame timers
 
+  double timePrevTemp_s = 0.0;
+  
   /* main loop */
   while (1) {
     
@@ -143,6 +145,21 @@ int main(int argc, char* argv[]) {
 
     if (fmuReadSuccess_bool) { // Run the major frame
       missMgrOut.tDurSens_ms = ((float) (clock() - frameStart_tic)) * kTIC2MS; // 
+
+  
+  double timeTemp_s = (double) fmuData.Time_us / 1000000;
+  
+  std::cout << "\rTime: " << (double) fmuData.Time_us / 1000000;
+  
+  if ((timeTemp_s - timePrevTemp_s) > 0.021) {
+    std::cout << "\nFrame Skip: " << (timeTemp_s - timePrevTemp_s) << "\t Err: " << fmu.parseErr_ << "\tState: " << fmu.ParserState_ << std::endl;
+  }
+  
+  if ((fmu.parseErr_ != 0) | (fmu.ParserState_ != 0)) {    
+    std::cout << "\nFmu Read Error\tErr: " << fmu.parseErr_ << "\tState: " << fmu.ParserState_ << std::endl;
+  }
+  timePrevTemp_s = timeTemp_s;
+
 
       // INPUT PROCESSING
 
@@ -166,9 +183,9 @@ int main(int argc, char* argv[]) {
         }
 
         // Check that the Pressure Sensors are in a sensible range
-        if ((fmuData.PressureTransducer[0].Pressure_Pa < 70000) || (fmuData.PressureTransducer[0].Pressure_Pa > 120000)) {
-          std::cout << "5-Hole Static Sensor out of range: " << fmuData.PressureTransducer[0].Pressure_Pa << std::endl;
-        }
+//        if ((fmuData.PressureTransducer[0].Pressure_Pa < 70000) || (fmuData.PressureTransducer[0].Pressure_Pa > 120000)) {
+//          std::cout << "5-Hole Static Sensor out of range: " << fmuData.PressureTransducer[0].Pressure_Pa << std::endl;
+//        }
 
       }
 

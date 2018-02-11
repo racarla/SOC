@@ -10,7 +10,7 @@
 #
 
 # compiler
-CC_ARM := arm-linux-gnueabihf-g++-5 -O3 -g
+CC_ARM := arm-linux-gnueabihf-g++-5 -O3
 CC := g++-5
 CFLAGS := -std=c++0x -Wall
 

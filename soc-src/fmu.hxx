@@ -14,6 +14,16 @@
 #include <exception>
 #include <stdexcept>
 
+enum ParseErr {
+  kSuccess = 0,
+  kReadErr = -1,
+  kMessageErr = -2,
+  kSizeErr = -3,
+  kParseErr = -4,
+  kHeaderErr = -5,
+  kChecksumErr = -6
+};
+
 class Fmu {
   public:
     static const uint8_t BfsHeaderSize = 7;
@@ -22,6 +32,9 @@ class Fmu {
     void WriteMessage(BfsMessage MessageId,uint16_t PayloadSize,uint8_t *Payload);
     bool ReadMessage(BfsMessage *MessageId,uint16_t *PayloadSize,uint8_t *Payload);
     bool GetSensorData(FmuData *FmuDataPtr);
+    uint16_t ParserState_;
+    ParseErr parseErr_;
+    
   private:
     int FmuFileDesc_;
     void OpenPort();
@@ -31,7 +44,6 @@ class Fmu {
     void BuildBfsMessage(BfsMessage MessageId,uint16_t PayloadSize,uint8_t *Payload,uint16_t *TxBufferSize,uint8_t *TxBuffer);
     bool ParseBfsMessage(uint8_t RxBuffer,BfsMessage *MessageId,uint16_t *PayloadSize,uint8_t *Payload);
 
-    uint16_t ParserState_;
 };
 
 #endif
