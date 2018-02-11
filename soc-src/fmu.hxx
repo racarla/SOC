@@ -30,6 +30,8 @@ class Fmu {
     void ChecksumIteration(uint8_t Data, uint8_t *Checksum);
     void BuildBfsMessage(BfsMessage MessageId,uint16_t PayloadSize,uint8_t *Payload,uint16_t *TxBufferSize,uint8_t *TxBuffer);
     bool ParseBfsMessage(uint8_t RxBuffer,BfsMessage *MessageId,uint16_t *PayloadSize,uint8_t *Payload);
+
+    uint16_t ParserState_;
 };
 
 #endif
