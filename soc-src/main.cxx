@@ -143,6 +143,13 @@ int main(int argc, char* argv[]) {
     // Attempt to Read the FMU, return 1 on success
     bool fmuReadSuccess_bool = fmu.GetSensorData(&fmuData);
 
+
+  
+  if ((fmu.parseErr_ <= -2) & (fmuReadSuccess_bool == 0)) {    
+    std::cout << "\nFmu Read Error\tErr: " << fmu.parseErr_ << "\tState: " << fmu.ParserState_ << std::endl;
+  }
+
+
     if (fmuReadSuccess_bool) { // Run the major frame
       missMgrOut.tDurSens_ms = ((float) (clock() - frameStart_tic)) * kTIC2MS; // 
 
@@ -153,10 +160,6 @@ int main(int argc, char* argv[]) {
   
   if ((timeTemp_s - timePrevTemp_s) > 0.021) {
     std::cout << "\nFrame Skip: " << (timeTemp_s - timePrevTemp_s) << "\t Err: " << fmu.parseErr_ << "\tState: " << fmu.ParserState_ << std::endl;
-  }
-  
-  if ((fmu.parseErr_ != 0) | (fmu.ParserState_ != 0)) {    
-    std::cout << "\nFmu Read Error\tErr: " << fmu.parseErr_ << "\tState: " << fmu.ParserState_ << std::endl;
   }
   timePrevTemp_s = timeTemp_s;
 
