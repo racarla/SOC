@@ -14,14 +14,14 @@
 #include <exception>
 #include <stdexcept>
 
-enum ParseErr {
-  kSuccess = 0,
-  kReadErr = -1,
-  kMessageErr = -2,
-  kSizeErr = -3,
-  kParseErr = -4,
-  kHeaderErr = -5,
-  kChecksumErr = -6
+struct ErrStatus {
+  uint16_t cntSuccess = 0;
+  uint16_t cntReadErr = 0;
+  uint16_t cntMessageErr = 0;
+  uint16_t cntSizeErr = 0;
+  uint16_t cntParseErr = 0;
+  uint16_t cntHeaderErr = 0;
+  uint16_t cntChecksumErr = 0;
 };
 
 class Fmu {
@@ -32,8 +32,7 @@ class Fmu {
     void WriteMessage(BfsMessage MessageId,uint16_t PayloadSize,uint8_t *Payload);
     bool ReadMessage(BfsMessage *MessageId,uint16_t *PayloadSize,uint8_t *Payload);
     bool GetSensorData(FmuData *FmuDataPtr);
-    uint16_t ParserState_;
-    ParseErr parseErr_;
+    ErrStatus errStatus_;
     
   private:
     int FmuFileDesc_;

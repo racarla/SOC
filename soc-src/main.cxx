@@ -143,26 +143,36 @@ int main(int argc, char* argv[]) {
     // Attempt to Read the FMU, return 1 on success
     bool fmuReadSuccess_bool = fmu.GetSensorData(&fmuData);
 
-
-  
-  if ((fmu.parseErr_ <= -2) & (fmuReadSuccess_bool == 0)) {    
-    std::cout << "\nFmu Read Error\tErr: " << fmu.parseErr_ << "\tState: " << fmu.ParserState_ << std::endl;
-  }
-
-
     if (fmuReadSuccess_bool) { // Run the major frame
       missMgrOut.tDurSens_ms = ((float) (clock() - frameStart_tic)) * kTIC2MS; // 
 
   
   double timeTemp_s = (double) fmuData.Time_us / 1000000;
   
-  std::cout << "\rTime: " << (double) fmuData.Time_us / 1000000;
+  std::cout << "Time: " << timeTemp_s
+   << "\t Success: " << fmu.errStatus_.cntSuccess
+   << "\tReadErr: " << fmu.errStatus_.cntReadErr
+   << "\tMessageErr: " << fmu.errStatus_.cntMessageErr
+   << "\tSizeErr: " << fmu.errStatus_.cntSizeErr
+   << "\tParseErr: " << fmu.errStatus_.cntParseErr
+   << "\tHeaderErr: " << fmu.errStatus_.cntHeaderErr
+   << "\tChecksumErrErr: " << fmu.errStatus_.cntChecksumErr << std::endl;
   
   if ((timeTemp_s - timePrevTemp_s) > 0.021) {
-    std::cout << "\nFrame Skip: " << (timeTemp_s - timePrevTemp_s) << "\t Err: " << fmu.parseErr_ << "\tState: " << fmu.ParserState_ << std::endl;
+
+  
+    std::cout << "\nFrame Skip: " << (timeTemp_s - timePrevTemp_s) << std::endl;
   }
   timePrevTemp_s = timeTemp_s;
 
+      // Reset the error counters
+      fmu.errStatus_.cntSuccess = 0;
+      fmu.errStatus_.cntMessageErr = 0;
+      fmu.errStatus_.cntReadErr = 0;
+      fmu.errStatus_.cntSizeErr = 0;
+      fmu.errStatus_.cntParseErr = 0;
+      fmu.errStatus_.cntHeaderErr = 0;
+      fmu.errStatus_.cntChecksumErr = 0;
 
       // INPUT PROCESSING
 

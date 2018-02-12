@@ -1,8 +1,6 @@
 
 #include "fmu.hxx"
 
-
-
 Fmu::Fmu() {
   OpenPort();
 }
@@ -35,19 +33,15 @@ void Fmu::WritePort(size_t BufferSize,uint8_t* Buffer) {
   }
 }
 
-
 /* Get sensor data from FMU. */
 bool Fmu::GetSensorData(FmuData *FmuDataPtr) {
   BfsMessage MessageId;
-  bool returnVal = false;
   uint16_t PayloadSize;
   size_t PayloadLocation = 0;
   uint8_t Payload[sizeof(FmuDataPtr->Time_us)+2*sizeof(Voltage)+sizeof(Mpu9250Data)+sizeof(Bme280Data)+FmuDataPtr->Mpu9250Ext.size()*sizeof(Mpu9250Data)+FmuDataPtr->Bme280Ext.size()*sizeof(Bme280Data)+FmuDataPtr->SbusRx.size()*sizeof(SbusRxData)+FmuDataPtr->Gps.size()*sizeof(GpsData)+FmuDataPtr->Pitot.size()*sizeof(PitotData)+FmuDataPtr->PressureTransducer.size()*sizeof(PressureData)+FmuDataPtr->Analog.size()*sizeof(AnalogData)+FmuDataPtr->SbusVoltage.size()*sizeof(Voltage)+FmuDataPtr->PwmVoltage.size()*sizeof(Voltage)];
   if (ReadMessage(&MessageId,&PayloadSize,Payload)) {
-
-//  std::cout << "ParserState: " << ParserState_ << std::endl;
     if ((MessageId==kData)&&(PayloadSize==sizeof(Payload))) {
-parseErr_ = kSuccess;
+errStatus_.cntSuccess++;
       memcpy(&FmuDataPtr->Time_us,Payload,sizeof(FmuDataPtr->Time_us));
       PayloadLocation += sizeof(FmuDataPtr->Time_us);
       memcpy(&FmuDataPtr->InputVoltage,Payload+PayloadLocation,sizeof(FmuDataPtr->InputVoltage));
@@ -76,17 +70,16 @@ parseErr_ = kSuccess;
       PayloadLocation += FmuDataPtr->SbusVoltage.size()*sizeof(Voltage);
       memcpy(&FmuDataPtr->PwmVoltage[0],Payload+PayloadLocation,FmuDataPtr->PwmVoltage.size()*sizeof(Voltage));
       PayloadLocation += FmuDataPtr->PwmVoltage.size()*sizeof(Voltage);
-      returnVal = true;
+            
+      return true;
     } else {
-      parseErr_ = kMessageErr;
-      returnVal = false;
+      errStatus_.cntMessageErr++;
     }
   } else {
-    parseErr_ = kReadErr;
-    returnVal = false;
+    errStatus_.cntReadErr++;
+    return false;
   }
-    
-  return returnVal;
+  return false;
 }
 
 /* Writes a Bfs Bus message. */
@@ -100,22 +93,17 @@ void Fmu::WriteMessage(BfsMessage MessageId,uint16_t PayloadSize,uint8_t *Payloa
 /* Read BFS Bus messages. */
 bool Fmu::ReadMessage(BfsMessage *MessageId,uint16_t *PayloadSize,uint8_t *Payload) {
   int count;
-  bool returnVal = false;
   uint8_t buffer[1];
   if ((count=read(FmuFileDesc_,buffer,sizeof(buffer)))>0) {
     if (ParseBfsMessage(buffer[0],MessageId,PayloadSize,Payload)) {
-      returnVal = true;
+      return true;
     } else {
-      parseErr_ = kParseErr;
-      returnVal = false;
-//      std::cout << "Failed Parse" << std::endl;
+      errStatus_.cntParseErr++;
     }
   } else {
-      parseErr_ = kSizeErr;
-      returnVal = false;
-//    std::cout << "Failed Read" << std::endl;
+    errStatus_.cntSizeErr++;
   }
-  return returnVal;
+  return false;
 }
 
 
@@ -161,8 +149,6 @@ void Fmu::BuildBfsMessage(BfsMessage MessageId,uint16_t PayloadSize,uint8_t *Pay
 /* Parse a BFS Bus message. */
 bool Fmu::ParseBfsMessage(uint8_t RxBuffer,BfsMessage *MessageId,uint16_t *PayloadSize,uint8_t *Payload) {
   static uint16_t ParserState = 0;
-  ParserState_ = ParserState;
-  bool returnVal = false;
   static uint8_t Checksum[2] = {0,0};
   static uint8_t PayloadSizeBuffer[2] = {0,0};
   static uint16_t pSize = 0;
@@ -177,8 +163,8 @@ bool Fmu::ParseBfsMessage(uint8_t RxBuffer,BfsMessage *MessageId,uint16_t *Paylo
       Checksum[1] = 0;
       PayloadSizeBuffer[0] = 0;
       PayloadSizeBuffer[1] = 0;
-      ParserState = 0;
-      parseErr_ = kHeaderErr;
+      ParserState = 0;      
+      errStatus_.cntHeaderErr++;
     }
   } else if (ParserState == 2) { // message ID
     Message = (BfsMessage)RxBuffer;
@@ -205,10 +191,9 @@ bool Fmu::ParseBfsMessage(uint8_t RxBuffer,BfsMessage *MessageId,uint16_t *Paylo
       Checksum[1] = 0;
       PayloadSizeBuffer[0] = 0;
       PayloadSizeBuffer[1] = 0;
-ParserState_ = ParserState;
       ParserState = 0;
-      parseErr_ = kChecksumErr;
-      returnVal = false;
+      errStatus_.cntChecksumErr++;
+      return false;
     }
   } else if (ParserState==(pSize+6)) {
     if (RxBuffer == Checksum[1]) {
@@ -219,20 +204,17 @@ ParserState_ = ParserState;
       Checksum[1] = 0;
       PayloadSizeBuffer[0] = 0;
       PayloadSizeBuffer[1] = 0;
-ParserState_ = ParserState;
       ParserState = 0;
-      returnVal =  true;
+      return true;
     } else {
       Checksum[0] = 0;
       Checksum[1] = 0;
       PayloadSizeBuffer[0] = 0;
       PayloadSizeBuffer[1] = 0;
-ParserState_ = ParserState;
       ParserState = 0;
-      parseErr_ = kChecksumErr;
-      returnVal =  false;
+      errStatus_.cntChecksumErr++;
+      return false;
     }
   }
-ParserState_ = ParserState;
-  return returnVal;
+  return false;
 }
