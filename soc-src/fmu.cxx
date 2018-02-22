@@ -73,10 +73,10 @@ errStatus_.cntSuccess++;
             
       return true;
     } else {
-      errStatus_.cntMessageErr++;
+      errStatus_.cntReadErr++;
     }
   } else {
-    errStatus_.cntReadErr++;
+    errStatus_.cntPayloadErr++;
     return false;
   }
   return false;
@@ -101,7 +101,7 @@ bool Fmu::ReadMessage(BfsMessage *MessageId,uint16_t *PayloadSize,uint8_t *Paylo
       errStatus_.cntParseErr++;
     }
   } else {
-    errStatus_.cntSizeErr++;
+    errStatus_.cntUnavailErr++;
   }
   return false;
 }
@@ -153,7 +153,7 @@ bool Fmu::ParseBfsMessage(uint8_t RxBuffer,BfsMessage *MessageId,uint16_t *Paylo
   static uint8_t PayloadSizeBuffer[2] = {0,0};
   static uint16_t pSize = 0;
   static BfsMessage Message = kConfig;
-  static uint8_t Buffer[4096] = {0};
+  static uint8_t Buffer[4096] = {0}; // Reduced to 512 from 4096;
   if (ParserState < 2) { // header
     if (RxBuffer == BfsHeader[ParserState]) {
       ChecksumIteration(RxBuffer, Checksum);
@@ -165,11 +165,22 @@ bool Fmu::ParseBfsMessage(uint8_t RxBuffer,BfsMessage *MessageId,uint16_t *Paylo
       PayloadSizeBuffer[1] = 0;
       ParserState = 0;      
       errStatus_.cntHeaderErr++;
+      return false;
     }
   } else if (ParserState == 2) { // message ID
     Message = (BfsMessage)RxBuffer;
-    ChecksumIteration(RxBuffer, Checksum);
-    ParserState++;
+    if (Message==kData) {
+      ChecksumIteration(RxBuffer, Checksum);
+      ParserState++;
+    } else {
+      Checksum[0] = 0;
+      Checksum[1] = 0;
+      PayloadSizeBuffer[0] = 0;
+      PayloadSizeBuffer[1] = 0;
+      ParserState = 0;      
+      errStatus_.cntMessageErr++;
+      return false;
+    }
   } else if (ParserState == 3) { // payload length
     PayloadSizeBuffer[0] = RxBuffer;
     ChecksumIteration(RxBuffer, Checksum);
@@ -177,12 +188,25 @@ bool Fmu::ParseBfsMessage(uint8_t RxBuffer,BfsMessage *MessageId,uint16_t *Paylo
   } else if (ParserState == 4) { // payload length
     PayloadSizeBuffer[1] = RxBuffer;
     pSize = ((uint16_t)PayloadSizeBuffer[1] << 8) | PayloadSizeBuffer[0];
-    ChecksumIteration(RxBuffer, Checksum);
-    ParserState++;
+  
+    if (pSize < 400) {
+      ChecksumIteration(RxBuffer, Checksum);
+      ParserState++;
+    } else {
+      Checksum[0] = 0;
+      Checksum[1] = 0;
+      PayloadSizeBuffer[0] = 0;
+      PayloadSizeBuffer[1] = 0;
+      ParserState = 0;
+      errStatus_.cntSizeErr++;
+      return false;
+    }
+    
   } else if ((ParserState>=5)&&(ParserState<(pSize+5))) { // payload
     Buffer[ParserState-5] = RxBuffer;
     ChecksumIteration(RxBuffer, Checksum);
     ParserState++;
+    
   } else if (ParserState==(pSize+5)) {
     if (RxBuffer == Checksum[0]) {
       ParserState++;

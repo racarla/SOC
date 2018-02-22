@@ -148,27 +148,30 @@ int main(int argc, char* argv[]) {
 
   
   double timeTemp_s = (double) fmuData.Time_us / 1000000;
+     
+  if ((timeTemp_s - timePrevTemp_s) > 0.021) {
+    std::cout << "\nFrame Skip: " << (timeTemp_s - timePrevTemp_s) << std::endl;
+  }
+  timePrevTemp_s = timeTemp_s;
   
   std::cout << "Time: " << timeTemp_s
-   << "\t Success: " << fmu.errStatus_.cntSuccess
+   << "\tSuccess: " << fmu.errStatus_.cntSuccess
+   << "\tReadUnavail: " << fmu.errStatus_.cntUnavailErr
    << "\tReadErr: " << fmu.errStatus_.cntReadErr
+   << "\tPayloadErr: " << fmu.errStatus_.cntPayloadErr
    << "\tMessageErr: " << fmu.errStatus_.cntMessageErr
    << "\tSizeErr: " << fmu.errStatus_.cntSizeErr
    << "\tParseErr: " << fmu.errStatus_.cntParseErr
    << "\tHeaderErr: " << fmu.errStatus_.cntHeaderErr
    << "\tChecksumErrErr: " << fmu.errStatus_.cntChecksumErr << std::endl;
-  
-  if ((timeTemp_s - timePrevTemp_s) > 0.021) {
 
-  
-    std::cout << "\nFrame Skip: " << (timeTemp_s - timePrevTemp_s) << std::endl;
-  }
-  timePrevTemp_s = timeTemp_s;
 
       // Reset the error counters
       fmu.errStatus_.cntSuccess = 0;
-      fmu.errStatus_.cntMessageErr = 0;
+      fmu.errStatus_.cntUnavailErr = 0;
       fmu.errStatus_.cntReadErr = 0;
+      fmu.errStatus_.cntPayloadErr = 0;
+      fmu.errStatus_.cntMessageErr = 0;
       fmu.errStatus_.cntSizeErr = 0;
       fmu.errStatus_.cntParseErr = 0;
       fmu.errStatus_.cntHeaderErr = 0;

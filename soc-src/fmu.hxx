@@ -16,7 +16,9 @@
 
 struct ErrStatus {
   uint16_t cntSuccess = 0;
+  uint16_t cntUnavailErr = 0;
   uint16_t cntReadErr = 0;
+  uint16_t cntPayloadErr = 0;
   uint16_t cntMessageErr = 0;
   uint16_t cntSizeErr = 0;
   uint16_t cntParseErr = 0;
