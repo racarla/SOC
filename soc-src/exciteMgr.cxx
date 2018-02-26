@@ -33,8 +33,8 @@ void ExciteMgr::Init()
   phaseMat_rad.conservativeResize(numChan, numElem);
   ampMat_nd.conservativeResize(numChan, numElem);
 
-  freqMat_rps << 0.37699112, 1.5079645, 2.6389378, 3.7699112, 4.9008845, 6.0318579, 7.1628313, 8.2938046, 9.424778, 10.555751, 11.686725, 12.817698, 13.948671, 15.079645, 16.210618, 17.341591, 18.472565, 19.603538, 20.734512, 21.865485, 22.996458, 24.127432, 25.258405, 26.389378, 27.520352, 28.651325, 29.782298, 30.913272, 32.044245, 33.175218, 34.306192, 35.437165, 36.568138, 37.699112, 38.830085, 39.961059, 41.092032, 42.223005, 43.353979, 44.484952, 45.615925, 46.746899, 47.877872, 49.008845, 50.139819, 51.270792, 
-                 0.75398224, 1.8849556, 3.0159289, 4.1469023, 5.2778757, 6.408849, 7.5398224, 8.6707957, 9.8017691, 10.932742, 12.063716, 13.194689, 14.325663, 15.456636, 16.587609, 17.718583, 18.849556, 19.980529, 21.111503, 22.242476, 23.373449, 24.504423, 25.635396, 26.766369, 27.897343, 29.028316, 30.159289, 31.290263, 32.421236, 33.55221, 34.683183, 35.814156, 36.94513, 38.076103, 39.207076, 40.33805, 41.469023, 42.599996, 43.73097, 44.861943, 45.992916, 47.12389, 48.254863, 49.385837, 50.51681, 51.647783, 
+  freqMat_rps << 0.37699112, 1.5079645, 2.6389378, 3.7699112, 4.9008845, 6.0318579, 7.1628313, 8.2938046, 9.424778, 10.555751, 11.686725, 12.817698, 13.948671, 15.079645, 16.210618, 17.341591, 18.472565, 19.603538, 20.734512, 21.865485, 22.996458, 24.127432, 25.258405, 26.389378, 27.520352, 28.651325, 29.782298, 30.913272, 32.044245, 33.175218, 34.306192, 35.437165, 36.568138, 37.699112, 38.830085, 39.961059, 41.092032, 42.223005, 43.353979, 44.484952, 45.615925, 46.746899, 47.877872, 49.008845, 50.139819, 51.270792,
+                 0.75398224, 1.8849556, 3.0159289, 4.1469023, 5.2778757, 6.408849, 7.5398224, 8.6707957, 9.8017691, 10.932742, 12.063716, 13.194689, 14.325663, 15.456636, 16.587609, 17.718583, 18.849556, 19.980529, 21.111503, 22.242476, 23.373449, 24.504423, 25.635396, 26.766369, 27.897343, 29.028316, 30.159289, 31.290263, 32.421236, 33.55221, 34.683183, 35.814156, 36.94513, 38.076103, 39.207076, 40.33805, 41.469023, 42.599996, 43.73097, 44.861943, 45.992916, 47.12389, 48.254863, 49.385837, 50.51681, 51.647783,
                  1.1309734, 2.2619467, 3.3929201, 4.5238934, 5.6548668, 6.7858401, 7.9168135, 9.0477868, 10.17876, 11.309734, 12.440707, 13.57168, 14.702654, 15.833627, 16.9646, 18.095574, 19.226547, 20.35752, 21.488494, 22.619467, 23.75044, 24.881414, 26.012387, 27.143361, 28.274334, 29.405307, 30.536281, 31.667254, 32.798227, 33.929201, 35.060174, 36.191147, 37.322121, 38.453094, 39.584067, 40.715041, 41.846014, 42.976988, 44.107961, 45.238934, 46.369908, 47.500881, 48.631854, 49.762828, 50.893801, 52.024774;
 
   phaseMat_rad << 5.9016971, 6.2538491, 6.1650954, 5.1281552, 4.1778432, 1.6285662, 4.6472567, 3.1525262, 0.59737482, 3.0422108, 4.3487778, 1.057283, 2.4681359, 3.8892176, 4.572762, 4.4076866, 4.2568904, 3.9038365, 3.0647889, 2.0038473, 0.16939258, 4.493568, 1.5003072, 4.9830828, 1.9330228, 4.4933183, 0.39175709, 1.7847209, 3.2378917, 4.082671, 4.8560003, 5.771154, 5.2581741, 3.9548764, 3.2079124, 0.88731294, 0.19942676, 4.1682276, 0.80510679, 3.1808851, 0.52565461, 3.3325046, 4.9277457, 5.97419, 0.47236376, 0.49175571,
@@ -108,7 +108,7 @@ void ExciteMgr::Init()
   // Excitation 8: Chirp, Rudder
   exciteTest08_.Init(kLinear, timeVecStart_s, timeVecDur_s, freqVecStart_rps, freqVecEnd_rps, ampVecStart_nd, ampVecEnd_nd);
 
-  // Excitation 9: Simultaneous Chirp, Ailerons (decreasing freq) and Elevator (increase freq) 
+  // Excitation 9: Simultaneous Chirp, Ailerons (decreasing freq) and Elevator (increase freq)
   timeStart_s = 1.0; timeDur_s = 20.0; amp_nd = 4 * kD2R;
   freqLow_rps = 1; freqHigh_rps = 50;
 
@@ -124,8 +124,8 @@ void ExciteMgr::Init()
   exciteTest09_.Init(kLinear, timeVecStart_s, timeVecDur_s, freqVecStart_rps, freqVecEnd_rps, ampVecStart_nd, ampVecEnd_nd);
 
  // Excitation 10: Doublet, Elevator
-  // timeStart_s = 1.0; timeOnePulse_s = 0.23; amp_nd = 4 * kD2R; // 23 m/s
-  timeStart_s = 1.0; timeOnePulse_s = 0.27; amp_nd = 4 * kD2R; // 17 m/s
+  timeStart_s = 1.0; timeOnePulse_s = 0.23; amp_nd = 4 * kD2R; // 23 m/s
+  // timeStart_s = 1.0; timeOnePulse_s = 0.27; amp_nd = 4 * kD2R; // 17 m/s
 
   numChan = 1;
 
@@ -136,8 +136,8 @@ void ExciteMgr::Init()
   exciteTest10_.Init(kDoublet, timeVecStart_s, timeVecOnePulse_s, ampVec_nd);
 
   // Excitation 11: Doublet, Aileron
-  // timeStart_s = 1.0; timeOnePulse_s = 0.54; amp_nd = 4 * kD2R; // 23 m/s
-  timeStart_s = 1.0; timeOnePulse_s = 0.72; amp_nd = 4 * kD2R; // 17 m/s
+  timeStart_s = 1.0; timeOnePulse_s = 0.54; amp_nd = 4 * kD2R; // 23 m/s
+  // timeStart_s = 1.0; timeOnePulse_s = 0.72; amp_nd = 4 * kD2R; // 17 m/s
 
   numChan = 1;
 
@@ -151,8 +151,8 @@ void ExciteMgr::Init()
   exciteTest12_.Init(kDoublet, timeVecStart_s, timeVecOnePulse_s, ampVec_nd);
 
   // Excitation 13: Pulse, Elevator
-  // timeStart_s = 1.0; timeOnePulse_s = 0.23; amp_nd = 4 * kD2R; // 23 m/s
-  timeStart_s = 1.0; timeOnePulse_s = 0.27; amp_nd = 4 * kD2R; // 17 m/s
+  timeStart_s = 1.0; timeOnePulse_s = 0.23; amp_nd = 4 * kD2R; // 23 m/s
+  // timeStart_s = 1.0; timeOnePulse_s = 0.27; amp_nd = 4 * kD2R; // 17 m/s
 
   numChan = 1;
 
@@ -163,8 +163,8 @@ void ExciteMgr::Init()
   exciteTest13_.Init(kPulse, timeVecStart_s, timeVecOnePulse_s, ampVec_nd);
 
   // Excitation 14: Pulse, Aileron
-  // timeStart_s = 1.0; timeOnePulse_s = 0.54; amp_nd = 4 * kD2R; // 23 m/s
-  timeStart_s = 1.0; timeOnePulse_s = 0.72; amp_nd = 4 * kD2R; // 17 m/s
+  timeStart_s = 1.0; timeOnePulse_s = 0.54; amp_nd = 4 * kD2R; // 23 m/s
+  // timeStart_s = 1.0; timeOnePulse_s = 0.72; amp_nd = 4 * kD2R; // 17 m/s
 
   numChan = 1;
 
@@ -178,8 +178,8 @@ void ExciteMgr::Init()
   exciteTest15_.Init(kPulse, timeVecStart_s, timeVecOnePulse_s, ampVec_nd);
 
   // Excitation 16: Pulse, Aileron (wider)
-  // timeStart_s = 1.0; timeOnePulse_s = 0.6; amp_nd = 25 * kD2R; // 23 m/s
-  timeStart_s = 1.0; timeOnePulse_s = 0.6; amp_nd = 4 * kD2R; // 17 m/s
+  timeStart_s = 1.0; timeOnePulse_s = 0.6; amp_nd = 25 * kD2R; // 23 m/s
+  // timeStart_s = 1.0; timeOnePulse_s = 0.6; amp_nd = 4 * kD2R; // 17 m/s
 
   numChan = 1;
 
@@ -190,8 +190,8 @@ void ExciteMgr::Init()
   exciteTest16_.Init(kPulse, timeVecStart_s, timeVecOnePulse_s, ampVec_nd);
 
   // Excitation 17: Doublet3211, Elevator
-  // timeStart_s = 1.0; timeOnePulse_s = 0.23; amp_nd = 4 * kD2R; // 23 m/s
-  timeStart_s = 1.0; timeOnePulse_s = 0.27; amp_nd = 4 * kD2R; // 17 m/s
+  timeStart_s = 1.0; timeOnePulse_s = 0.23; amp_nd = 4 * kD2R; // 23 m/s
+  // timeStart_s = 1.0; timeOnePulse_s = 0.27; amp_nd = 4 * kD2R; // 17 m/s
 
   numChan = 1;
 
@@ -202,8 +202,8 @@ void ExciteMgr::Init()
   exciteTest17_.Init(kDoublet3211, timeVecStart_s, timeVecOnePulse_s, ampVec_nd);
 
   // Excitation 18: Doublet3211, Aileron
-  // timeStart_s = 1.0; timeOnePulse_s = 0.54; amp_nd = 4 * kD2R; // 23 m/s
-  timeStart_s = 1.0; timeOnePulse_s = 0.72; amp_nd = 4 * kD2R; // 17 m/s
+  timeStart_s = 1.0; timeOnePulse_s = 0.54; amp_nd = 4 * kD2R; // 23 m/s
+  // timeStart_s = 1.0; timeOnePulse_s = 0.72; amp_nd = 4 * kD2R; // 17 m/s
 
   numChan = 1;
 

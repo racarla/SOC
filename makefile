@@ -1,6 +1,6 @@
 #
 # MAKEFILE
-# 
+#
 # See: LICENSE.md for Copyright and License Agreement
 #
 # History:
@@ -10,7 +10,7 @@
 #
 
 # compiler
-CC_ARM := arm-linux-gnueabihf-g++-5 -g -O3
+CC_ARM := arm-linux-gnueabihf-g++-5 -O3
 CC := g++-5
 CFLAGS := -std=c++0x -Wall
 
@@ -74,30 +74,30 @@ all: flightcode calib config bin2hdf display
 #	$(CC_ARM) $(CFLAGS) $(IFLAGS) -c -o $@ $<
 
 flightcode: $(SRC_FLIGHT)
-	@ echo "Building flightcode ..."	
+	@ echo "Building flightcode ..."
 	$(CC_ARM) $(CFLAGS) $(IFLAGS) -o $@ $? $(LFLAGS_FLIGHT)
 
 calib: $(SRC_CAL)
-	@ echo "Building calibration ..."	
+	@ echo "Building calibration ..."
 	$(CC_ARM) $(CFLAGS) $(IFLAGS) -o $@ $? $(LFLAGS_FLIGHT)
 
 config: $(SRC_CONFIG)
-	@ echo "Building config ..."	
+	@ echo "Building config ..."
 	$(CC_ARM) $(CFLAGS) $(IFLAGS) -o $@ $? $(LFLAGS_CONFIG)
 
 bin2hdf: $(SRC_BIN2HDF)
-	@ echo "Building bin2hdf ..."	
+	@ echo "Building bin2hdf ..."
 	$(CC) $(CFLAGS) $(IFLAGS) -o $@ $? $(LFLAGS_BIN2HDF)
 
 clean:
 	rm -f $(OBJ_FLIGHT) $(OBJ_CAL) ${OBJ_CONFIG} ${OBJ_CONFIG}
 	rm -f flightcode calib config bin2hdf
 
-display: 
+display:
 	@ echo
 	@ echo "Successful build."
 	@ echo ""
 	@ echo "Bolder Flight Systems, Bolder by Design!"
 	@ echo "Copyright (c) 2017 Bolder Flight Systems"
 	@ echo "bolderflight.com"
-	@ echo "" 
+	@ echo ""
