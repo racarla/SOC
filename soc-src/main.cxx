@@ -131,10 +131,10 @@ int main(int argc, char* argv[]) {
   clock_t frameStartNav_tic, frameStartExcite_tic, frameStartCntrl; // Intermidiate in-frame timers
 
   double timePrevTemp_s = 0.0;
-  
+
   /* main loop */
   while (1) {
-    
+
     frameStartTemp_tic = clock();
     if(frameStartTemp_tic != -1) {
       frameStart_tic = frameStartTemp_tic;
@@ -144,38 +144,38 @@ int main(int argc, char* argv[]) {
     bool fmuReadSuccess_bool = fmu.GetSensorData(&fmuData);
 
     if (fmuReadSuccess_bool) { // Run the major frame
-      missMgrOut.tDurSens_ms = ((float) (clock() - frameStart_tic)) * kTIC2MS; // 
+      missMgrOut.tDurSens_ms = ((float) (clock() - frameStart_tic)) * kTIC2MS; //
 
-  
-  double timeTemp_s = (double) fmuData.Time_us / 1000000;
-     
-  if ((timeTemp_s - timePrevTemp_s) > 0.021) {
-    std::cout << "\nFrame Skip: " << (timeTemp_s - timePrevTemp_s) << std::endl;
-  }
-  timePrevTemp_s = timeTemp_s;
-  
-  std::cout << "Time: " << timeTemp_s
-   << "\tSuccess: " << fmu.errStatus_.cntSuccess
-   << "\tReadUnavail: " << fmu.errStatus_.cntUnavailErr
-   << "\tReadErr: " << fmu.errStatus_.cntReadErr
-   << "\tPayloadErr: " << fmu.errStatus_.cntPayloadErr
-   << "\tMessageErr: " << fmu.errStatus_.cntMessageErr
-   << "\tSizeErr: " << fmu.errStatus_.cntSizeErr
-   << "\tParseErr: " << fmu.errStatus_.cntParseErr
-   << "\tHeaderErr: " << fmu.errStatus_.cntHeaderErr
-   << "\tChecksumErrErr: " << fmu.errStatus_.cntChecksumErr << std::endl;
+
+  // double timeTemp_s = (double) fmuData.Time_us / 1000000;
+  //
+  // if ((timeTemp_s - timePrevTemp_s) > 0.021) {
+  //   std::cout << "\nFrame Skip: " << (timeTemp_s - timePrevTemp_s) << std::endl;
+  // }
+  // timePrevTemp_s = timeTemp_s;
+  //
+  // std::cout << "Time: " << timeTemp_s
+  //  << "\tSuccess: " << fmu.errStatus_.cntSuccess
+  //  << "\tReadUnavail: " << fmu.errStatus_.cntUnavailErr
+  //  << "\tReadErr: " << fmu.errStatus_.cntReadErr
+  //  << "\tPayloadErr: " << fmu.errStatus_.cntPayloadErr
+  //  << "\tMessageErr: " << fmu.errStatus_.cntMessageErr
+  //  << "\tSizeErr: " << fmu.errStatus_.cntSizeErr
+  //  << "\tParseErr: " << fmu.errStatus_.cntParseErr
+  //  << "\tHeaderErr: " << fmu.errStatus_.cntHeaderErr
+  //  << "\tChecksumErrErr: " << fmu.errStatus_.cntChecksumErr << std::endl;
 
 
       // Reset the error counters
-      fmu.errStatus_.cntSuccess = 0;
-      fmu.errStatus_.cntUnavailErr = 0;
-      fmu.errStatus_.cntReadErr = 0;
-      fmu.errStatus_.cntPayloadErr = 0;
-      fmu.errStatus_.cntMessageErr = 0;
-      fmu.errStatus_.cntSizeErr = 0;
-      fmu.errStatus_.cntParseErr = 0;
-      fmu.errStatus_.cntHeaderErr = 0;
-      fmu.errStatus_.cntChecksumErr = 0;
+      // fmu.errStatus_.cntSuccess = 0;
+      // fmu.errStatus_.cntUnavailErr = 0;
+      // fmu.errStatus_.cntReadErr = 0;
+      // fmu.errStatus_.cntPayloadErr = 0;
+      // fmu.errStatus_.cntMessageErr = 0;
+      // fmu.errStatus_.cntSizeErr = 0;
+      // fmu.errStatus_.cntParseErr = 0;
+      // fmu.errStatus_.cntHeaderErr = 0;
+      // fmu.errStatus_.cntChecksumErr = 0;
 
       // INPUT PROCESSING
 
@@ -266,7 +266,7 @@ int main(int argc, char* argv[]) {
       std::vector<uint8_t> cmdEffSerial;
       cmdEffSerial.resize(cntrlMgrOut.cmdEff.size()*sizeof(float));
 
-      cntrlMgrOut.cmdEff[0] = cntrlMgrOut.cmdCntrl[3]; // Throttle 
+      cntrlMgrOut.cmdEff[0] = cntrlMgrOut.cmdCntrl[3]; // Throttle
       cntrlMgrOut.cmdEff[1] = cntrlMgrOut.cmdAlloc[0] + exciteMgrOut.cmdExcite[1]; // Elevator
       cntrlMgrOut.cmdEff[2] = cntrlMgrOut.cmdAlloc[1] + exciteMgrOut.cmdExcite[2]; // Rudder
       cntrlMgrOut.cmdEff[3] = cntrlMgrOut.cmdAlloc[2] - exciteMgrOut.cmdExcite[0]; // Ail R
