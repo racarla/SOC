@@ -19,17 +19,15 @@ See: LICENSE.md for Copyright and License Agreement
 #define kMaxExciteChan kMaxCntrlCmd // Excitation Channels
 #define kMaxExciteElem 46 // Excitation Elements (Multisine components)
 
-#include "navigation.hxx"
-#include "structs.hxx"
-#include "airdata.hxx"
+#define kVerboseConfig 1
+
 #include "datalogger.hxx"
 #include "config.hxx"
 #include "fmu.hxx"
 #include "hardware-defs.hxx"
-#include "global-defs.hxx"
-#include "missionMgr.hxx"
-#include "cntrlMgr.hxx"
-#include "exciteMgr.hxx"
+
+#include "MissionMgr.hxx"
+#include "CntrlMgr.hxx"
 
 #define EIGEN_INITIALIZE_MATRICES_BY_ZERO 1
 //#define EIGEN_INITIALIZE_MATRICES_BY_NAN 1
@@ -44,181 +42,97 @@ int main(int argc, char* argv[]) {
     return -1;
   }
 
-  // FMU Sensors
+  // Seutp FMU
   Fmu fmu; // Class
   FmuData fmuData; // Struct
 //std::cout << "Fmu" << "\t";
 
-  // Data Logger
+  // Setup Datalogger
   Datalogger log;
 
-  // load configuration file
+  // Load configuration file
   AircraftConfig configData; // Structure
   LoadConfigFile(argv[1], fmu, &configData, &fmuData);
 
-  // Airdata
-  Airdata airdata; // Class
-  airdata.Init(); // Init
-  AirdataOut airdataOut; // Struct
-//std::cout << "Airdata" << "\t";
-
-  // Navigation Filter
-  Navigation NavFilter; // Class
-  NavOut navOut; // Struct
-//std::cout << "Navigation" << "\t";
-
   // SETUP MISSION
   // Define Mission Manager
-  MissMgr missMgr; // Create the Mission Manager
-  missMgr.Init(); // Initialize mission manager
-  MissMgrOut missMgrOut; // Create the Mission Manage Structure
-//std::cout << "MissMgr" << "\t";
+  MissMgr missMgr; // Create System Class
+  missMgr.Config(&configData); // Configure System
+  MissMgrOut missMgrOut; // Create the Data Structure
 
-  // Define Controller Manager and Controllers
-  CntrlMgr cntrlMgr; // Create the Controller Manager
+    // Waveform Generation and Excitation Injection Systems are Components
+    WaveSys waveSys; // Create System Class
+    waveSys.Config(&configData); // Configure System
+    WaveSysOut waveSysOut; // Create the Data Structure
 
-  // Define Excitation Manager and Excitations
-  ExciteMgr exciteMgr; // Create the Excitation Manager
-  exciteMgr.Init();    // Initialize the Excitation Manager
-  ExciteMgrOut exciteMgrOut; // Struct
-//std::cout << "ExciteMgr" << "\t";
+    // Define Excitation System and Excitations
+    ExciteSys exciteSys; // Create System Class
+    exciteSys.Config(&configData); // Configure System
+    ExciteSysOut exciteSysOut; // Create the Data Structure
 
-  // Define Control Allocation
-  CntrlAllocDef cntrlAllocDef; // Structure for control allocation definition
+  // Define Controller Manager
+  CtrlMgr ctrlMgr; // Create System Class
+  ctrlMgr.Config(&configData); // Configure System
+  CtrlMgrOut ctrlMgrOut; // Create the Data Structure
 
-  uint8_t numObj = 3;
-  uint8_t numEff = 6;
+    // Setup Input Processing
+    InputProc inputProc; // Create System Class
+    inputProc.Config(&configData); // Configure System
+    InputProcOut inputProcOut; // Create the Data Structure
 
-  cntrlAllocDef.cntrlEff.conservativeResize(numObj, numEff); // Control effectiveness matrix
-  cntrlAllocDef.uMin.conservativeResize(numEff); // Min effector commands
-  cntrlAllocDef.uMax.conservativeResize(numEff); // Max effector commands
-  cntrlAllocDef.uPref.conservativeResize(numEff); // Prefered effector commands
-  cntrlAllocDef.wtObj.conservativeResize(numObj, numObj); // Objective weighting matrix
-  cntrlAllocDef.wtEff.conservativeResize(numEff, numEff); // Effector weighting matrix
+    // Setup Airdata
+    Airdata airdata; // Create System Class
+    airdata.Config(&configData); // Configure System
+    AirdataOut airdataOut; // Create the Data Structure
 
-  // Control Allocation Definition
-  // Surface Order - Elev, Rud, AilR, FlapR, FlapL, AilL
-  // Objectives Order - Roll Rate, Pitch Rate, Yaw Rate
-//  cntrlAllocDef.cntrlEff <<  0.0000, -5.0084, -78.235, -33.013,  33.013,  78.235,
-//                            -133.69,  0.0047,  3.0002,  2.6238,  2.6238,  3.0002,
-//                             0.0000, -82.041,  5.7521,  1.7941, -1.7941, -5.7521; // rad/s per deg
+    // Navigation Estimation Filter
+    NavEst navEst; // Create System Class
+    navEst.Config(&configData); // Configure System
+    NavEstOut navEstOut; // Create the Data Structure
 
-  // Objectives Order - Roll Rate, Pitch Rate, Yaw Rate
-//  cntrlAllocDef.cntrlEff <<  0.0000, -5.0084, -78.235, -33.013,  33.013,  78.235,
-//                            -133.69,  0.0000,  0.0000,  0.0000,  0.0000,  0.0000,
-//                             0.0000, -82.041,  5.7521,  1.7941, -1.7941, -5.7521; // rad/s per deg
+    // Define Guidance Systems
+    GuidSys guidSys; // Create System Class
+    guidSys.Config(&configData); // Configure System
+    GuidSysOut guidSysOut; // Create the Data Structure
 
-  // Objectives Order - Roll Rate, Pitch Rate, Yaw Rate
-  cntrlAllocDef.cntrlEff <<  0.0000,  0.0000, -78.235,  0.0000,  0.0000,  78.235,
-                            -133.69,  0.0000,  0.0000,  0.0000,  0.0000,  0.0000,
-                             0.0000, -82.041,  0.0000,  0.0000,  0.0000,  0.0000; // rad/s per deg
+    // Define Scas Systems
+    ScasSys scasSys; // Create System Class
+    scasSys.Config(&configData); // Configure System
+    ScasSysOut scasSysOut; // Create the Data Structure
 
-  cntrlAllocDef.cntrlEff *= kD2R; // Convert to rad/s per rad
+    // Define Control Allocation Systems
+    AllocSys allocSys; // Create System Class
+    allocSys.Config(&configData); // Configure System
+    AllocSysOut allocSysOut; // Create the Data Structure
 
-  cntrlAllocDef.uMin << -25.0*kD2R, -15.0*kD2R, -25.0*kD2R, -25.0*kD2R, -25.0*kD2R, -25.0*kD2R ;
-  cntrlAllocDef.uMax <<  25.0*kD2R,  15.0*kD2R,  25.0*kD2R,  25.0*kD2R,  25.0*kD2R,  25.0*kD2R ;
-  cntrlAllocDef.uPref << 0.0,        0.0,        0.0,        0.0,        0.0,        0.0;
-
-  cntrlAllocDef.wtObj.setIdentity();
-  cntrlAllocDef.wtEff.setIdentity();
-
-  cntrlMgr.Init(cntrlAllocDef);   // Define the Baseline and Research Controller, and Allocator
-  CntrlMgrOut cntrlMgrOut; // Struct
-//std::cout << "CntrlMgr" << "\t";
-//std::cout << "CntrlAllocMgr" << "\t";
-
-  clock_t frameStart_tic = clock(); // Start the in-frame timer
-  clock_t frameStartNav_tic, frameStartExcite_tic, frameStartCntrl; // Intermidiate in-frame timers
-
-  /* main loop */
+  // Major Frame Loop
   while (1) {
-    frameStart_tic = clock();
 
-    if (fmu.GetSensorData(&fmuData)) {
-      missMgrOut.tDurSens_ms = ((float) (clock() - frameStart_tic)) * kTIC2MS;
+    // Attempt to Read the FMU, return 1 on success
+    if (fmu.GetSensorData(fmuData)) { // Run the major frame
 
-      // INPUT PROCESSING
+      // Input Processing (Input, Nav, Airdata), Baseline Systems Only
+      ctrlOut = ctrlMgr.BaseInput(missMgrOut, fmuData);
 
-      // MISSION MANAGER
-      // Mode Switching
-      missMgrOut = missMgr.ModeMgr(fmuData);
-// std::cout << "missMgrOut" << "\t";
+      // Misison Manager Mode Switching - Check safety triggers
+      missMgrOut = missMgr.ModeMgr(ctrlOut);
 
-      // SENSOR PROCESSING
-      // Airdata
-      airdataOut = airdata.Compute(fmuData.Pitot[0]);
-// std::cout << "Airdata" << "\t";
+      // Run Control Systems (Guidance, SCAS, Allocation), Baseline Systems Only
+      ctrlOut = ctrlMgr.BaseCtrl(missMgrOut, fmuData);
 
-      // Compute the Airdata Biases during startup, 10 seconds @ 50 Hz
-      if (missMgrOut.frame_cnt < (500)) {
-        airdata.BiasEst();
+      // Run Waveform Generation
+      missMgrOut = missMgr.WaveGen();
 
-        // Check that the Pressure Sensors are in a sensible range
-        if ((fmuData.Pitot[0].Static.Pressure_Pa < 70000) || (fmuData.Pitot[0].Static.Pressure_Pa > 120000)) {
-          std::cout << "Pitot Static Sensor out of range: " << fmuData.Pitot[0].Static.Pressure_Pa << std::endl;
-        }
+      // Run Excitation System
+      missMgrOut = missMgr.Excite(ctrlOut);
 
-        // Check that the Pressure Sensors are in a sensible range
-        if ((fmuData.PressureTransducer[0].Pressure_Pa < 70000) || (fmuData.PressureTransducer[0].Pressure_Pa > 120000)) {
-          std::cout << "5-Hole Static Sensor out of range: " << fmuData.PressureTransducer[0].Pressure_Pa << std::endl;
-        }
+      // Input Processing (Input, Nav, Airdata), Experimental Systems
+      ctrlOut = ctrlMgr.ExpInput(missMgrOut, fmuData);
 
-      }
+      // Run Control Systems (Guidance, SCAS, Allocation), Experimental Systems
+      ctrlOut = ctrlMgr.ExpCtrl(missMgrOut, fmuData);
 
-      // navigation filter
-      frameStartNav_tic = clock();
-      if (fmuData.Gps.size() > 0) {
-        if (!NavFilter.Initialized) {
-          NavFilter.InitializeNavigation(fmuData);
-        } else {
-          NavFilter.RunNavigation(fmuData,&navOut);
-        }
-      }
-      missMgrOut.tDurNav_ms = ((float) (clock() - frameStartNav_tic)) * kTIC2MS;
-// std::cout << "Stick: " << fmuData.SbusRx[0].Inceptors[0] << "\t";
-// std::cout << "Rate: " << fmuData.Mpu9250.Gyro_rads[0] << "\t";
-// std::cout << "Euler: " << navOut.Euler_rad[0] << "\t";
 
-      // CONTROL LAWS
-      // Execute inner-loop control law
-      cntrlMgr.Mode(missMgrOut.cntrlMode); // Transfer the Mission Control mode to the Controller Manager
-
-// std::cout << missMgrOut.time_s << "\t";
-// std::cout << missMgrOut.frame_cnt << "\t";
-// std::cout << missMgrOut.autoEngage << "  ";
-// std::cout << missMgrOut.cntrlMode << "  ";
-// std::cout << missMgrOut.testArm << "  ";
-// std::cout << missMgrOut.testEngage << "  ";
-// std::cout << (int) missMgrOut.indxTest << "\t";
-
-// std::cout << std::setw(10);
-
-// std::cout << fmuData.Pitot[0].Static.Pressure_Pa << "\t";
-// std::cout << fmuData.Pitot[0].Diff.Pressure_Pa << "\t\t";
-
-// std::cout << airdataOut.alt_m << "\t";
-// std::cout << airdataOut.altFilt_m << "\t\t";
-// std::cout << airdataOut.vIas_mps << "\t";
-// std::cout << airdataOut.vIasFilt_mps << "\t\t";
-
-// std::cout << fmuData.PressureTransducer[0].Pressure_Pa << "\t";
-// std::cout << fmuData.PressureTransducer[1].Pressure_Pa << "\t";
-// std::cout << fmuData.PressureTransducer[2].Pressure_Pa << "\t";
-// std::cout << fmuData.PressureTransducer[3].Pressure_Pa << "\t";
-
-      // Generate command excitations
-      frameStartExcite_tic = clock();
-      exciteMgrOut = exciteMgr.Compute(missMgrOut.testEngage, missMgrOut.indxTest, missMgrOut.time_s);
-      missMgrOut.tDurExcite_ms = ((float) (clock() - frameStartExcite_tic)) * kTIC2MS;
-//std::cout << exciteMgrOut.cmdExcite.transpose()/kD2R << "\t";
-
-      // Run the controllers
-      frameStartCntrl = clock();
-      cntrlMgr.CmdCntrlBase(missMgrOut.time_s, fmuData, navOut, airdataOut);
-      cntrlMgr.CmdCntrlRes(missMgrOut.time_s, fmuData, navOut, airdataOut);
-      cntrlMgrOut = cntrlMgr.CmdCntrl();
-// std::cout << cntrlMgrOut.cmdCntrlRes.transpose() << "\t";
-//std::cout << cntrlMgrOut.cmdCntrl[0] << "\t\t";
 
       // OUTPUT PROCESSING
       // send control surface commands
@@ -226,25 +140,21 @@ int main(int argc, char* argv[]) {
       std::vector<uint8_t> cmdEffSerial;
       cmdEffSerial.resize(cntrlMgrOut.cmdEff.size()*sizeof(float));
 
-      cntrlMgrOut.cmdEff[0] = cntrlMgrOut.cmdCntrl[3]; // Throttle 
+      cntrlMgrOut.cmdEff[0] = cntrlMgrOut.cmdCntrl[3]; // Throttle
       cntrlMgrOut.cmdEff[1] = cntrlMgrOut.cmdAlloc[0] + exciteMgrOut.cmdExcite[1]; // Elevator
       cntrlMgrOut.cmdEff[2] = cntrlMgrOut.cmdAlloc[1] + exciteMgrOut.cmdExcite[2]; // Rudder
       cntrlMgrOut.cmdEff[3] = cntrlMgrOut.cmdAlloc[2] - exciteMgrOut.cmdExcite[0]; // Ail R
       cntrlMgrOut.cmdEff[4] = cntrlMgrOut.cmdAlloc[3] + fmuData.SbusRx[0].Inceptors[3]; // Flap R
       cntrlMgrOut.cmdEff[5] = cntrlMgrOut.cmdAlloc[4] + fmuData.SbusRx[0].Inceptors[3]; // Flap L
       cntrlMgrOut.cmdEff[6] = cntrlMgrOut.cmdAlloc[5] + exciteMgrOut.cmdExcite[0]; // Ail L
-//std::cout << cntrlMgrOut.cmdEff.transpose() << "\t\t";
 
-      missMgrOut.tDurCntrl_ms = ((float) (clock() - frameStartCntrl)) * kTIC2MS;
 
       memcpy(cmdEffSerial.data(), cntrlMgrOut.cmdEff.data(), cmdEffSerial.size());
 
       // Write the Effector Commands to the FMU
       fmu.WriteMessage(kEffectorAngleCmd, cmdEffSerial.size(), cmdEffSerial.data());
 
-      missMgrOut.tCmd_ms = ((float) (clock() - frameStart_tic)) * kTIC2MS;
-
-      // DATA LOG
+      // Log Data
       MissMgrLog missMgrLog = missMgr.Log(missMgrOut);
       AirdataLog airdataLog = airdata.Log(airdataOut);
       NavLog navLog = NavFilter.Log(navOut);
@@ -253,20 +163,10 @@ int main(int argc, char* argv[]) {
 
       log.LogData(fmuData, airdataLog, navLog, missMgrLog, exciteMgrLog, cntrlMgrLog);
 
-      missMgrOut.tFrame_ms = ((float) (clock() - frameStart_tic)) * kTIC2MS;
+      // Send Telemetry
 
-// std::cout << "Time: " << "\t";
-// std::cout << missMgrOut.tDurSens_ms << "\t";
-// std::cout << missMgrOut.tDurNav_ms << "\t";
-// std::cout << missMgrOut.tDurExcite_ms << "\t";
-// std::cout << missMgrOut.tDurCntrl_ms << "\t";
-// std::cout << missMgrOut.tCmd_ms << "\t";
-// std::cout << missMgrOut.tFrame_ms << "\t";
-      // telemetry
-
-// std::cout << std::endl;
-    }
-  }
+    } // FMU Read, Major frame
+  } // While 1
 
 	return 0;
-}
+} // main
