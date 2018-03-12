@@ -91,6 +91,7 @@ class FlightManagementUnit {
     bool ReceiveSensorData();
     void GetSensorData(struct SensorData *SensorDataPtr);
     void GetSerializedSensorData(std::vector<uint8_t> *Buffer);
+    void DeserializeSensorData(std::vector<uint8_t> &Buffer);
   private:
     struct SensorData SensorData_;
     int FmuFileDesc_;

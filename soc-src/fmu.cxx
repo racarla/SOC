@@ -156,6 +156,58 @@ void FlightManagementUnit::GetSerializedSensorData(std::vector<uint8_t> *Buffer)
   BufferLocation+=SensorData_.Analog.size()*sizeof(AnalogSensorData);
 }
 
+/* Receiver sensor data from FMU */
+void FlightManagementUnit::DeserializeSensorData(std::vector<uint8_t> &Buffer) {
+  size_t PayloadLocation = 0;
+  // meta data
+  uint8_t NumberMpu9250Sensor,NumberBme280Sensor,NumberuBloxSensor,NumberSwiftSensor,NumberAms5915Sensor,NumberSbusSensor,NumberAnalogSensor;
+  memcpy(&NumberMpu9250Sensor,Buffer.data()+PayloadLocation,sizeof(NumberMpu9250Sensor));
+  PayloadLocation += sizeof(NumberMpu9250Sensor);
+  memcpy(&NumberBme280Sensor,Buffer.data()+PayloadLocation,sizeof(NumberBme280Sensor));
+  PayloadLocation += sizeof(NumberBme280Sensor);
+  memcpy(&NumberuBloxSensor,Buffer.data()+PayloadLocation,sizeof(NumberuBloxSensor));
+  PayloadLocation += sizeof(NumberuBloxSensor);
+  memcpy(&NumberSwiftSensor,Buffer.data()+PayloadLocation,sizeof(NumberSwiftSensor));
+  PayloadLocation += sizeof(NumberSwiftSensor);
+  memcpy(&NumberAms5915Sensor,Buffer.data()+PayloadLocation,sizeof(NumberAms5915Sensor));
+  PayloadLocation += sizeof(NumberAms5915Sensor);
+  memcpy(&NumberSbusSensor,Buffer.data()+PayloadLocation,sizeof(NumberSbusSensor));
+  PayloadLocation += sizeof(NumberSbusSensor);
+  memcpy(&NumberAnalogSensor,Buffer.data()+PayloadLocation,sizeof(NumberAnalogSensor));
+  PayloadLocation += sizeof(NumberAnalogSensor);
+  // resize data buffers
+  SensorData_.Mpu9250.resize(NumberMpu9250Sensor);
+  SensorData_.Bme280.resize(NumberBme280Sensor);
+  SensorData_.uBlox.resize(NumberuBloxSensor);
+  SensorData_.Swift.resize(NumberSwiftSensor);
+  SensorData_.Ams5915.resize(NumberAms5915Sensor);
+  SensorData_.Sbus.resize(NumberSbusSensor);
+  SensorData_.Analog.resize(NumberAnalogSensor);
+  // sensor data
+  memcpy(&SensorData_.Time_us,Buffer.data()+PayloadLocation,sizeof(SensorData_.Time_us));
+  PayloadLocation += sizeof(SensorData_.Time_us);
+  memcpy(&SensorData_.InternalMpu9250,Buffer.data()+PayloadLocation,sizeof(Mpu9250SensorData));
+  PayloadLocation += sizeof(SensorData_.InternalMpu9250);
+  memcpy(&SensorData_.InternalBme280,Buffer.data()+PayloadLocation,sizeof(Bme280SensorData));
+  PayloadLocation += sizeof(SensorData_.InternalBme280);
+  memcpy(&SensorData_.InternalVoltage,Buffer.data()+PayloadLocation,sizeof(VoltageSensorsData));
+  PayloadLocation += sizeof(SensorData_.InternalVoltage);
+  memcpy(&SensorData_.Mpu9250,Buffer.data()+PayloadLocation,SensorData_.Mpu9250.size()*sizeof(Mpu9250SensorData));
+  PayloadLocation += SensorData_.Mpu9250.size()*sizeof(Mpu9250SensorData);
+  memcpy(&SensorData_.Bme280,Buffer.data()+PayloadLocation,SensorData_.Bme280.size()*sizeof(Bme280SensorData));
+  PayloadLocation += SensorData_.Bme280.size()*sizeof(Bme280SensorData);
+  memcpy(&SensorData_.uBlox,Buffer.data()+PayloadLocation,SensorData_.uBlox.size()*sizeof(uBloxSensorData));
+  PayloadLocation += SensorData_.uBlox.size()*sizeof(uBloxSensorData);
+  memcpy(&SensorData_.Swift,Buffer.data()+PayloadLocation,SensorData_.Swift.size()*sizeof(SwiftSensorData));
+  PayloadLocation += SensorData_.Swift.size()*sizeof(SwiftSensorData);
+  memcpy(&SensorData_.Ams5915,Buffer.data()+PayloadLocation,SensorData_.Ams5915.size()*sizeof(Ams5915SensorData));
+  PayloadLocation += SensorData_.Ams5915.size()*sizeof(Ams5915SensorData);
+  memcpy(&SensorData_.Sbus,Buffer.data()+PayloadLocation,SensorData_.Sbus.size()*sizeof(SbusSensorData));
+  PayloadLocation += SensorData_.Sbus.size()*sizeof(SbusSensorData);
+  memcpy(&SensorData_.Analog,Buffer.data()+PayloadLocation,SensorData_.Analog.size()*sizeof(AnalogSensorData));
+  PayloadLocation += SensorData_.Analog.size()*sizeof(AnalogSensorData);
+}
+
 /* Send a BFS Bus message. */
 void FlightManagementUnit::SendMessage(Message message,std::vector<uint8_t> &Payload) {
   if (Payload.size() < (kUartBufferMaxSize-headerLength_-checksumLength_)) {
