@@ -1,36 +1,32 @@
+/*
+Classes and Functions for managing JSON and Eigen and STL types
 
+See: LICENSE.md for Copyright and License Agreement
+*/
 
+#include "Utilities.hxx"
+#include <iostream>
 
-
-#include <stdint.h>
-#include <map>
-#include <vector>
-#include <memory>
-
-#include <Eigen/Core>
-
-#include "WaveGenFunc.hxx"
-
-#ifndef kMaxWaveElem
-#define kMaxWaveElem 46
-#endif
-
-// Matrix<typename Scalar, int RowsAtCompiletime, int ColsAtCompiletime, int Options = 0, int MaxRowsAtCompiletime = RowsAtCompiletime, int MaxColsAtCompiletime = ColsAtCompiletime>
-typedef Eigen::Matrix<float, -1, 1, 0, kMaxWaveElem, 1> VecElem;
-
-typedef std::map <std::string, float> MapFloat;
-typedef rapidjson::Value ObjJson;
 
 // Convert a Json Array of Floats into a Eigen Vector
 VecElem Json2Eigen_VecFloat(const ObjJson &objJson) {
   VecElem vec;
 
   assert(objJson.IsArray());
+  rapidjson::SizeType numElemJson = (uint8_t) objJson.Size();
 
-  for (rapidjson::SizeType i = 0; i < objJson.Size(); i++) {
-    freq_rps_[i] = objJson[i].GetFloat());
+  vec.conservativeResize(kMaxWaveElem);
+  vec.setConstant(0.0);
+  if ((int) numElemJson <= kMaxWaveElem) {
+    for (rapidjson::SizeType i = 0; i < numElemJson; i++) {
+      vec[i] = objJson[i].GetFloat();
+    }
+  } else {
+    std::cout << "The size of the JSON array exceeds the max size of the Eigen Vector: " << (int) numElemJson << "\t" << kMaxWaveElem << std::endl;
   }
-  retun vec;
+
+  // Return Value
+  return vec;
 }
 
 

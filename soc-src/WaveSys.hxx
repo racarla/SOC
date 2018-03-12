@@ -12,13 +12,18 @@ History:
 #define WAVESYS_H
 
 #include <stdint.h>
+#include <iostream>
+#include <map>
+#include <vector>
+#include <memory>
+
 #include <Eigen/Core>
 
 #include "WaveGenFunc.hxx"
 #include "Utilities.hxx"
 
-#ifndef kMaxWaveElem
-#define kVerboseConfig 0
+#ifndef kVerboseConfig
+#define kVerboseConfig 1
 #endif
 
 #ifndef kMaxWaveElem
@@ -28,60 +33,72 @@ History:
 // Matrix<typename Scalar, int RowsAtCompiletime, int ColsAtCompiletime, int Options = 0, int MaxRowsAtCompiletime = RowsAtCompiletime, int MaxColsAtCompiletime = ColsAtCompiletime>
 typedef Eigen::Matrix<float, -1, 1, 0, kMaxWaveElem, 1> VecElem;
 
-enum WaveType {kPulse = 1, kDoublet = 2, kDoublet121 = 3, kDoublet3211 = 4, kChirpLin = 11, kOMS = 21};
-enum WaveClass {kDisc = 0, kChirp = 1, kMultisine = 2};
+// Enumerations of the WaveSystem types
+enum EnumWaveClass {kDisc = 1, kChirp = 2, kMultisine = 3};
+enum EnumWaveDiscType {kPulse = 1, kDoublet = 2, kDoublet121 = 3, kDoublet3211 = 4};
+enum EnumWaveChirpType {kLinear = 1};
+enum EnumWaveMultisineType {kOMS = 1};
 
 // Base Class for all Waveforms
-class WaveSys {
+class WaveBase {
  public:
-  WaveSys() {};
-  virtual ~WaveSys() {};
   virtual void Config(const ObjJson &objJson) {};
-  virtual float Run(float tCurr_s) {};
+  virtual void Run(float &tCurr_s, float &wave_nd) {};
 
- private:
-  uint8_t iWave_;
-  std::string sWaveType_;
-  WaveClass eWaveClass_;
-  WaveType eWaveType_;
+  virtual ~WaveBase() {};
 };
 
 // Discrete Waveforms
-class WaveDisc : public WaveSys  {
+class WaveDisc : public WaveBase  {
  public:
-  WaveDisc() {}; // Constructor
-  ~WaveDisc() {}; // Destructor
   void Config(const ObjJson &objJson);
-  float Run(float tCurr_s);
+  void Run(float &tCurr_s, float &wave_nd);
+
+  ~WaveDisc() {};
 
  private:
-  float tOnePulse_s_, tDur_s_, amp_nd_;
+  EnumWaveDiscType eWaveDiscType_;
+  float tPulse_s_, tDur_s_, amp_nd_;
 };
 
 // Chirp Waveforms
-class WaveChirp : public WaveSys   {
+class WaveChirp : public WaveBase   {
  public:
-  WaveChirp() {}; // Constructor
-  ~WaveChirp() {}; // Destructor
   void Config(const ObjJson &objJson);
-  float Run(float tCurr_s);
+  void Run(float &tCurr_s, float &wave_nd);
+
+  ~WaveChirp() {};
 
  private:
+  EnumWaveChirpType eWaveChirpType_;
   float tDur_s_;
   float freqStart_rps_, freqEnd_rps_, ampStart_nd_, ampEnd_nd_;
 };
 
 // MultiSine Waveforms
-class WaveMultisine : public WaveSys   {
+class WaveMultisine : public WaveBase   {
  public:
-  WaveMultisine() {}; // Constructor
-  ~WaveMultisine() {}; // Destructor
   void Config(const ObjJson &objJson);
-  float Run(float tCurr_s);
+  void Run(float &tCurr_s, float &wave_nd);
+
+  ~WaveMultisine() {};
 
  private:
+  EnumWaveMultisineType eWaveMultisineType_;
   float tDur_s_;
   VecElem freq_rps_, phase_rad_, amp_nd_;
+};
+
+
+// Setup Vector of Pointers to instances of WaveSys
+typedef std::shared_ptr<WaveBase> WaveSysPtr;
+typedef std::map <std::string, WaveSysPtr> WaveSysMap;
+
+// Factory Class for Waveforms
+class WaveFactory {
+ public:
+  static WaveSysMap Config(const ObjJson &objJson);
+  static WaveSysPtr ConfigInst(const ObjJson &objJson);
 };
 
 #endif // WAVESYS_H

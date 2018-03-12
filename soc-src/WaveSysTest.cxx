@@ -1,6 +1,12 @@
 /*
 Simple wave system tester
-Create a vector of wave systems, configure, run
+Create a map of wave systems, configure, run
+
+g++-5 -std=c++11 -Wall -O0 -g -I../soc-includes WaveGenFunc.cxx Utilities.cxx WaveSys.cxx WaveSysTest.cxx -o WaveSysTest
+
+g++-5 -std=c++11 -Wall -O3 -g -I../soc-includes WaveGenFunc.cxx Utilities.cxx WaveSys.cxx WaveSysTest.cxx -o WaveSysTest
+
+./WaveSysTest
 
 See: LICENSE.md for Copyright and License Agreement
 
@@ -12,11 +18,9 @@ See: LICENSE.md for Copyright and License Agreement
 #include <fstream>
 #include "WaveSys.hxx"
 
+#ifndef kVerboseConfig
 #define kVerboseConfig 1
-
-typedef std::vector <std::shared_ptr<WaveSys>> WaveVec;
-
-WaveVec Config(const ObjJson &objJson);
+#endif
 
 uint8_t iWave_ = 0;
 
@@ -38,46 +42,21 @@ int main(void) {
   // Pull the Vehicle Definitions, convert them into a Map of Map floats.
   assert(objMissMgr.HasMember("WaveSys")); // Check that VehDef exists
   const ObjJson &objWaveSys = objMissMgr["WaveSys"]; // Create Signals Object
-  assert(objWaveSys.IsArray()); // WaveSys is an array, iterate through each
+  assert(objWaveSys.IsObject()); // WaveSys is an array, iterate through each
 
   // Create the Configuration
-  // Create a Vector of WaveSys Classes
-  WaveVec waveVec = Config(objWaveSys);
+  // Create a Map of WaveSys Classes
+  WaveSysMap waveSysMap;
+  waveSysMap = WaveFactory::Config(objWaveSys);
 
-  std::cout << "Done!!" << std::endl;
+  std::cout << "Configuration Complete!!" << std::endl;
 
   // Run the waves
+  std::string waveSelect = "4";
   float tCurr_s = 0.0;
-  for (tCurr_s = 0.0; tCurr_s < 2; tCurr_s += 0.2) {
-    float wave_nd = waveVec[1]->Run(tCurr_s);
+  float wave_nd = 0.0;
+  for (tCurr_s = 0.0; tCurr_s < 20; tCurr_s += 0.02) {
+    waveSysMap[waveSelect]->Run(tCurr_s, wave_nd);
     std::cout << tCurr_s << "\t" << wave_nd << std::endl;
   }
-}
-
-
-WaveVec Config(const ObjJson &objJson)
-{
-  // Create a Vector of WaveSys Classes
-  WaveVec waveVec;
-
-  // Iterate through each of the WaveSys entities, Create a Vector of WaveSys Classes
-  rapidjson::SizeType numWave_ = objJson.Size(); // Number of loop closures
-  for (rapidjson::SizeType iWave = 0; iWave < numWave_; ++iWave) {
-    // Get the Wave type from the JSON object
-
-    assert(objJson[iWave].HasMember("iWave"));
-    iWave_ = objJson[iWave]["iWave"].GetInt();
-    assert((int) iWave_ == iWave); // Warning - The iWave in JSON should be uniformly increasing
-
-    // waveVec is built by adding the current class to back of the Vector
-    waveVec.emplace_back(new WaveSys());
-
-    // Call the Class Config method, need to cast the pointer to the proper derived class.
-    waveVec[iWave]->Config(objJson[iWave]);
-
-    // Cast the pointer to the proper derived class, if required
-
-  }
-
-  return waveVec;
 }

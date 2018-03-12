@@ -8,16 +8,21 @@ See: LICENSE.md for Copyright and License Agreement
 #define UTILITIES_H
 
 
+#include <stdio.h>
 #include <stdint.h>
+#include <iostream>
+#include <fstream>
 #include <map>
 #include <vector>
 #include <memory>
 
 #include <Eigen/Core>
 
-#include "../soc-includes/rapidjson/document.h"
-#include "../soc-includes/rapidjson/stringbuffer.h"
-#include "../soc-includes/rapidjson/writer.h"
+#include <rapidjson/document.h>
+#include <rapidjson/stringbuffer.h>
+#include <rapidjson/writer.h>
+
+#define EIGEN_INITIALIZE_MATRICES_BY_ZERO 1
 
 #ifndef kMaxWaveElem
 #define kMaxWaveElem 46

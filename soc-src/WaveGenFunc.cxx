@@ -7,7 +7,7 @@ See: LICENSE.md for Copyright and License Agreement
 #include "WaveGenFunc.hxx"
 
 // Pulse with 1-pulse tOnePulse_s long
-float WaveGenPulse(float &t_s, float &tOnePulse_s, float &amp_nd)
+float WavePulse(float &t_s, float &tOnePulse_s, float &amp_nd)
 {
   float wave_nd;
 
@@ -20,7 +20,7 @@ float WaveGenPulse(float &t_s, float &tOnePulse_s, float &amp_nd)
 }
 
 // Doublet 1-1 with 1-pulse tOnePulse_s long, total of 2*tOnePulse_s waveform
-float WaveGenDoublet(float &t_s, float &tOnePulse_s, float &amp_nd)
+float WaveDoublet(float &t_s, float &tOnePulse_s, float &amp_nd)
 {
   float tTwoPulse_s = 2.0 * tOnePulse_s;
   float wave_nd;
@@ -37,7 +37,7 @@ float WaveGenDoublet(float &t_s, float &tOnePulse_s, float &amp_nd)
 }
 
 // Doublet 1-2-1 - 1-pulse tOnePulse_s long, total of 4*tOnePulse_s waveform
-float WaveGenDoublet121(float &t_s, float &tOnePulse_s, float &amp_nd)
+float WaveDoublet121(float &t_s, float &tOnePulse_s, float &amp_nd)
 {
   float tTwoPulse_s = 2.0 * tOnePulse_s;
   float wave_nd;
@@ -57,7 +57,7 @@ float WaveGenDoublet121(float &t_s, float &tOnePulse_s, float &amp_nd)
 }
 
 // Doublet 3-2-1-1 - 1-pulse tOnePulse_s long, total of 7*tOnePulse_s waveform
-float WaveGenDoublet3211(float &t_s, float &tOnePulse_s, float &amp_nd)
+float WaveDoublet3211(float &t_s, float &tOnePulse_s, float &amp_nd)
 {
   float tTwoPulse_s = 2.0 * tOnePulse_s;
   float tThreePulse_s = 3.0 * tOnePulse_s;
@@ -81,7 +81,7 @@ float WaveGenDoublet3211(float &t_s, float &tOnePulse_s, float &amp_nd)
 }
 
 // Chirp (frequency Sweep), linear varying amplitude and frequency
-float WaveGenChirpLinear(float &t_s, float &tDur_s, float &freqStart_rps, float &freqEnd_rps, float &ampStart_nd, float &ampEnd_nd)
+float WaveChirpLinear(float &t_s, float &tDur_s, float &freqStart_rps, float &freqEnd_rps, float &ampStart_nd, float &ampEnd_nd)
 {
   // linear varying instantanious frequency
   float freq_rps = freqStart_rps + (freqEnd_rps - freqStart_rps) / (2.0 * tDur_s) * t_s;
@@ -96,7 +96,7 @@ float WaveGenChirpLinear(float &t_s, float &tDur_s, float &freqStart_rps, float 
 }
 
 // Optimal MultiSine
-float WaveGenMultisine(float &t_s, VecElem &freq_rps, VecElem &phase_rad, VecElem &amp_nd)
+float WaveMultisineOms(float &t_s, VecElem &freq_rps, VecElem &phase_rad, VecElem &amp_nd)
 {
   // Number of elements in the List
   uint8_t numElem = (uint8_t) freq_rps.size();
