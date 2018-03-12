@@ -22,69 +22,6 @@ void Datalogger::LogSensorData(std::vector<uint8_t> &Buffer) {
   LogData(DataSources::SensorData,Buffer);
 }
 
-/* Reads data packets from a byte */
-bool Datalogger::ReadData(uint8_t ReadByte,DataSources *Source,std::vector<uint8_t> *Payload) {
-  int count;
-  // header
-  if (ParserState_ < 2) {
-    if (ReadByte == header_[ParserState_]) {
-      Buffer_.push_back(ReadByte);
-      ParserState_++;
-    }
-  } else if (ParserState_ == 3) {
-    LengthBuffer_[0] = ReadByte;
-    Buffer_.push_back(ReadByte);
-    ParserState_++;
-  } else if (ParserState_ == 4) {
-    LengthBuffer_[1] = ReadByte;
-    Length_ = ((uint16_t)LengthBuffer_[1] << 8) | LengthBuffer_[0];
-    Buffer_.push_back(ReadByte);
-    ParserState_++;
-  } else if (ParserState_ < (Length_ + headerLength_)) {
-    Buffer_.push_back(ReadByte);
-    ParserState_++;
-  } else if (ParserState_ == (Length_ + headerLength_)) {
-    CalcChecksum(Length_ + headerLength_,Buffer_.data(),Checksum_);
-    if (ReadByte == Checksum_[0]) {
-      ParserState_++;
-    } else {
-      ParserState_ = 0;
-      LengthBuffer_[0] = 0;
-      LengthBuffer_[1] = 0;
-      Length_ = 0;
-      Checksum_[0] = 0;
-      Checksum_[1] = 0;
-      return false;
-    }
-  // checksum 1
-  } else if (ParserState_ == (Length_ + headerLength_ + 1)) {
-    if (ReadByte == Checksum_[1]) {
-      // data source
-      *Source = (DataSources) Buffer_[2];
-      // payload size
-      Payload->resize(Length_);
-      // payload
-      std::memcpy(Payload->data(),Buffer_.data()+headerLength_,Length_);
-      ParserState_ = 0;
-      LengthBuffer_[0] = 0;
-      LengthBuffer_[1] = 0;
-      Length_ = 0;
-      Checksum_[0] = 0;
-      Checksum_[1] = 0;
-      return true;
-    } else {
-      ParserState_ = 0;
-      LengthBuffer_[0] = 0;
-      LengthBuffer_[1] = 0;
-      Length_ = 0;
-      Checksum_[0] = 0;
-      Checksum_[1] = 0;
-      return false;
-    }
-  }
-  return false;
-}
-
 /* Checks to see if a file exists, returns true if it does and false if it does not */
 bool Datalogger::FileExists(const std::string &FileName) {
   if (FILE *file = fopen(FileName.c_str(),"r")) {

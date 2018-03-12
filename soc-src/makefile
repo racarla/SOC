@@ -21,7 +21,7 @@
 #
 
 # compiler
-CC=arm-linux-gnueabihf-g++ -std=c++0x
+CC=arm-linux-gnueabihf-g++ -Wno-psabi
 
 # includes
 IFLAGS=../soc-includes/
@@ -31,11 +31,7 @@ LFLAGS=
 
 # code to be compiled
 OBJ =\
-navigation.cxx \
-EKF_15state.cxx \
-nav_functions.cxx \
 datalogger.cxx \
-config.cxx \
 fmu.cxx \
 main.cxx
 

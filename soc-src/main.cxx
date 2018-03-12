@@ -18,61 +18,29 @@ DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
-#include "navigation.hxx"
-#include "datalogger.hxx"
-#include "config.hxx"
 #include "fmu.hxx"
+#include "datalogger.hxx"
 #include "hardware-defs.hxx"
-#include "global-defs.hxx"
 #include <iostream>
 
 int main(int argc, char* argv[]) {
-  if (argc!=2) {
-    std::cerr << "ERROR: Incorrect number of input arguments." << std::endl;
-    return -1;
-  }
+
+  /* declare classes */
+  FlightManagementUnit Fmu(FmuPort,FmuBaud);
+  Datalogger Datalog;
+
+  /* declare structs */
+  struct FlightManagementUnit::SensorData SensorData;
 
   /* initialize classes */
-  Fmu Sensors;
-  Datalogger Log;
-  Navigation NavFilter;
+  Fmu.Begin();
 
-  /* initialize structures */
-  AircraftConfig Config;
-  FmuData Data;
-  NavigationData NavData;
-
-  std::cout << sizeof(NavigationData) << std::endl;
-
-  /* load configuration file */
-  LoadConfigFile(argv[1],Sensors,&Config,&Data);
-
-  /* main loop */
-  while (1) {
-    if (Sensors.GetSensorData(&Data)) {
-
-      // run navigation filter
-      if (Data.Gps.size() > 0) {
-        if (!NavFilter.Initialized) {
-          NavFilter.InitializeNavigation(Data);
-        } else {
-          NavFilter.RunNavigation(Data,&NavData);
-        }
-      }
-
-      // control laws
-
-      // // send control surface commands
-      // std::vector<float> EffectorCmd;
-      // EffectorCmd.resize(Config.NumberEffectors);
-      // std::vector<uint8_t> EffectorBuffer;
-      // EffectorBuffer.resize(EffectorCmd.size()*sizeof(float));
-      // EffectorCmd[0] = -0.3;
-      // memcpy(EffectorBuffer.data(),EffectorCmd.data(),EffectorBuffer.size());
-      // Sensors.WriteMessage(kEffectorAngleCmd,EffectorBuffer.size(),EffectorBuffer.data());
-
-      // data logging
-      Log.LogFmuData(Data);
+  while(1) {
+    if (Fmu.ReceiveSensorData()) {
+      Fmu.GetSensorData(&SensorData);
+      std::vector<uint8_t> SensorDataBuffer;
+      Fmu.GetSerializedSensorData(&SensorDataBuffer);
+      Datalog.LogSensorData(SensorDataBuffer);
     }
   }
 

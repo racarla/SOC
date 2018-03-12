@@ -29,7 +29,6 @@ LFLAGS=-lz -lm -lhdf5 -lhdf5_cpp
 # code to be compiled
 OBJ =\
 hdf5class.cxx \
-config.cxx \
 main.cxx
 
 # rules
@@ -37,7 +36,7 @@ all: output display
 
 output: $(OBJ)
 	@ echo "Building..."	
-	$(CC) -I../bin2hdf-includes/ -I/usr/local/include -I/usr/include/hdf5/serial/ -L/usr/lib/hdf5/serial/lib -L/usr/lib/hdf5/serial/lib/libhdf5_cpp.a $^ -o $@ $(LFLAGS)
+	$(CC) -I../bin2hdf-includes/ -I/usr/local/include -I/usr/include/hdf5/serial/ -L/usr/lib/x86_64-linux-gnu/hdf5/serial/lib -L/usr/lib/x86_64-linux-gnu/hdf5/serial/lib/libhdf5_cpp.a $^ -o $@ $(LFLAGS)
 		
 clean:
 	-rm output
