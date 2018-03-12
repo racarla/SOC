@@ -28,6 +28,8 @@ LFLAGS=-lz -lm -lhdf5 -lhdf5_cpp
 
 # code to be compiled
 OBJ =\
+../soc-src/fmu.cxx \
+../soc-src/datalogger.cxx \
 hdf5class.cxx \
 main.cxx
 

@@ -19,6 +19,9 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SO
 */
 
 #include "hdf5class.hxx"
+#include "../soc-src/hardware-defs.hxx"
+#include "../soc-src/fmu.hxx"
+#include "../soc-src/datalogger.hxx"
 #include <H5Cpp.h>
 #include <iostream>
 #include <string>
@@ -29,9 +32,13 @@ using namespace H5;
 
 int main(int argc, char* argv[]) {
   if (argc!=3) {
-    std::cerr << "ERROR: Incorrect number of input arguments." << std::endl;
+    cerr << "ERROR: Incorrect number of input arguments." << endl;
     return -1;
   }
+
+  /* declare classes */
+  FlightManagementUnit Fmu(FmuPort,FmuBaud);
+  Datalogger Datalog;
 
   /* load the flight data file*/
   FILE *BinaryFile = fopen(argv[1],"rb");
@@ -49,14 +56,30 @@ int main(int argc, char* argv[]) {
   cout << "File size: " << size << " bytes"<< endl;
 
   /* read binary file into memory */
-  std::vector<uint8_t> Buffer;
+  vector<uint8_t> Buffer;
   Buffer.resize(size);
   fread(Buffer.data(),1,size,BinaryFile);
   fclose(BinaryFile);
 
+  // source and payload for parsing
+  Datalogger::DataSources Source;
+  vector<uint8_t> Payload;
+
+  // Vector of parsed sensor data
+  vector<struct FlightManagementUnit::SensorData> SensorData;
+
   /* parse binary files into data structures */
   for (size_t i=0; i < Buffer.size(); i++) {
-    
+    // datalog payload found
+    if (Datalog.ReadData(Buffer[i],&Source,&Payload)) {
+      // payload is a sensor payload
+      if (Source == Datalogger::SensorData) {
+        struct FlightManagementUnit::SensorData TempData;
+        Fmu.DeserializeSensorData(Payload);
+        Fmu.GetSensorData(&TempData);
+        SensorData.push_back(TempData);
+      }
+    }
   }
 
 
