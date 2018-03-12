@@ -2,8 +2,6 @@
 Simple wave system tester
 Create a map of wave systems, configure, run
 
-g++-5 -std=c++11 -Wall -O0 -g -I../soc-includes WaveGenFunc.cxx Utilities.cxx WaveSys.cxx WaveSysTest.cxx -o WaveSysTest
-
 g++-5 -std=c++11 -Wall -O3 -g -I../soc-includes WaveGenFunc.cxx Utilities.cxx WaveSys.cxx WaveSysTest.cxx -o WaveSysTest
 
 ./WaveSysTest
@@ -52,10 +50,10 @@ int main(void) {
   std::cout << "Configuration Complete!!" << std::endl;
 
   // Run the waves
-  std::string waveSelect = "4";
+  std::string waveSelect = "1";
   float tCurr_s = 0.0;
   float wave_nd = 0.0;
-  for (tCurr_s = 0.0; tCurr_s < 20; tCurr_s += 0.02) {
+  for (tCurr_s = 0.0; tCurr_s < 2; tCurr_s += 0.2) {
     waveSysMap[waveSelect]->Run(tCurr_s, wave_nd);
     std::cout << tCurr_s << "\t" << wave_nd << std::endl;
   }

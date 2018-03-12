@@ -45,7 +45,7 @@ WaveSysPtr WaveFactory::ConfigInst(const ObjJson &objJson)
   if (kVerboseConfig) std::cout << "Class: " << waveClassStr <<  "\t"; // Print the System Type
 
   // Hash the Type string into enumeration members
-  EnumWaveClass eWaveClass;
+  EnumWaveClass eWaveClass = kDisc;
   if (waveClassStr == "Discrete") {
     eWaveClass = kDisc;
   } else if (waveClassStr == "Chirp") {
