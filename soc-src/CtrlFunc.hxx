@@ -2,78 +2,70 @@
 Classes and functions for Control Functions
 
 See: LICENSE.md for Copyright and License Agreement
-
-History:
-2017-11-12 - Chris Regan - Defined CtrlPiDamp class and methods
-2017-11-12 - Chris Regan - Defined CtrlPid class and methods
-2017-11-12 - Chris Regan - Defined CtrlDamp class and methods
 */
 
-#ifndef CNTRLFUNC_HXX_
-#define CNTRLFUNC_HXX_
+#ifndef CTRLFUNC_HXX_
+#define CTRLFUNC_HXX_
 
 #include <math.h>
 
-static const float kD2R = M_PI / 180.0;
-
 enum CtrlMode {kCtrlReset = -1, kCtrlStandby = 0, kCtrlHold = 1, kCtrlInit = 2, kCtrlEngage = 3};
 
-class Ctrl { // Base Class for all Controllers (Guidance and SCAS types)
+class CtrlBase { // Base Class for all Controllers (Guidance and SCAS types)
  public:
   CtrlMode mode_;
 
-  Ctrl() {};
-  virtual ~Ctrl() {};
   virtual void Config() {};
   virtual void Run() {};
+  virtual ~CtrlBase() {};
 
  private:
 
 };
 
 // Define CtrlPiDamp Class
-class CtrlPiDamp {
+class CtrlPiDamp : public CtrlBase {
 public:
   CtrlMode mode_;
   float iErrState_;
 
-  CtrlPiDamp();
+  CtrlPiDamp() {};
   ~CtrlPiDamp() {};
-  void Config(const float& Kp, const float& Ki, const float& Kd, const float& b, const float& refScale, const float& cmdRng[2]);
-  void Run(const float& ref, const float& meas, const float& dMeas, float& dt_s);
+  void Config(const float &Kp, const float &Ki, const float &Kd, const float &b, const float &refScale, const float &cmdMin, const float &cmdMax);
+  void Run(const float &ref, const float &meas, const float &dMeas, const float &dt_s, float *cmd);
 
 private:
   float Kp_, Ki_, Kd_;
   float b_;
   float refScale_;
-  float cmdRng_;
+  float cmdMin_, cmdMax_;
 
-  void InitState(const float& cmd, const float& pErr, const float& dErrState);
-  void UpdState(const float& iErr, const float& dt_s);
-  void CalcCmd(const float& pErr, const float& dErrState);
+  void InitState(const float &cmd, const float &pErr, const float &dErrState, float *iErrState);
+  void UpdState(const float &iErr, const float &dt_s, float *iErrState);
+  void CalcCmd(const float &pErr, const float &dErrState, float *cmd);
 };
 
 // Define CtrlPid2 Class
-class CtrlPid2 {
+class CtrlPid2 : public CtrlBase {
 public:
   CtrlMode mode_;
   float iErrState_;
   float dErrPrev_;
 
-  CtrlPid2();
+  CtrlPid2() {};
   ~CtrlPid2() {};
-  void Config(const float& Kp, const float& Ki, const float& Kd, const float& b, const float& c, const float& refScale, const float& cmdRng[2]);
-  void Run(const float& ref, const float& meas, float& dt_s);
+  void Config(const float &Kp, const float &Ki, const float &Kd, const float &b, const float &c, const float &refScale, const float &cmdMin, const float &cmdMax);
+  void Run(const float &ref, const float &meas, const float &dt_s, float *cmd);
 
 private:
   float Kp_, Ki_, Kd_;
   float b_, c_;
   float refScale_;
-  float cmdRng_;
+  float cmdMin_, cmdMax_;
 
-  void InitState(const float& cmd, const float& pErr, const float& dErrState);
-  void UpdState(const float& iErr, const float& dt_s);
-  void CalcCmd(const float& pErr, const float& dErrState);
+  void InitState(const float &cmd, const float &pErr, const float &dErrState, float *iErrState);
+  void UpdState(const float &iErr, const float &dt_s, float *iErrState);
+  void CalcCmd(const float &pErr, const float &dErrState, float *cmd);
 };
 
-#endif // CNTRLFUNC_HXX_
+#endif // CTRLFUNC_HXX_
