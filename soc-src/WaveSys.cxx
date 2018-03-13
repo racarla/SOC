@@ -2,90 +2,85 @@
 Classes and Functions for Waveform Generation
 
 See: LICENSE.md for Copyright and License Agreement
-
-History:
-2017-11-12 - Chris Regan - Created
-2017-11-15 - Chris Regan - Added Classes and Eigen for full vectorization
-2018-03-05 - Chris Regan - Renamed to WaveGenFunc
 */
 
 #include "WaveSys.hxx"
 
 // Create and Configure a map of waveform systems
-void WaveFactory::Config(const ObjJson &objJson, WaveSysMap *waveSysMap) {
+void WaveFactory::Config(const ObjJson &objJson, SysMap *sysMap) {
   // Iterate through each of the WaveSys entities, Create a Map of WaveSys Classes
   assert(objJson.IsObject()); // objJson is an object, iterate through each member
   for (ObjJson::ConstMemberIterator iObj = objJson.MemberBegin(); iObj != objJson.MemberEnd(); ++iObj) {
 
-    std::string waveNameStr = iObj->name.GetString(); // Name of System
-    if (kVerboseConfig) std::cout << "Name: " << waveNameStr <<  "\t"; // Print the System Name
+    std::string nameStr = iObj->name.GetString(); // Name of System
+    if (kVerboseConfig) std::cout << "Name: " << nameStr <<  "\t"; // Print the System Name
 
     const ObjJson &objCurr = objJson[iObj->name.GetString()];
 
     // System Map build-up
-    WaveSysPtr waveSysPtr;
-    WaveFactory::ConfigInst(objCurr, &waveSysPtr); // Pointer to Derived Class
+    SysPtr sysPtr;
+    ConfigInst(objCurr, &sysPtr); // Pointer to Derived Class
 
     // Add instance to the System Map
-    waveSysMap->insert(std::make_pair(waveNameStr, waveSysPtr));
+    sysMap->insert(std::make_pair(nameStr, sysPtr));
   }
 }
 
 // Configuration of a single instance of a waveform
-void WaveFactory::ConfigInst(const ObjJson &objJson, WaveSysPtr *waveSysPtr) {
+void WaveFactory::ConfigInst(const ObjJson &objJson, SysPtr *sysPtr) {
   // Get the Wave type from the JSON object
-  assert(objJson.HasMember("Class"));
-  std::string waveClassStr = objJson["Class"].GetString();
-  if (kVerboseConfig) std::cout << "Class: " << waveClassStr <<  "\t"; // Print the System Type
+  assert(objJson.HasMember("Type"));
+  std::string typeStr = objJson["Type"].GetString();
+  if (kVerboseConfig) std::cout << "Type: " << typeStr <<  "\t"; // Print the System SubType
 
-  // Hash the Type string into enumeration members
-  EnumWaveClass eWaveClass = kDisc;
-  if (waveClassStr == "Discrete") {
-    eWaveClass = kDisc;
-  } else if (waveClassStr == "Chirp") {
-    eWaveClass = kChirp;
-  } else if (waveClassStr == "Multisine") {
-    eWaveClass = kMultisine;
+  // Hash the SubType string into enumeration members
+  EnumType eType = kDisc;
+  if (typeStr == "Discrete") {
+    eType = kDisc;
+  } else if (typeStr == "Chirp") {
+    eType = kChirp;
+  } else if (typeStr == "Multisine") {
+    eType = kMultisine;
   } else {
-    std::cout << "Unknown Class: " << waveClassStr << std::endl; // Print error message
+    std::cout << "Unknown Type: " << typeStr << std::endl; // Print error message
   }
 
   // Create a pointer to the proper class of waveform
-  switch (eWaveClass){
+  switch (eType){
     case kDisc:
-      *waveSysPtr = std::make_shared<WaveDisc>();
+      *sysPtr = std::make_shared<WaveDisc>();
       break;
     case kChirp:
-      *waveSysPtr = std::make_shared<WaveChirp>();
+      *sysPtr = std::make_shared<WaveChirp>();
       break;
     case kMultisine:
-      *waveSysPtr = std::make_shared<WaveMultisine>();
+      *sysPtr = std::make_shared<WaveMultisine>();
       break;
   }
 
   // Call the Config method
-  (*waveSysPtr)->Config(objJson);
+  (*sysPtr)->Config(objJson);
 }
 
 
 // Discrete Waveform Configuration
 void WaveDisc::Config(const ObjJson &objJson) {
   // Get the Wave type from the JSON object
-  assert(objJson.HasMember("Type"));
-  std::string waveTypeStr = objJson["Type"].GetString();
-  if (kVerboseConfig) std::cout << "Type: " << waveTypeStr <<  "\t"; // Print the System Type
+  assert(objJson.HasMember("SubType"));
+  std::string typeStr = objJson["SubType"].GetString();
+  if (kVerboseConfig) std::cout << "SubType: " << typeStr <<  "\t"; // Print the System SubType
 
-  // Hash the Type string into enumeration members
-  if (waveTypeStr == "Pulse") {
-    eWaveDiscType_ = kPulse;
-  } else if (waveTypeStr == "Doublet") {
-    eWaveDiscType_ = kDoublet;
-  } else if (waveTypeStr == "121") {
-    eWaveDiscType_ = kDoublet121;
-  } else if (waveTypeStr == "3211") {
-    eWaveDiscType_ = kDoublet3211;
+  // Hash the SubType string into enumeration members
+  if (typeStr == "Pulse") {
+    eType_ = kPulse;
+  } else if (typeStr == "Doublet") {
+    eType_ = kDoublet;
+  } else if (typeStr == "121") {
+    eType_ = kDoublet121;
+  } else if (typeStr == "3211") {
+    eType_ = kDoublet3211;
   } else {
-    std::cout << "Unknown Type: " << waveTypeStr << std::endl; // Print error message
+    std::cout << "Unknown SubType: " << typeStr << std::endl; // Print error message
   }
 
   assert(objJson.HasMember("tPulse_s"));
@@ -95,7 +90,7 @@ void WaveDisc::Config(const ObjJson &objJson) {
   amp_nd_ = objJson["amp_nd"].GetFloat();
 
   tDur_s_ = 0;
-  switch (eWaveDiscType_){
+  switch (eType_){
     case kPulse:
       tDur_s_ = 1 * tPulse_s_;
       break;
@@ -122,7 +117,7 @@ void WaveDisc::Run(const float &tCurr_s, float *wave_nd) {
 
   if ((tCurr_s >= 0) && (tCurr_s < tDur_s_)) {
     // Call the Run method for the class of waveform
-    switch (eWaveDiscType_){
+    switch (eType_){
       case kPulse:
         WavePulse(tCurr_s, tPulse_s_, amp_nd_, wave_nd);
         break;
@@ -143,15 +138,15 @@ void WaveDisc::Run(const float &tCurr_s, float *wave_nd) {
 /* Chirp Waveform */
 void WaveChirp::Config(const ObjJson &objJson) {
   // Get the Wave type from the JSON object
-  assert(objJson.HasMember("Type"));
-  std::string waveTypeStr = objJson["Type"].GetString();
-  if (kVerboseConfig) std::cout << "Type: " << waveTypeStr <<  "\t"; // Print the System Type
+  assert(objJson.HasMember("SubType"));
+  std::string typeStr = objJson["SubType"].GetString();
+  if (kVerboseConfig) std::cout << "SubType: " << typeStr <<  "\t"; // Print the System SubType
 
-  // Hash the Type string into enumeration members
-  if (waveTypeStr == "Linear") {
-    eWaveChirpType_ = kLinear;
+  // Hash the SubType string into enumeration members
+  if (typeStr == "Linear") {
+    eType_ = kLinear;
   } else {
-    std::cout << "Unknown Type: " << waveTypeStr << std::endl; // Print error message
+    std::cout << "Unknown SubType: " << typeStr << std::endl; // Print error message
   }
 
   assert(objJson.HasMember("tDur_s"));
@@ -180,7 +175,7 @@ void WaveChirp::Run(const float &tCurr_s, float *wave_nd) {
 
   if ((tCurr_s >= 0) && (tCurr_s < tDur_s_)) {
     // Call the Run method for the class of waveform
-    switch (eWaveChirpType_){
+    switch (eType_){
       case kLinear:
         WaveChirpLinear(tCurr_s, tDur_s_, freqStart_rps_, freqEnd_rps_, ampStart_nd_, ampEnd_nd_, wave_nd);
         break;
@@ -192,28 +187,31 @@ void WaveChirp::Run(const float &tCurr_s, float *wave_nd) {
 // MultiSine Waveform
 void WaveMultisine::Config(const ObjJson &objJson) {
   // Get the Wave type from the JSON object
-  assert(objJson.HasMember("Type"));
-  std::string waveTypeStr = objJson["Type"].GetString();
-  if (kVerboseConfig) std::cout << "Type: " << waveTypeStr <<  "\t"; // Print the System Type
+  assert(objJson.HasMember("SubType"));
+  std::string typeStr = objJson["SubType"].GetString();
+  if (kVerboseConfig) std::cout << "SubType: " << typeStr <<  "\t"; // Print the System SubType
 
-  // Hash the Type string into enumeration members
-  if (waveTypeStr == "OMS") {
-    eWaveMultisineType_ = kOMS;
+  // Hash the SubType string into enumeration members
+  if (typeStr == "OMS") {
+    eType_ = kOMS;
   } else {
-    std::cout << "Unknown Type: " << waveTypeStr << std::endl; // Print error message
+    std::cout << "Unknown SubType: " << typeStr << std::endl; // Print error message
   }
 
   assert(objJson.HasMember("tDur_s"));
   tDur_s_ = objJson["tDur_s"].GetFloat();
 
   assert(objJson.HasMember("freq_rps"));
-  freq_rps_ = Json2Eigen_VecFloat(objJson["freq_rps"]);
+  freq_rps_.conservativeResize(kMaxWaveElem);
+  Json2Eigen_VecFloat(objJson["freq_rps"], &freq_rps_);
 
   assert(objJson.HasMember("phase_deg"));
-  phase_rad_ = Json2Eigen_VecFloat(objJson["phase_deg"]);
+  phase_rad_.conservativeResize(kMaxWaveElem);
+  Json2Eigen_VecFloat(objJson["phase_deg"], &phase_rad_);
 
   assert(objJson.HasMember("amp_nd"));
-  amp_nd_ = Json2Eigen_VecFloat(objJson["amp_nd"]);
+  amp_nd_.conservativeResize(kMaxWaveElem);
+  Json2Eigen_VecFloat(objJson["amp_nd"], &amp_nd_);
 
   // Print the Config
   if (kVerboseConfig) {
@@ -229,7 +227,7 @@ void WaveMultisine::Run(const float &tCurr_s, float *wave_nd) {
 
   if ((tCurr_s >= 0) && (tCurr_s < tDur_s_)) {
     // Call the Run method for the class of waveform
-    switch (eWaveMultisineType_){
+    switch (eType_){
       case kOMS:
         WaveMultisineOms(tCurr_s, freq_rps_, phase_rad_, amp_nd_, wave_nd);
         break;

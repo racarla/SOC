@@ -33,9 +33,6 @@ History:
 // Matrix<typename Scalar, int RowsAtCompiletime, int ColsAtCompiletime, int Options = 0, int MaxRowsAtCompiletime = RowsAtCompiletime, int MaxColsAtCompiletime = ColsAtCompiletime>
 typedef Eigen::Matrix<float, -1, 1, 0, kMaxWaveElem, 1> VecElem;
 
-// Enumerations of the WaveSystem types
-enum EnumWaveClass {kDisc = 1, kChirp = 2, kMultisine = 3};
-
 // Base Class for all Waveforms
 class WaveBase {
  public:
@@ -54,7 +51,7 @@ class WaveDisc : public WaveBase  {
   ~WaveDisc() {};
 
  private:
-  enum EnumWaveDiscType {kPulse = 1, kDoublet = 2, kDoublet121 = 3, kDoublet3211 = 4} eWaveDiscType_;
+  enum EnumType {kPulse = 1, kDoublet = 2, kDoublet121 = 3, kDoublet3211 = 4} eType_;
   float tPulse_s_, tDur_s_, amp_nd_;
 };
 
@@ -67,7 +64,7 @@ class WaveChirp : public WaveBase   {
   ~WaveChirp() {};
 
  private:
-  enum EnumWaveChirpType {kLinear = 1} eWaveChirpType_;
+  enum EnumType {kLinear = 1} eType_;
   float tDur_s_;
   float freqStart_rps_, freqEnd_rps_, ampStart_nd_, ampEnd_nd_;
 };
@@ -81,21 +78,24 @@ class WaveMultisine : public WaveBase   {
   ~WaveMultisine() {};
 
  private:
-  enum EnumWaveMultisineType {kOMS = 1} eWaveMultisineType_;
+  enum EnumType {kOMS = 1} eType_;
   float tDur_s_;
   VecElem freq_rps_, phase_rad_, amp_nd_;
 };
 
 
 // Setup Vector of Pointers to instances of WaveSys
-typedef std::shared_ptr<WaveBase> WaveSysPtr;
-typedef std::map <std::string, WaveSysPtr> WaveSysMap;
 
 // Factory Class for Waveforms
 class WaveFactory {
  public:
-  static void Config(const ObjJson &objJson, WaveSysMap *waveSysMap);
-  static void ConfigInst(const ObjJson &objJson, WaveSysPtr *waveSysPtr);
+  typedef std::shared_ptr<WaveBase> SysPtr;
+  typedef std::map <std::string, SysPtr> SysMap;
+
+  static void Config(const ObjJson &objJson, SysMap *sysMap);
+  static void ConfigInst(const ObjJson &objJson, SysPtr *sysPtr);
+private:
+  enum EnumType {kDisc = 1, kChirp = 2, kMultisine = 3}; // Enumerations of the WaveSystem types
 };
 
 #endif // WAVESYS_H

@@ -33,14 +33,11 @@ int main(void)  /* Program tester */
   float cmdRng[2] = {-1, 1};
 
 
-  CtrlPiDamp testPiDamp;
-  testPiDamp.Config(Kp, Ki, Kd, b, refScale, cmdRng[0], cmdRng[1]);
+  // CtrlFuncPiDamp ctrl;
+  // ctrl.Config(Kp, Ki, Kd, b, refScale, cmdRng[0], cmdRng[1]);
 
-  CtrlPiDamp testPiDamp2;
-  testPiDamp2.Config(Kp, Ki, Kd, b, refScale, cmdRng[0], 0.0);
-
-  CtrlPid2 testPid;
-  testPid.Config(Kp, Ki, Kd, b, c, refScale, cmdRng[0], cmdRng[1]);
+  CtrlFuncPid2 ctrl;
+  ctrl.Config(Kp, Ki, Kd, b, c, refScale, cmdRng[0], cmdRng[1]);
 
   float ref = 1.0;
   float meas = 0.0;
@@ -54,32 +51,31 @@ int main(void)  /* Program tester */
     tCurr_s = (float) iIter * dt_s;
 
     if (tCurr_s <= tInit_s) {
-      testPiDamp.mode_ = kCtrlStandby;
+      ctrl.mode_ = kCtrlStandby;
 
     } else if (tCurr_s <= tEngage_s) {
-      testPiDamp.mode_ = kCtrlInit;
+      ctrl.mode_ = kCtrlInit;
 
     } else if (tCurr_s <= tHold_s) {
-      testPiDamp.mode_ = kCtrlEngage;
+      ctrl.mode_ = kCtrlEngage;
 
     } else if (tCurr_s <= tReset_s) {
-      testPiDamp.mode_ = kCtrlHold;
+      ctrl.mode_ = kCtrlHold;
 
     } else if (tCurr_s <= tEnd_s) {
-      testPiDamp.mode_ = kCtrlReset;
+      ctrl.mode_ = kCtrlReset;
     }
 
     meas += measStep;
 
     float cmd = 0.0;
 
-    testPiDamp.Run(ref, meas, dMeas, dt_s, &cmd);
-    testPiDamp2.Run(ref, meas, dMeas, dt_s, &cmd);
-    testPid.Run(ref, meas, dt_s, &cmd);
+    // ctrl.Run(ref, meas, dMeas, dt_s, &cmd);
+    ctrl.Run(ref, meas, dt_s, &cmd);
 
 
-    int runMode = testPid.mode_;
-    float intErr = testPid.iErrState_;
+    int runMode = ctrl.mode_;
+    float intErr = ctrl.iErrState_;
 
     std::cout << tCurr_s << "\t" << runMode << "\t" << ref <<"\t" << meas << "\t" << (ref-meas) << "\t" << cmd << "\t" << intErr << std::endl;
   }

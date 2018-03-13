@@ -8,12 +8,8 @@ See: LICENSE.md for Copyright and License Agreement
 
 #include "CtrlFunc.hxx"
 
-
-
-
-// PI+Damper Controller
-// Set Parameters for the tunable controller
-void CtrlPiDamp::Config(const float &Kp, const float &Ki, const float &Kd, const float &b, const float &refScale, const float &cmdMin, const float &cmdMax)
+// PI+Damper Controller, Set Parameters for the tunable controller
+void CtrlFuncPiDamp::Config(const float &Kp, const float &Ki, const float &Kd, const float &b, const float &refScale, const float &cmdMin, const float &cmdMax)
 {
   mode_ = kCtrlStandby; // Initialize in Standby
 
@@ -30,7 +26,7 @@ void CtrlPiDamp::Config(const float &Kp, const float &Ki, const float &Kd, const
   iErrState_ = 0.0; // Initialize Integrator State
 }
 
-void CtrlPiDamp::Run(const float &ref, const float &meas, const float &dMeas, const float &dt_s, float *cmd)
+void CtrlFuncPiDamp::Run(const float &ref, const float &meas, const float &dMeas, const float &dt_s, float *cmd)
 {
   float refScaled = refScale_ * ref; // Scale the reference Signal
 
@@ -70,7 +66,7 @@ void CtrlPiDamp::Run(const float &ref, const float &meas, const float &dMeas, co
 }
 
 // Initialize for near-zero transient
-void CtrlPiDamp::InitState(const float &cmd, const float &pErr, const float &dErrState, float *iErrState)
+void CtrlFuncPiDamp::InitState(const float &cmd, const float &pErr, const float &dErrState, float *iErrState)
 {
   if (Ki_ != 0.0) { // Protect for Ki == 0
     *iErrState = (cmd - (Kp_ * pErr + Kd_ * dErrState)) / Ki_; // Run the required state
@@ -80,7 +76,7 @@ void CtrlPiDamp::InitState(const float &cmd, const float &pErr, const float &dEr
 }
 
 // Initialize for near-zero transient
-void CtrlPiDamp::UpdState(const float &iErr, const float &dt_s, float *iErrState)
+void CtrlFuncPiDamp::UpdState(const float &iErr, const float &dt_s, float *iErrState)
 {
   // Update the state
   if (Ki_ != 0.0) { // Protect for unlimited windup when Ki == 0
@@ -91,7 +87,7 @@ void CtrlPiDamp::UpdState(const float &iErr, const float &dt_s, float *iErrState
 }
 
 // Run the Command
-void CtrlPiDamp::CalcCmd(const float &pErr, const float &dErrState, float *cmd)
+void CtrlFuncPiDamp::CalcCmd(const float &pErr, const float &dErrState, float *cmd)
 {
   float pCmd = Kp_ * pErr;
   float iCmd = Ki_ * iErrState_;
@@ -111,9 +107,8 @@ void CtrlPiDamp::CalcCmd(const float &pErr, const float &dErrState, float *cmd)
 
 
 
-// PID2 Controller
-// Set Parameters for the tunable PID2 controller
-void CtrlPid2::Config(const float &Kp, const float &Ki, const float &Kd, const float &b, const float &c, const float &refScale, const float &cmdMin, const float &cmdMax)
+// PID2 Controller, Set Parameters for the tunable PID2 controller
+void CtrlFuncPid2::Config(const float &Kp, const float &Ki, const float &Kd, const float &b, const float &c, const float &refScale, const float &cmdMin, const float &cmdMax)
 {
   // Parameters match the PID2 system in MATLAB
 
@@ -134,7 +129,7 @@ void CtrlPid2::Config(const float &Kp, const float &Ki, const float &Kd, const f
   dErrPrev_ = 0.0; // Set previous error to zero
 }
 
-void CtrlPid2::Run(const float &ref, const float &meas, const float &dt_s, float *cmd)
+void CtrlFuncPid2::Run(const float &ref, const float &meas, const float &dt_s, float *cmd)
 {
   float refScaled = refScale_ * ref; // Scale the reference Signal
 
@@ -183,7 +178,7 @@ void CtrlPid2::Run(const float &ref, const float &meas, const float &dt_s, float
 }
 
 // Initialize for near-zero transient
-void CtrlPid2::InitState(const float &cmd, const float &pErr, const float &dErrState, float *iErrState)
+void CtrlFuncPid2::InitState(const float &cmd, const float &pErr, const float &dErrState, float *iErrState)
 {
   if (Ki_ != 0.0) { // Protect for Ki == 0
     *iErrState = (cmd - (Kp_ * pErr + Kd_ * dErrState)) / Ki_; // Run the required state
@@ -193,7 +188,7 @@ void CtrlPid2::InitState(const float &cmd, const float &pErr, const float &dErrS
 }
 
 // Initialize for near-zero transient
-void CtrlPid2::UpdState(const float &iErr, const float &dt_s, float *iErrState)
+void CtrlFuncPid2::UpdState(const float &iErr, const float &dt_s, float *iErrState)
 {
   // Update the state
   if (Ki_ != 0.0) { // Protect for unlimited windup when Ki == 0
@@ -204,7 +199,7 @@ void CtrlPid2::UpdState(const float &iErr, const float &dt_s, float *iErrState)
 }
 
 // Run the Command
-void CtrlPid2::CalcCmd(const float &pErr, const float &dErrState, float *cmd)
+void CtrlFuncPid2::CalcCmd(const float &pErr, const float &dErrState, float *cmd)
 {
   float pCmd = Kp_ * pErr;
   float iCmd = Ki_ * iErrState_;

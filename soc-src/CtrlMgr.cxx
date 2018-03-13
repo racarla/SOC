@@ -24,7 +24,8 @@ void CtrlMgr::Config(const ObjJson &objJson) {
 
   // Create and Configure the Signal Definitions, convert to a Map of Map floats.
   assert(objJson.HasMember("Signals")); // Check that Signals exists
-  MapVecString mapSignals = Json2Stl_MapVecString(objJson["Signals"]); // Convert the Json Object to a map of vectors of strings
+  MapVecString mapSignals;
+  Json2Stl_MapVecString(objJson["Signals"], &mapSignals); // Convert the Json Object to a map of vectors of strings
 
   // CREATE AND CONFIGURE INPUT PROCESSING
     // CREATE AND CONFIGURE NAVIGATION ESTIMATION FILTERS
@@ -77,6 +78,7 @@ void CntrlMgr::CtrlRun(CntrlMode mode, std::string select) {
   // Add Excitation to Guidance input, Run Guidance
 
   // Add Excitation to Scas input, Run Scas
+  scasSysMap[select].Run(&mode, *cmd);
 
   // Add Excitation to Alloc input, Run Alloc
 

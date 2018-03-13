@@ -33,16 +33,14 @@ int main(void) {
   objConfigDom.ParseStream(jsonConfig); // Parse the stream
   assert(objConfigDom.IsObject()); // Check that the JSON object was created
 
-  // Creat an object for Control sub-tree
+  // Creat an object for sub-tree
   const ObjJson &objMissMgr = objConfigDom["MissionMgr"];
-
-  // Pull the Vehicle Definitions, convert them into a Map of Map floats.
-  assert(objMissMgr.HasMember("WaveSys")); // Check that VehDef exists
-  const ObjJson &objWaveSys = objMissMgr["WaveSys"]; // Create Signals Object
+  assert(objMissMgr.HasMember("WaveSys"));
+  const ObjJson &objWaveSys = objMissMgr["WaveSys"];
 
   // Create the Configuration
   // Create a Map of WaveSys Classes
-  WaveSysMap waveSysMap;
+  WaveFactory::SysMap waveSysMap;
   WaveFactory::Config(objWaveSys, &waveSysMap);
   std::cout << "Configuration Complete!!" << std::endl;
   std::cout << waveSysMap.size() << std::endl;

@@ -35,7 +35,7 @@ typedef rapidjson::Value ObjJson;
 typedef Eigen::Matrix<float, -1, 1, 0, kMaxWaveElem, 1> VecElem;
 
 // JSON to Eigen
-VecElem Json2Eigen_VecFloat(const ObjJson &objJson); // Vector of floats
+void Json2Eigen_VecFloat(const ObjJson &objJson, VecElem *vecElem); // Vector of floats
 
 // STL Types
 typedef std::vector <float> VecFloat;
@@ -46,10 +46,10 @@ typedef std::map <std::string, VecString> MapVecString;
 typedef std::vector <std::pair<std::string,std::string>> VecStringPair;
 
 // JSON to STL
-VecFloat Json2Stl_VecFloat(const ObjJson &objJson); // Vector of floats
-MapFloat Json2Stl_MapFloat(const ObjJson &objJson); // Map of floats
-VecString Json2Stl_VecString(const ObjJson &objJson); // Vector of Strings
-MapVecString Json2Stl_MapVecString(const ObjJson &objJson); // Map of Vector of Strings
-VecStringPair Json2Stl_VecStringPair(const ObjJson &objJson); // Vector of String Pairs
+void Json2Stl_VecFloat(const ObjJson &objJson, VecFloat *vecFloat); // Vector of floats
+void Json2Stl_MapFloat(const ObjJson &objJson, MapFloat *mapFloat); // Map of floats
+void Json2Stl_VecString(const ObjJson &objJson, VecString *vecString); // Vector of Strings
+void Json2Stl_MapVecString(const ObjJson &objJson, MapVecString *mapVecString); // Map of Vector of Strings
+void Json2Stl_VecStringPair(const ObjJson &objJson, VecStringPair *vecStringPair); // Vector of String Pairs
 
 #endif // WAVESYS_H
