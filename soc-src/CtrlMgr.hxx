@@ -30,9 +30,8 @@ History:
 #define kMaxAllocEff 6
 #endif
 
-#include "cntrlFunc.hxx"
-#include "cntrlAllocFunc.hxx"
-#include "cntrlAllocFunc.hxx"
+#include "CntrlFunc.hxx"
+#include "AllocFunc.hxx"
 #include "navigation.hxx"
 #include "structs.hxx"
 #include "airdata.hxx"
@@ -101,7 +100,7 @@ class CntrlMgr {
 
   CntrlManual baseRoll_, basePitch_, baseYaw_;
   CntrlManual baseSpeed_;
-  
+
   CntrlPiDamp resRoll_, resPitch_, resYaw_;
   CntrlPi resSpeed_;
 

@@ -60,50 +60,10 @@ int main(int argc, char* argv[]) {
   missMgr.Config(&configData); // Configure System
   MissMgrOut missMgrOut; // Create the Data Structure
 
-    // Waveform Generation and Excitation Injection Systems are Components
-    WaveSys waveSys; // Create System Class
-    waveSys.Config(&configData); // Configure System
-    WaveSysOut waveSysOut; // Create the Data Structure
-
-    // Define Excitation System and Excitations
-    ExciteSys exciteSys; // Create System Class
-    exciteSys.Config(&configData); // Configure System
-    ExciteSysOut exciteSysOut; // Create the Data Structure
-
   // Define Controller Manager
   CtrlMgr ctrlMgr; // Create System Class
   ctrlMgr.Config(&configData); // Configure System
   CtrlMgrOut ctrlMgrOut; // Create the Data Structure
-
-    // Setup Input Processing
-    InputProc inputProc; // Create System Class
-    inputProc.Config(&configData); // Configure System
-    InputProcOut inputProcOut; // Create the Data Structure
-
-    // Setup Airdata
-    Airdata airdata; // Create System Class
-    airdata.Config(&configData); // Configure System
-    AirdataOut airdataOut; // Create the Data Structure
-
-    // Navigation Estimation Filter
-    NavEst navEst; // Create System Class
-    navEst.Config(&configData); // Configure System
-    NavEstOut navEstOut; // Create the Data Structure
-
-    // Define Guidance Systems
-    GuidSys guidSys; // Create System Class
-    guidSys.Config(&configData); // Configure System
-    GuidSysOut guidSysOut; // Create the Data Structure
-
-    // Define Scas Systems
-    ScasSys scasSys; // Create System Class
-    scasSys.Config(&configData); // Configure System
-    ScasSysOut scasSysOut; // Create the Data Structure
-
-    // Define Control Allocation Systems
-    AllocSys allocSys; // Create System Class
-    allocSys.Config(&configData); // Configure System
-    AllocSysOut allocSysOut; // Create the Data Structure
 
   // Major Frame Loop
   while (1) {
@@ -111,14 +71,14 @@ int main(int argc, char* argv[]) {
     // Attempt to Read the FMU, return 1 on success
     if (fmu.GetSensorData(fmuData)) { // Run the major frame
 
-      // Input Processing (Input, Nav, Airdata), Baseline Systems Only
-      ctrlOut = ctrlMgr.BaseInput(missMgrOut, fmuData);
+      // Input Processing, Baseline Systems Only
+      ctrlOut = ctrlMgr.InputProcSys["Baseline"].Run(missMgrOut, fmuData);
 
       // Misison Manager Mode Switching - Check safety triggers
       missMgrOut = missMgr.ModeMgr(ctrlOut);
 
       // Run Control Systems (Guidance, SCAS, Allocation), Baseline Systems Only
-      ctrlOut = ctrlMgr.BaseCtrl(missMgrOut, fmuData);
+      ctrlOut = ctrlMgr.CtrlSys["Baseline"].Run(missMgrOut);
 
       // Run Waveform Generation
       missMgrOut = missMgr.WaveGen();
@@ -127,10 +87,10 @@ int main(int argc, char* argv[]) {
       missMgrOut = missMgr.Excite(ctrlOut);
 
       // Input Processing (Input, Nav, Airdata), Experimental Systems
-      ctrlOut = ctrlMgr.ExpInput(missMgrOut, fmuData);
+      ctrlOut = ctrlMgr.InputProcSys["Select"].Run(missMgrOut, fmuData);
 
       // Run Control Systems (Guidance, SCAS, Allocation), Experimental Systems
-      ctrlOut = ctrlMgr.ExpCtrl(missMgrOut, fmuData);
+      ctrlOut = ctrlMgr.CtrlSys["Select"].Run(missMgrOut);
 
 
 

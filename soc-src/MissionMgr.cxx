@@ -7,39 +7,20 @@ See: LICENSE.md for Copyright and License Agreement
 
 #include "MissionMgr.hxx"
 
-typedef std::vector <std::shared_ptr<WaveSys>> WaveVec;
-
 void MissMgr::Config(const ObjJson &objJson)
 {
-  // Create a Vector of WaveSys Classes
-  WaveVec waveVec;
-
   // Configure Waveforms
   assert(ObjJson.HasMember("WaveSys")); // Check that WaveSys exists
   const ObjJson &objWave = ObjJson["WaveSys"]; // JSON object of WaveSys
   assert(objWave.IsObject()); // WaveSys is a list of objects, iterate through each
 
-  // Iterate through each of the WaveSys entities, Create a Vector of WaveSys Classes
-  rapidjson::SizeType numLoop = objWave.Size(); // Number of loop closures
-  for (rapidjson::SizeType iWave = 0; iLoop < objWave.Size(); ++iWave) {
-    // Get the Wave type from the JSON object
-    assert(objWave[iWave].HasMember("iWave"));
-    iWave_ = objWave[iWave]["iWave"].GetInt();
-    assert(iWave_ == iWave); // The iWave in JSON should be uniformly increasing
+  // Create a Map of WaveSys Classes
+  WaveSysMap waveSysMap = WaveFactory::Config(objWave);
+  numWave_ = waveSysMap.size(); // Get the number of waves defined
 
-    // waveVec is built by adding the current class to back
-    waveVec.emplace_back(new WaveSys());
+  // Configure Excitations
 
-    // Call the Class Config method, need to cast the pointer to the proper derived class.
-    waveVec[iWave]->Config(objWave[iWave]);
-
-    // Cast the pointer to the proper derived class
-
-  }
-
-  numWave_ = waveVec.Size();
-
-  numTest_ = 19; // FIXIT - Hardcoded
+  // Configure Test Points
 
 }
 

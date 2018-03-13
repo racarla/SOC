@@ -2,11 +2,6 @@
 Simple control system tester
 
 See: LICENSE.md for Copyright and License Agreement
-
-History:
-2017-11-12 - Chris Regan - Defined CntrlPiDamp class and methods
-2017-11-12 - Chris Regan - Defined CntrlPid class and methods
-2017-11-12 - Chris Regan - Defined CntrlDamp class and methods
 */
 
 #include <iostream>
@@ -66,10 +61,10 @@ int main(void)  /* Program tester */
 
     } else if (TimeCurr_s <= timeHold_s) {
       cntrlMgr.Mode(kCntrlEngage);
-      
+
     } else if (TimeCurr_s <= TimeReset_s) {
       cntrlMgr.Mode(kCntrlHold);
-      
+
     } else if (TimeCurr_s <= TimeEnd_s) {
       cntrlMgr.Mode(kCntrlReset);
     }

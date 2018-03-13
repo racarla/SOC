@@ -17,10 +17,10 @@ typedef std::map <std::string, ScasLoopVec> ScasSysMap;
 class ScasSys {
  public:
   ScasSys() {};
-  ~ScasSys() {};
   ScasSysMap Config(const ObjJson &objJson);
   void Init() {};
   void Run() {};
+  ~ScasSys() {};
 
  private:
 

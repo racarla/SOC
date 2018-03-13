@@ -2,9 +2,6 @@
 Classes and Functions for Control Allocation
 
 See: LICENSE.md for Copyright and License Agreement
-
-History:
-2017-11-12 - Chris Regan - Created
 */
 
 #ifndef Alloc_H
@@ -47,101 +44,36 @@ typedef Eigen::Matrix<float, -1, 1, 0, kMaxSolvEff, 1> VecSolvEff;
 enum AllocMethod { kPseudo = 10, kPseudoWt = 15, kPseudoRedis = 20, kPseudoRedisScale = 25, kFxp = 50, kMolp = 60, kMoqp = 70, kSqp = 75};
 
 //
-VecAllocEff Alloc(
-  const MatCntrlEff& cntrlEff, const VecAllocObj& vObj, const VecAllocEff& uMin, const VecAllocEff& uMax, const MatObj& wtObj, const MatEff& wtEff, const VecAllocEff& uPref,
-  AllocMethod method);
+void Alloc(const MatCntrlEff &cntrlEff, const VecAllocObj &vObj, const VecAllocEff &uMin, const VecAllocEff &uMax, const MatObj &wtObj, const MatEff &wtEff, const VecAllocEff &uPref, AllocMethod method, VecAllocEff *uCmd);
 
 // Allocation Methods
-VecAllocEff AllocPseudo(
-  const MatCntrlEff& cntrlEff, const VecAllocObj& vObj, const VecAllocEff& uPref);
-
-VecAllocEff AllocPseudoWt(
-  const MatCntrlEff& cntrlEff, const VecAllocObj& vObj, const MatObj& wtObj, const MatEff& wtEff, const VecAllocEff& uPref);
-
-VecAllocEff AllocFxp(
-  const MatCntrlEff& cntrlEff, const VecAllocObj& vObj, const VecAllocEff& uMin, const VecAllocEff& uMax, const MatObj& wtObj, const MatEff& wtEff, const VecAllocEff& uPref,
-  float gammaEff = 0.001, uint8_t numIter = 200);
-
-VecAllocEff AllocPseudoRedis(
-  const MatCntrlEff& cntrlEff, const VecAllocObj& vObj, const VecAllocEff& uMin, const VecAllocEff& uMax, const MatObj& wtObj, const MatEff& wtEff, const VecAllocEff& uPref);
-
-VecAllocEff AllocPseudoRedisScale(
-  const MatCntrlEff& cntrlEff, const VecAllocObj& vObj, const VecAllocEff& uMin, const VecAllocEff& uMax, const MatObj& wtObj, const MatEff& wtEff, const VecAllocEff& uPref);
-
-VecAllocEff AllocMolp(
-  const MatCntrlEff& cntrlEff, const VecAllocObj& vObj, const VecAllocEff& uMin, const VecAllocEff& uMax, const MatObj& wtObj, const MatEff& wtEff, const VecAllocEff& uPref,
-  float gammaEff = 0.001);
-
-VecAllocEff AllocMoqp(
-  const MatCntrlEff& cntrlEff, const VecAllocObj& vObj, const VecAllocEff& uMin, const VecAllocEff& uMax, const MatObj& wtObj, const MatEff& wtEff, const VecAllocEff& uPref,
-  float gammaEff = 0.001);
-
-VecAllocEff AllocSqp(
-  const MatCntrlEff& cntrlEff, const VecAllocObj& vObj, const VecAllocEff& uMin, const VecAllocEff& uMax, const MatObj& wtObj, const MatEff& wtEff, const VecAllocEff& uPref);
-
+void AllocPseudo(const MatCntrlEff &cntrlEff, const VecAllocObj &vObj, const VecAllocEff &uPref, VecAllocEff *uCmd);
+void AllocPseudoWt(const MatCntrlEff &cntrlEff, const VecAllocObj &vObj, const MatObj &wtObj, const MatEff &wtEff, const VecAllocEff &uPref, VecAllocEff *uCmd);
+void AllocFxp(const MatCntrlEff &cntrlEff, const VecAllocObj &vObj, const VecAllocEff &uMin, const VecAllocEff &uMax, const MatObj &wtObj, const MatEff &wtEff, const VecAllocEff &uPref, float gammaEff = 0.001, uint8_t numIter = 200, VecAllocEff *uCmd);
+void AllocPseudoRedis(const MatCntrlEff &cntrlEff, const VecAllocObj &vObj, const VecAllocEff &uMin, const VecAllocEff &uMax, const MatObj &wtObj, const MatEff &wtEff, const VecAllocEff &uPref, VecAllocEff *uCmd);
+void AllocPseudoRedisScale(const MatCntrlEff &cntrlEff, const VecAllocObj &vObj, const VecAllocEff &uMin, const VecAllocEff &uMax, const MatObj &wtObj, const MatEff &wtEff, const VecAllocEff &uPref, VecAllocEff *uCmd);
+void AllocMolp(const MatCntrlEff &cntrlEff, const VecAllocObj &vObj, const VecAllocEff &uMin, const VecAllocEff &uMax, const MatObj &wtObj, const MatEff &wtEff, const VecAllocEff &uPref, float gammaEff = 0.001, VecAllocEff *uCmd);
+void AllocMoqp(const MatCntrlEff &cntrlEff, const VecAllocObj &vObj, const VecAllocEff &uMin, const VecAllocEff &uMax, const MatObj &wtObj, const MatEff &wtEff, const VecAllocEff &uPref, float gammaEff = 0.001, VecAllocEff *uCmd);
+void AllocSqp(const MatCntrlEff &cntrlEff, const VecAllocObj &vObj, const VecAllocEff &uMin, const VecAllocEff &uMax, const MatObj &wtObj, const MatEff &wtEff, const VecAllocEff &uPref, VecAllocEff *uCmd);
 
 // Pseudo-Inverse Solvers
-void SolvPinv(
-  const MatSolv& A, const VecSolvObj& b,
-  VecSolvEff& x);
-
-void SolvPinvLU(
-  const MatSolv& A, const VecSolvObj& b,
-  VecSolvEff& x);
-
-void SolvPinvCholesky(
-  const MatSolv& A, const VecSolvObj& b,
-  VecSolvEff& x);
-
-void SolvPinvSVD(
-  const MatSolv& A, const VecSolvObj& b,
-  VecSolvEff& x);
-
-void SolvPinvQR(
-  const MatSolv& A, const VecSolvObj& b,
-  VecSolvEff& x);
-
+void SolvPinv(const MatSolv &A, const VecSolvObj &b, VecSolvEff &x);
+void SolvPinvLU(const MatSolv &A, const VecSolvObj &b, VecSolvEff &x);
+void SolvPinvCholesky(const MatSolv &A, const VecSolvObj &b, VecSolvEff &x);
+void SolvPinvSVD(const MatSolv &A, const VecSolvObj &b, VecSolvEff &x);
+void SolvPinvQR(const MatSolv &A, const VecSolvObj &b, VecSolvEff &x);
 
 // Quadratic Programming Solvers
-/*void QuadProgPhase1(
-  const MatSolv& A, const VecSolvObj& b, const VecSolvEff& xMin, const VecSolvEff& xMax,
-  VecAllocEffInt& iEffSat, VecAllocEff& x,
-  float tol = 1.0E-8);
-
-void QuadProgPhase2(
-  const MatSolv& A1, const VecSolvObj& b1, const MatSolv& A2, const VecSolvObj& b2, const VecSolvEff& xMin, const VecSolvEff& xMax,
-  VecAllocEffInt& iEffSat, VecAllocEff& x,
-  float tol = 1.0E-8);
-*/
+// void QuadProgPhase1(const MatSolv &A, const VecSolvObj &b, const VecSolvEff &xMin, const VecSolvEff &xMax, VecAllocEffInt &iEffSat, VecAllocEff &x, float tol = 1.0E-8);
+// void QuadProgPhase2(const MatSolv &A1, const VecSolvObj &b1, const MatSolv &A2, const VecSolvObj &b2, const VecSolvEff &xMin, const VecSolvEff &xMax, VecAllocEffInt &iEffSat, VecAllocEff &x, float tol = 1.0E-8);
 
 // General Functions
-void Saturate(
-  const VecAllocEff& uMin, const VecAllocEff& uMax,
-  VecAllocEff& uCmd);
-
-uint8_t SaturateIndex(
-  const VecAllocEff& uMin, const VecAllocEff& uMax,
-  VecAllocEff& uCmd, VecAllocEffInt& iEffSat);
-
-void FindFree(
-  const VecAllocEffInt& iEffSat,
-  VecAllocEffInt& iEffFree);
-
-void ShrinkMatColumns(
-  const MatCntrlEff& M, const VecAllocEffInt& elemKeep,
-  MatCntrlEff& MShrink);
-
-void ShrinkVecElem(
-  const VecAllocEff& V, const VecAllocEffInt& elemKeep,
-  VecAllocEff& VShrink);
-
-void ExpandMatColumns(
-  const MatCntrlEff& M, const VecAllocEffInt& elemKeep,
-  MatCntrlEff& MExp);
-
-void ExpandVecElem(
-  const VecAllocEff& V, const VecAllocEffInt& elemKeep,
-  VecAllocEff& VExp);
-
+void Saturate(const VecAllocEff &uMin, const VecAllocEff &uMax, VecAllocEff &uCmd);
+uint8_t SaturateIndex(const VecAllocEff &uMin, const VecAllocEff &uMax, VecAllocEff &uCmd, VecAllocEffInt &iEffSat);
+void FindFree(const VecAllocEffInt &iEffSat, VecAllocEffInt &iEffFree);
+void ShrinkMatColumns(const MatCntrlEff &M, const VecAllocEffInt &elemKeep, MatCntrlEff &MShrink);
+void ShrinkVecElem(const VecAllocEff &V, const VecAllocEffInt &elemKeep, VecAllocEff &VShrink);
+void ExpandMatColumns(const MatCntrlEff &M, const VecAllocEffInt &elemKeep, MatCntrlEff &MExp);
+void ExpandVecElem(const VecAllocEff &V, const VecAllocEffInt &elemKeep, VecAllocEff &VExp);
 
 #endif // Alloc_H
