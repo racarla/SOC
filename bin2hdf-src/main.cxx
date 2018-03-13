@@ -82,7 +82,7 @@ int main(int argc, char* argv[]) {
     }
   }
 
-
+  cout << SensorData.size() << endl;
 
   // std::vector<uint64_t> Time_us;
 
