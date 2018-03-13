@@ -12,12 +12,9 @@ History:
 #include "WaveSys.hxx"
 
 // Create and Configure a map of waveform systems
-WaveSysMap WaveFactory::Config(const ObjJson &objJson)
-{
-  // Create a Map of WaveSys Classes
-  WaveSysMap waveSysMap;
-
+void WaveFactory::Config(const ObjJson &objJson, WaveSysMap *waveSysMap) {
   // Iterate through each of the WaveSys entities, Create a Map of WaveSys Classes
+  assert(objJson.IsObject()); // objJson is an object, iterate through each member
   for (ObjJson::ConstMemberIterator iObj = objJson.MemberBegin(); iObj != objJson.MemberEnd(); ++iObj) {
 
     std::string waveNameStr = iObj->name.GetString(); // Name of System
@@ -26,19 +23,16 @@ WaveSysMap WaveFactory::Config(const ObjJson &objJson)
     const ObjJson &objCurr = objJson[iObj->name.GetString()];
 
     // System Map build-up
-    WaveSysPtr waveSysPtr; // Pointer to Derived Class
-    waveSysPtr = WaveFactory::ConfigInst(objCurr); // Pointer to Derived Class
+    WaveSysPtr waveSysPtr;
+    WaveFactory::ConfigInst(objCurr, &waveSysPtr); // Pointer to Derived Class
 
     // Add instance to the System Map
-    waveSysMap.insert(std::make_pair(waveNameStr, waveSysPtr));
+    waveSysMap->insert(std::make_pair(waveNameStr, waveSysPtr));
   }
-
-  return waveSysMap;
 }
 
 // Configuration of a single instance of a waveform
-WaveSysPtr WaveFactory::ConfigInst(const ObjJson &objJson)
-{
+void WaveFactory::ConfigInst(const ObjJson &objJson, WaveSysPtr *waveSysPtr) {
   // Get the Wave type from the JSON object
   assert(objJson.HasMember("Class"));
   std::string waveClassStr = objJson["Class"].GetString();
@@ -57,30 +51,25 @@ WaveSysPtr WaveFactory::ConfigInst(const ObjJson &objJson)
   }
 
   // Create a pointer to the proper class of waveform
-  WaveSysPtr waveSysPtr; // Create pointer to Base Class, Cast to inherited Class
   switch (eWaveClass){
     case kDisc:
-      waveSysPtr = std::make_shared<WaveDisc>();
+      *waveSysPtr = std::make_shared<WaveDisc>();
       break;
     case kChirp:
-      waveSysPtr = std::make_shared<WaveChirp>();
+      *waveSysPtr = std::make_shared<WaveChirp>();
       break;
     case kMultisine:
-      waveSysPtr = std::make_shared<WaveMultisine>();
+      *waveSysPtr = std::make_shared<WaveMultisine>();
       break;
   }
 
   // Call the Config method
-  waveSysPtr->Config(objJson);
-
-  // Return
-  return waveSysPtr;
+  (*waveSysPtr)->Config(objJson);
 }
 
 
 // Discrete Waveform Configuration
-void WaveDisc::Config(const ObjJson &objJson)
-{
+void WaveDisc::Config(const ObjJson &objJson) {
   // Get the Wave type from the JSON object
   assert(objJson.HasMember("Type"));
   std::string waveTypeStr = objJson["Type"].GetString();
@@ -128,24 +117,23 @@ void WaveDisc::Config(const ObjJson &objJson)
   }
 }
 
-void WaveDisc::Run(float &tCurr_s, float &wave_nd)
-{
-  wave_nd = 0.0;
+void WaveDisc::Run(const float &tCurr_s, float *wave_nd) {
+  *wave_nd = 0.0;
 
   if ((tCurr_s >= 0) && (tCurr_s < tDur_s_)) {
     // Call the Run method for the class of waveform
     switch (eWaveDiscType_){
       case kPulse:
-        wave_nd = WavePulse(tCurr_s, tPulse_s_, amp_nd_);
+        WavePulse(tCurr_s, tPulse_s_, amp_nd_, wave_nd);
         break;
       case kDoublet:
-        wave_nd = WaveDoublet(tCurr_s, tPulse_s_, amp_nd_);
+        WaveDoublet(tCurr_s, tPulse_s_, amp_nd_, wave_nd);
         break;
       case kDoublet121:
-        wave_nd = WaveDoublet121(tCurr_s, tPulse_s_, amp_nd_);
+        WaveDoublet121(tCurr_s, tPulse_s_, amp_nd_, wave_nd);
         break;
       case kDoublet3211:
-        wave_nd = WaveDoublet3211(tCurr_s, tPulse_s_, amp_nd_);
+        WaveDoublet3211(tCurr_s, tPulse_s_, amp_nd_, wave_nd);
         break;
     }
   }
@@ -153,8 +141,7 @@ void WaveDisc::Run(float &tCurr_s, float &wave_nd)
 
 
 /* Chirp Waveform */
-void WaveChirp::Config(const ObjJson &objJson)
-{
+void WaveChirp::Config(const ObjJson &objJson) {
   // Get the Wave type from the JSON object
   assert(objJson.HasMember("Type"));
   std::string waveTypeStr = objJson["Type"].GetString();
@@ -186,18 +173,16 @@ void WaveChirp::Config(const ObjJson &objJson)
     std::cout << "freq_rps: [" << freqStart_rps_ << "," << freqEnd_rps_ << "]" << "\t";
     std::cout << "amp_nd: [" << ampStart_nd_ << "," << ampEnd_nd_ << "]" << std::endl;
   }
-
 }
 
-void WaveChirp::Run(float &tCurr_s, float &wave_nd)
-{
-  wave_nd = 0.0;
+void WaveChirp::Run(const float &tCurr_s, float *wave_nd) {
+  *wave_nd = 0.0;
 
   if ((tCurr_s >= 0) && (tCurr_s < tDur_s_)) {
     // Call the Run method for the class of waveform
     switch (eWaveChirpType_){
       case kLinear:
-        wave_nd = WaveChirpLinear(tCurr_s, tDur_s_, freqStart_rps_, freqEnd_rps_, ampStart_nd_, ampEnd_nd_);
+        WaveChirpLinear(tCurr_s, tDur_s_, freqStart_rps_, freqEnd_rps_, ampStart_nd_, ampEnd_nd_, wave_nd);
         break;
     }
   }
@@ -205,8 +190,7 @@ void WaveChirp::Run(float &tCurr_s, float &wave_nd)
 
 
 // MultiSine Waveform
-void WaveMultisine::Config(const ObjJson &objJson)
-{
+void WaveMultisine::Config(const ObjJson &objJson) {
   // Get the Wave type from the JSON object
   assert(objJson.HasMember("Type"));
   std::string waveTypeStr = objJson["Type"].GetString();
@@ -240,15 +224,14 @@ void WaveMultisine::Config(const ObjJson &objJson)
   }
 }
 
-void WaveMultisine::Run(float &tCurr_s, float &wave_nd)
-{
-  wave_nd = 0.0;
+void WaveMultisine::Run(const float &tCurr_s, float *wave_nd) {
+  *wave_nd = 0.0;
 
   if ((tCurr_s >= 0) && (tCurr_s < tDur_s_)) {
     // Call the Run method for the class of waveform
     switch (eWaveMultisineType_){
       case kOMS:
-        wave_nd = WaveMultisineOms(tCurr_s, freq_rps_, phase_rad_, amp_nd_);
+        WaveMultisineOms(tCurr_s, freq_rps_, phase_rad_, amp_nd_, wave_nd);
         break;
     }
   }

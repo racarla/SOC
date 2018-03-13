@@ -2,8 +2,7 @@
 Simple wave system tester
 Create a map of wave systems, configure, run
 
-g++-5 -std=c++11 -Wall -O3 -g -I../soc-includes WaveGenFunc.cxx Utilities.cxx WaveSys.cxx WaveSysTest.cxx -o WaveSysTest
-
+g++-5 -std=c++11 -Wall -O3 -g -I../soc-includes WaveFunc.cxx Utilities.cxx WaveSys.cxx WaveSysTest.cxx -o WaveSysTest
 ./WaveSysTest
 
 See: LICENSE.md for Copyright and License Agreement
@@ -40,21 +39,21 @@ int main(void) {
   // Pull the Vehicle Definitions, convert them into a Map of Map floats.
   assert(objMissMgr.HasMember("WaveSys")); // Check that VehDef exists
   const ObjJson &objWaveSys = objMissMgr["WaveSys"]; // Create Signals Object
-  assert(objWaveSys.IsObject()); // WaveSys is an array, iterate through each
 
   // Create the Configuration
   // Create a Map of WaveSys Classes
   WaveSysMap waveSysMap;
-  waveSysMap = WaveFactory::Config(objWaveSys);
-
+  WaveFactory::Config(objWaveSys, &waveSysMap);
   std::cout << "Configuration Complete!!" << std::endl;
+  std::cout << waveSysMap.size() << std::endl;
+
 
   // Run the waves
-  std::string waveSelect = "1";
+  std::string waveSelect = "4";
   float tCurr_s = 0.0;
   float wave_nd = 0.0;
   for (tCurr_s = 0.0; tCurr_s < 2; tCurr_s += 0.2) {
-    waveSysMap[waveSelect]->Run(tCurr_s, wave_nd);
+    waveSysMap[waveSelect]->Run(tCurr_s, &wave_nd);
     std::cout << tCurr_s << "\t" << wave_nd << std::endl;
   }
 }

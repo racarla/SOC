@@ -19,7 +19,7 @@ History:
 
 #include <Eigen/Core>
 
-#include "WaveGenFunc.hxx"
+#include "WaveFunc.hxx"
 #include "Utilities.hxx"
 
 #ifndef kVerboseConfig
@@ -35,15 +35,12 @@ typedef Eigen::Matrix<float, -1, 1, 0, kMaxWaveElem, 1> VecElem;
 
 // Enumerations of the WaveSystem types
 enum EnumWaveClass {kDisc = 1, kChirp = 2, kMultisine = 3};
-enum EnumWaveDiscType {kPulse = 1, kDoublet = 2, kDoublet121 = 3, kDoublet3211 = 4};
-enum EnumWaveChirpType {kLinear = 1};
-enum EnumWaveMultisineType {kOMS = 1};
 
 // Base Class for all Waveforms
 class WaveBase {
  public:
   virtual void Config(const ObjJson &objJson) {};
-  virtual void Run(float &tCurr_s, float &wave_nd) {};
+  virtual void Run(const float &tCurr_s, float *wave_nd) {};
 
   virtual ~WaveBase() {};
 };
@@ -52,12 +49,12 @@ class WaveBase {
 class WaveDisc : public WaveBase  {
  public:
   void Config(const ObjJson &objJson);
-  void Run(float &tCurr_s, float &wave_nd);
+  void Run(const float &tCurr_s, float *wave_nd);
 
   ~WaveDisc() {};
 
  private:
-  EnumWaveDiscType eWaveDiscType_;
+  enum EnumWaveDiscType {kPulse = 1, kDoublet = 2, kDoublet121 = 3, kDoublet3211 = 4} eWaveDiscType_;
   float tPulse_s_, tDur_s_, amp_nd_;
 };
 
@@ -65,12 +62,12 @@ class WaveDisc : public WaveBase  {
 class WaveChirp : public WaveBase   {
  public:
   void Config(const ObjJson &objJson);
-  void Run(float &tCurr_s, float &wave_nd);
+  void Run(const float &tCurr_s, float *wave_nd);
 
   ~WaveChirp() {};
 
  private:
-  EnumWaveChirpType eWaveChirpType_;
+  enum EnumWaveChirpType {kLinear = 1} eWaveChirpType_;
   float tDur_s_;
   float freqStart_rps_, freqEnd_rps_, ampStart_nd_, ampEnd_nd_;
 };
@@ -79,12 +76,12 @@ class WaveChirp : public WaveBase   {
 class WaveMultisine : public WaveBase   {
  public:
   void Config(const ObjJson &objJson);
-  void Run(float &tCurr_s, float &wave_nd);
+  void Run(const float &tCurr_s, float *wave_nd);
 
   ~WaveMultisine() {};
 
  private:
-  EnumWaveMultisineType eWaveMultisineType_;
+  enum EnumWaveMultisineType {kOMS = 1} eWaveMultisineType_;
   float tDur_s_;
   VecElem freq_rps_, phase_rad_, amp_nd_;
 };
@@ -97,8 +94,8 @@ typedef std::map <std::string, WaveSysPtr> WaveSysMap;
 // Factory Class for Waveforms
 class WaveFactory {
  public:
-  static WaveSysMap Config(const ObjJson &objJson);
-  static WaveSysPtr ConfigInst(const ObjJson &objJson);
+  static void Config(const ObjJson &objJson, WaveSysMap *waveSysMap);
+  static void ConfigInst(const ObjJson &objJson, WaveSysPtr *waveSysPtr);
 };
 
 #endif // WAVESYS_H

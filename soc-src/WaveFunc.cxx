@@ -4,84 +4,66 @@ Classes and Functions for  Single Channel Waveform Signal Generators
 See: LICENSE.md for Copyright and License Agreement
 */
 
-#include "WaveGenFunc.hxx"
+#include "WaveFunc.hxx"
 
 // Pulse with 1-pulse tOnePulse_s long
-float WavePulse(float &t_s, float &tOnePulse_s, float &amp_nd)
+void WavePulse(const float &t_s, const float &tOnePulse_s, const float &amp_nd, float *wave_nd)
 {
-  float wave_nd;
+  *wave_nd = 0.0;
 
   if (t_s < tOnePulse_s) {
-    wave_nd = amp_nd;
-
-  } else { wave_nd = 0.0; }
-
-  return wave_nd;
+    *wave_nd = amp_nd;
+  }
 }
 
 // Doublet 1-1 with 1-pulse tOnePulse_s long, total of 2*tOnePulse_s waveform
-float WaveDoublet(float &t_s, float &tOnePulse_s, float &amp_nd)
+void WaveDoublet(const float &t_s, const float &tOnePulse_s, const float &amp_nd, float *wave_nd)
 {
   float tTwoPulse_s = 2.0 * tOnePulse_s;
-  float wave_nd;
+  *wave_nd = 0.0;
 
   if (t_s < tOnePulse_s) {
-    wave_nd = amp_nd;
-
+    *wave_nd = amp_nd;
   } else if (t_s < tTwoPulse_s) {
-    wave_nd = -amp_nd;
-
-  } else { wave_nd = 0.0; }
-
-  return wave_nd;
+    *wave_nd = -amp_nd;
+  }
 }
 
 // Doublet 1-2-1 - 1-pulse tOnePulse_s long, total of 4*tOnePulse_s waveform
-float WaveDoublet121(float &t_s, float &tOnePulse_s, float &amp_nd)
+void WaveDoublet121(const float &t_s, const float &tOnePulse_s, const float &amp_nd, float *wave_nd)
 {
   float tTwoPulse_s = 2.0 * tOnePulse_s;
-  float wave_nd;
+  *wave_nd = 0.0;
 
   if (t_s < tOnePulse_s) {
-    wave_nd = amp_nd;
-
+    *wave_nd = amp_nd;
   } else if (t_s < tOnePulse_s + tTwoPulse_s) {
-    wave_nd = -amp_nd;
-
+    *wave_nd = -amp_nd;
   } else if (t_s < tOnePulse_s + tTwoPulse_s + tOnePulse_s) {
-    wave_nd = amp_nd;
-
-  } else { wave_nd = 0.0; }
-
-  return wave_nd;
+    *wave_nd = amp_nd;
+  }
 }
 
 // Doublet 3-2-1-1 - 1-pulse tOnePulse_s long, total of 7*tOnePulse_s waveform
-float WaveDoublet3211(float &t_s, float &tOnePulse_s, float &amp_nd)
+void WaveDoublet3211(const float &t_s, const float &tOnePulse_s, const float &amp_nd, float *wave_nd)
 {
   float tTwoPulse_s = 2.0 * tOnePulse_s;
   float tThreePulse_s = 3.0 * tOnePulse_s;
-  float wave_nd;
+  *wave_nd = 0.0;
 
   if (t_s < tThreePulse_s) {
-    wave_nd = amp_nd;
-
+    *wave_nd = amp_nd;
   } else if (t_s < tThreePulse_s + tTwoPulse_s) {
-    wave_nd = -amp_nd;
-
+    *wave_nd = -amp_nd;
   } else if (t_s < tThreePulse_s + tTwoPulse_s + tOnePulse_s) {
-    wave_nd = amp_nd;
-
+    *wave_nd = amp_nd;
   } else if (t_s < tThreePulse_s + tTwoPulse_s + tOnePulse_s + tOnePulse_s) {
-    wave_nd = -amp_nd;
-
-  } else { wave_nd = 0.0; }
-
-  return wave_nd;
+    *wave_nd = -amp_nd;
+  }
 }
 
 // Chirp (frequency Sweep), linear varying amplitude and frequency
-float WaveChirpLinear(float &t_s, float &tDur_s, float &freqStart_rps, float &freqEnd_rps, float &ampStart_nd, float &ampEnd_nd)
+void WaveChirpLinear(const float &t_s, const float &tDur_s, const float &freqStart_rps, const float &freqEnd_rps, const float &ampStart_nd, const float &ampEnd_nd, float *wave_nd)
 {
   // linear varying instantanious frequency
   float freq_rps = freqStart_rps + (freqEnd_rps - freqStart_rps) / (2.0 * tDur_s) * t_s;
@@ -90,13 +72,11 @@ float WaveChirpLinear(float &t_s, float &tDur_s, float &freqStart_rps, float &fr
   float amp_nd = ampStart_nd + (ampEnd_nd - ampStart_nd) * t_s / tDur_s;
 
   // chirp Equation
-  float wave_nd = amp_nd * sin(freq_rps * t_s);
-
-  return wave_nd;
+  *wave_nd = amp_nd * sin(freq_rps * t_s);
 }
 
 // Optimal MultiSine
-float WaveMultisineOms(float &t_s, VecElem &freq_rps, VecElem &phase_rad, VecElem &amp_nd)
+void WaveMultisineOms(const float &t_s, const VecElem &freq_rps, const VecElem &phase_rad, const VecElem &amp_nd, float *wave_nd)
 {
   // Number of elements in the List
   uint8_t numElem = (uint8_t) freq_rps.size();
@@ -106,7 +86,5 @@ float WaveMultisineOms(float &t_s, VecElem &freq_rps, VecElem &phase_rad, VecEle
 
   // Compute the Waveform - scale * sum(amp .* cos(freq * t + phase))
   VecElem waveVec_nd = amp_nd.array() * (freq_rps * t_s + phase_rad).array().cos();
-  float wave_nd = scale * waveVec_nd.sum();
-
-  return wave_nd;
+  *wave_nd = scale * waveVec_nd.sum();
 }
