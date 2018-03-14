@@ -24,13 +24,14 @@
 CC=arm-linux-gnueabihf-g++ -Wno-psabi
 
 # includes
-IFLAGS=../soc-includes/
+IFLAGS=-I../soc-includes/ -I/usr/local/include  -I/usr/include/hdf5/serial
 
 # configuration
-LFLAGS=
+LFLAGS=-lz -lm -lhdf5_cpp -lhdf5_serial -L/usr/lib/arm-linux-gnueabihf
 
 # code to be compiled
 OBJ =\
+hdf5class.cxx \
 datalogger.cxx \
 fmu.cxx \
 main.cxx
@@ -40,7 +41,7 @@ all: output display
 
 output: $(OBJ)
 	@ echo "Building..."	
-	$(CC) -I $(IFLAGS) -o $@ $^ $(LFLAGS) $(CFLAGS)
+	$(CC) $(IFLAGS) -o $@ $^ $(LFLAGS) $(CFLAGS)
 		
 clean:
 	-rm output

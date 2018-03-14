@@ -23,7 +23,7 @@ void Datalogger::LogSensorData(std::vector<uint8_t> &Buffer) {
 }
 
 /* Reads data packets from a byte */
-bool Datalogger::ReadData(uint8_t ReadByte,DataSources *Source,std::vector<uint8_t> *Payload) {
+bool Datalogger::ReadBinaryData(uint8_t ReadByte,DataSources *Source,std::vector<uint8_t> *Payload) {
   int count;
   // header
   if (ParserState_ < 2) {

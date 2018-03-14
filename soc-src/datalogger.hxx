@@ -1,6 +1,7 @@
 #ifndef DATALOGGER_HXX_
 #define DATALOGGER_HXX_
 
+#include "hdf5class.hxx"
 #include <stdio.h>
 #include <fcntl.h>
 #include <unistd.h>
@@ -20,7 +21,7 @@ class Datalogger {
     };
     Datalogger();
     void LogSensorData(std::vector<uint8_t> &Buffer);
-    bool ReadData(uint8_t ReadByte,DataSources *Source,std::vector<uint8_t> *Payload);
+    bool ReadBinaryData(uint8_t ReadByte,DataSources *Source,std::vector<uint8_t> *Payload);
   private:
     FILE *LogFile_;
     std::vector<uint8_t> Buffer_;
