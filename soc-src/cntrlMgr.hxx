@@ -30,6 +30,10 @@ History:
 #define kMaxAllocEff 6
 #endif
 
+extern uint8_t kConfigSpeed; // Reference speed setpoint
+extern uint8_t kCtrlDelay; // Controller Delay, number of frames
+
+
 #include "cntrlFunc.hxx"
 #include "cntrlAllocFunc.hxx"
 #include "cntrlAllocFunc.hxx"
@@ -46,7 +50,7 @@ typedef Eigen::Matrix<float, -1, 1, 0, kMaxAllocEff, 1> VecAllocEff;
 
 struct CntrlMgrOut {
   CntrlMode mode;
-  VecCmd refVec;  
+  VecCmd refVec;
   VecCmd cmdCntrlBase;
   VecCmd cmdCntrlRes;
   VecCmd cmdCntrl;

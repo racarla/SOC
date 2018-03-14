@@ -138,8 +138,9 @@ VecCmd CntrlMgr::CmdCntrlRes(const float& time_s, const FmuData& fmuData, const 
   cntrlMgrOut_.refVec[0] = fmuData.SbusRx[0].Inceptors[0];
   cntrlMgrOut_.refVec[1] = fmuData.SbusRx[0].Inceptors[1];
   cntrlMgrOut_.refVec[2] = fmuData.SbusRx[0].Inceptors[2];
-  // cntrlMgrOut_.refVec[3] = 23; // 23 m/s
-  cntrlMgrOut_.refVec[3] = 17; // 17 m/s
+  if (kConfigSpeed==23) cntrlMgrOut_.refVec[3] = 23; // 23 m/s
+  if (kConfigSpeed==17) cntrlMgrOut_.refVec[3] = 17; // 17 m/s
+
 
   VecCmd measVec(kMaxCntrlCmd);
   measVec[0] = navOut.Euler_rad[0];
@@ -154,21 +155,26 @@ VecCmd CntrlMgr::CmdCntrlRes(const float& time_s, const FmuData& fmuData, const 
   dMeasVec[3] = 0.0;
 
   // Artificial added delay
-  uint8_t frameDelay_cnt = 4; // Number of frames to delay the measurements
-  std::deque<VecCmd> measVecDeque (frameDelay_cnt, measVec);
-  std::deque<VecCmd> dMeasVecDeque (frameDelay_cnt, measVec);
-
-  // Push new data on the front, Pop off the back
   VecCmd measVecDelay(kMaxCntrlCmd);
-  measVecDeque.push_front (measVec);
-  measVecDelay = measVecDeque.back();
-  measVecDeque.pop_back();
-
   VecCmd dMeasVecDelay(kMaxCntrlCmd);
-  dMeasVecDeque.push_front (dMeasVec);
-  dMeasVecDelay = dMeasVecDeque.back();
-  dMeasVecDeque.pop_back();
 
+  if (kCtrlDelay > 0) {
+    std::deque<VecCmd> measVecDeque (kCtrlDelay, measVec);
+    std::deque<VecCmd> dMeasVecDeque (kCtrlDelay, measVec);
+
+    // Push new data on the front, Pop off the back
+    measVecDeque.push_front (measVec);
+    measVecDelay = measVecDeque.back();
+    measVecDeque.pop_back();
+
+    dMeasVecDeque.push_front (dMeasVec);
+    dMeasVecDelay = dMeasVecDeque.back();
+    dMeasVecDeque.pop_back();
+
+  } else {
+    measVecDelay = measVec;
+    dMeasVecDelay = dMeasVec;
+  }
 
   // Zero the Command - FIXIT shouldn't be required, variable size
   cntrlMgrOut_.cmdCntrlRes.setZero(kMaxCntrlCmd);
@@ -272,15 +278,19 @@ void CntrlMgr::CntrlResDef()
 
   // Controller Parameters, corrected to the normalized I/O ranges
   VecCmd Kp(numCmd), Ki(numCmd), Kd(numCmd);
-  // Kp[0] = 0.30 * cmdScale[0], Ki[0] = 0.115 * cmdScale[0], Kd[0] = 0.070; // 23 m/s
-  // Kp[1] = 0.50 * cmdScale[1], Ki[1] = 0.137 * cmdScale[1], Kd[1] = 0.080; // 23 m/s
-  // Kp[2] = 0.00 * cmdScale[2], Ki[2] = 0.000 * cmdScale[2], Kd[2] = 0.000; // 23 m/s
-  // Kp[3] = 2.73 * cmdScale[3], Ki[3] = 0.600 * cmdScale[3], Kd[3] = 0.000; // 23 m/s
+  if (kConfigSpeed==23) { // 23 m/s
+    Kp[0] = 0.30 * cmdScale[0], Ki[0] = 0.115 * cmdScale[0], Kd[0] = 0.070;
+    Kp[1] = 0.50 * cmdScale[1], Ki[1] = 0.137 * cmdScale[1], Kd[1] = 0.080;
+    Kp[2] = 0.00 * cmdScale[2], Ki[2] = 0.000 * cmdScale[2], Kd[2] = 0.000;
+    Kp[3] = 2.73 * cmdScale[3], Ki[3] = 0.600 * cmdScale[3], Kd[3] = 0.000;
+  }
 
-  Kp[0] = 0.549 * cmdScale[0], Ki[0] = 0.211 * cmdScale[0], Kd[0] = 0.070; // 17 m/s
-  Kp[1] = 0.750 * cmdScale[1], Ki[1] = 0.300 * cmdScale[1], Kd[1] = 0.080; // 17 m/s
-  Kp[2] = 0.000 * cmdScale[2], Ki[2] = 0.000 * cmdScale[2], Kd[2] = 0.000; // 17 m/s
-  Kp[3] = 4.200 * cmdScale[3], Ki[3] = 0.990 * cmdScale[3], Kd[3] = 0.000; // 17 m/s
+  if (kConfigSpeed==17) { // 17 m/s
+    Kp[0] = 0.549 * cmdScale[0], Ki[0] = 0.211 * cmdScale[0], Kd[0] = 0.070;
+    Kp[1] = 0.750 * cmdScale[1], Ki[1] = 0.300 * cmdScale[1], Kd[1] = 0.080;
+    Kp[2] = 0.000 * cmdScale[2], Ki[2] = 0.000 * cmdScale[2], Kd[2] = 0.000;
+    Kp[3] = 4.200 * cmdScale[3], Ki[3] = 0.990 * cmdScale[3], Kd[3] = 0.000;
+  }
 
   // Initialize Individual Controllers
   resRoll_.Init(refScale[0], cmdRngMin[0], cmdRngMax[0], Kp[0], Ki[0], Kd[0]);

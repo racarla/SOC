@@ -19,6 +19,9 @@ See: LICENSE.md for Copyright and License Agreement
 #define kMaxExciteChan kMaxCntrlCmd // Excitation Channels
 #define kMaxExciteElem 46 // Excitation Elements (Multisine components)
 
+extern uint8_t kConfigSpeed = 17; // Reference speed setpoint
+extern uint8_t kCtrlDelay = 4; // Controller Delay, number of frames
+
 #include "navigation.hxx"
 #include "structs.hxx"
 #include "airdata.hxx"

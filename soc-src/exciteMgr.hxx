@@ -21,6 +21,8 @@ History:
 #define kMaxExciteElem 46
 #endif
 
+extern uint8_t kConfigSpeed; // Reference speed setpoint
+
 #include "exciteGenFunc.hxx"
 
 const float kHz2Rps = 2 * M_PI;
