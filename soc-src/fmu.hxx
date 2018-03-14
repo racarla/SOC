@@ -102,7 +102,7 @@ class FlightManagementUnit {
     const uint8_t headerLength_ = 5;
     const uint8_t checksumLength_ = 2;
     uint8_t RxByte_;
-    uint16_t ParserState_;
+    uint16_t ParserState_ =0;
     uint8_t LengthBuffer_[2];
     uint16_t Length_;
     uint8_t Checksum_[2];
