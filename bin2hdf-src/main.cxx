@@ -389,15 +389,15 @@ int main(int argc, char* argv[]) {
     for (size_t k=0; k < NumberRecords; k++) {
       data1Du8[k] = SbusRx[l][k].Failsafe;
     }
-    Logger.WriteData(GroupName,"Failsafe",data1Du8,"True when failsafe active",NumberRecords,1);    
+    Logger.WriteData(GroupName,"Failsafe",data1Du8,"True when failsafe active",NumberRecords,1);
     for (size_t k=0; k < NumberRecords; k++) {
       data1Du16[k] = SbusRx[l][k].LostFrames;
     }
-    Logger.WriteData(GroupName,"LostFrames",data1Du16,"Number of lost frames",NumberRecords,1); 
+    Logger.WriteData(GroupName,"LostFrames",data1Du16,"Number of lost frames",NumberRecords,1);
     for (size_t k=0; k < NumberRecords; k++) {
       data1Du8[k] = SbusRx[l][k].AutoEnabled;
     }
-    Logger.WriteData(GroupName,"AutoEnabled",data1Du8,"True when autopilot enabled",NumberRecords,1); 
+    Logger.WriteData(GroupName,"AutoEnabled",data1Du8,"True when autopilot enabled",NumberRecords,1);
     for (size_t k=0; k < NumberRecords; k++) {
       data1Du8[k] = SbusRx[l][k].ThrottleEnabled;
     }
@@ -426,7 +426,7 @@ int main(int argc, char* argv[]) {
       m = m + 5;
     }
     Logger.WriteData(GroupName,"AuxInputs",data5D,"Auxiliary inputs, normalized to +/- 1",NumberRecords,5);
-  } 
+  }
 
 
   /* Gps */
@@ -436,17 +436,17 @@ int main(int argc, char* argv[]) {
     for (size_t k=0; k < NumberRecords; k++) {
       data1Du8[k] = Gps[l][k].Fix;
     }
-    Logger.WriteData(GroupName,"Fix",data1Du8,"True for 3D fix only",NumberRecords,1); 
+    Logger.WriteData(GroupName,"Fix",data1Du8,"True for 3D fix only",NumberRecords,1);
 
     for (size_t k=0; k < NumberRecords; k++) {
       data1Du8[k] = Gps[l][k].NumberSatellites;
     }
-    Logger.WriteData(GroupName,"NumberSatellites",data1Du8,"Number of satellites used in solution",NumberRecords,1); 
+    Logger.WriteData(GroupName,"NumberSatellites",data1Du8,"Number of satellites used in solution",NumberRecords,1);
 
     for (size_t k=0; k < NumberRecords; k++) {
       data1Du32[k] = Gps[l][k].TOW;
     }
-    Logger.WriteData(GroupName,"TOW",data1Du32,"GPS time of the navigation epoch",NumberRecords,1); 
+    Logger.WriteData(GroupName,"TOW",data1Du32,"GPS time of the navigation epoch",NumberRecords,1);
 
     for (size_t k=0; k < NumberRecords; k++) {
       data1Du16[k] = Gps[l][k].Year;
@@ -456,27 +456,27 @@ int main(int argc, char* argv[]) {
     for (size_t k=0; k < NumberRecords; k++) {
       data1Du8[k] = Gps[l][k].Month;
     }
-    Logger.WriteData(GroupName,"Month",data1Du8,"UTC month",NumberRecords,1); 
+    Logger.WriteData(GroupName,"Month",data1Du8,"UTC month",NumberRecords,1);
 
     for (size_t k=0; k < NumberRecords; k++) {
       data1Du8[k] = Gps[l][k].Day;
     }
-    Logger.WriteData(GroupName,"Day",data1Du8,"UTC day",NumberRecords,1); 
+    Logger.WriteData(GroupName,"Day",data1Du8,"UTC day",NumberRecords,1);
 
     for (size_t k=0; k < NumberRecords; k++) {
       data1Du8[k] = Gps[l][k].Hour;
     }
-    Logger.WriteData(GroupName,"Hour",data1Du8,"UTC hour",NumberRecords,1); 
+    Logger.WriteData(GroupName,"Hour",data1Du8,"UTC hour",NumberRecords,1);
 
     for (size_t k=0; k < NumberRecords; k++) {
       data1Du8[k] = Gps[l][k].Min;
     }
-    Logger.WriteData(GroupName,"Min",data1Du8,"UTC minute",NumberRecords,1); 
+    Logger.WriteData(GroupName,"Min",data1Du8,"UTC minute",NumberRecords,1);
 
     for (size_t k=0; k < NumberRecords; k++) {
       data1Du8[k] = Gps[l][k].Sec;
     }
-    Logger.WriteData(GroupName,"Sec",data1Du8,"UTC second",NumberRecords,1); 
+    Logger.WriteData(GroupName,"Sec",data1Du8,"UTC second",NumberRecords,1);
 
     m = 0;
     for (size_t k=0; k < NumberRecords; k++) {
@@ -508,7 +508,7 @@ int main(int argc, char* argv[]) {
     for (size_t k=0; k < NumberRecords; k++) {
       data1Dd[k] = Gps[l][k].pDOP;
     }
-    Logger.WriteData(GroupName,"pDOP",data1Dd,"Position degree of precision",NumberRecords,1); 
+    Logger.WriteData(GroupName,"pDOP",data1Dd,"Position degree of precision",NumberRecords,1);
   }
 
 
@@ -583,7 +583,7 @@ int main(int argc, char* argv[]) {
   }
 
 
-  /* Pwm Voltage */ 
+  /* Pwm Voltage */
   for (size_t l=0; l < fmuData.PwmVoltage.size(); l++) {
     GroupName = "PwmVoltage_" + to_string(l);
 
@@ -800,7 +800,7 @@ int main(int argc, char* argv[]) {
     data1Dd[k] = missMgrLog[k].tCmd_ms;
   }
   Logger.WriteData(GroupName,"tCmd_ms",data1Dd,"Command Message Sent Time, ms",NumberRecords,1);
-  
+
   for (size_t k=0; k < NumberRecords; k++) {
     data1Dd[k] = missMgrLog[k].tFrame_ms;
   }
@@ -845,6 +845,16 @@ int main(int argc, char* argv[]) {
 
   m = 0;
   for (size_t k=0; k < NumberRecords; k++) {
+    data4D[m] = cntrlMgrLog[k].refVec[0];
+    data4D[m+1] = cntrlMgrLog[k].refVec[1];
+    data4D[m+2] = cntrlMgrLog[k].refVec[2];
+    data4D[m+3] = cntrlMgrLog[k].refVec[3];
+    m = m + 4;
+  }
+  Logger.WriteData(GroupName,"cmdRef",data4D,"Controller Reference Commands, Roll, Pitch, Yaw, Throttle",NumberRecords,4);
+
+  m = 0;
+  for (size_t k=0; k < NumberRecords; k++) {
     data4D[m] = cntrlMgrLog[k].cmdCntrlBase[0];
     data4D[m+1] = cntrlMgrLog[k].cmdCntrlBase[1];
     data4D[m+2] = cntrlMgrLog[k].cmdCntrlBase[2];
@@ -852,7 +862,7 @@ int main(int argc, char* argv[]) {
     m = m + 4;
   }
   Logger.WriteData(GroupName,"cmdCntrlBase",data4D,"Controller Baseline Commands, Roll [rps], Pitch [rps], Yaw [rps], Throttle [nd]",NumberRecords,4);
-  
+
   m = 0;
   for (size_t k=0; k < NumberRecords; k++) {
     data4D[m] = cntrlMgrLog[k].cmdCntrlRes[0];

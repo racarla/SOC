@@ -127,18 +127,13 @@ int main(int argc, char* argv[]) {
 //std::cout << "CntrlMgr" << "\t";
 //std::cout << "CntrlAllocMgr" << "\t";
 
-  clock_t frameStart_tic, frameStartTemp_tic; // Start the in-frame timer
+  clock_t frameStart_tic; // Start the in-frame timer
   clock_t frameStartNav_tic, frameStartExcite_tic, frameStartCntrl; // Intermidiate in-frame timers
-
-  double timePrevTemp_s = 0.0;
 
   /* main loop */
   while (1) {
 
-    frameStartTemp_tic = clock();
-    if(frameStartTemp_tic != -1) {
-      frameStart_tic = frameStartTemp_tic;
-    }
+    frameStart_tic = clock();
 
     // Attempt to Read the FMU, return 1 on success
     bool fmuReadSuccess_bool = fmu.GetSensorData(&fmuData);
@@ -146,13 +141,6 @@ int main(int argc, char* argv[]) {
     if (fmuReadSuccess_bool) { // Run the major frame
       missMgrOut.tDurSens_ms = ((float) (clock() - frameStart_tic)) * kTIC2MS; //
 
-
-  // double timeTemp_s = (double) fmuData.Time_us / 1000000;
-  //
-  // if ((timeTemp_s - timePrevTemp_s) > 0.021) {
-  //   std::cout << "\nFrame Skip: " << (timeTemp_s - timePrevTemp_s) << std::endl;
-  // }
-  // timePrevTemp_s = timeTemp_s;
   //
   // std::cout << "Time: " << timeTemp_s
   //  << "\tSuccess: " << fmu.errStatus_.cntSuccess

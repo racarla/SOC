@@ -46,6 +46,7 @@ typedef Eigen::Matrix<float, -1, 1, 0, kMaxAllocEff, 1> VecAllocEff;
 
 struct CntrlMgrOut {
   CntrlMode mode;
+  VecCmd refVec;  
   VecCmd cmdCntrlBase;
   VecCmd cmdCntrlRes;
   VecCmd cmdCntrl;
@@ -56,6 +57,7 @@ struct CntrlMgrOut {
 
 struct CntrlMgrLog {
   CntrlMode mode;
+  float refVec[kMaxCntrlCmd] = {0};
   float cmdCntrlBase[kMaxCntrlCmd] = {0};
   float cmdCntrlRes[kMaxCntrlCmd] = {0};
   float cmdCntrl[kMaxCntrlCmd] = {0};
@@ -101,7 +103,7 @@ class CntrlMgr {
 
   CntrlManual baseRoll_, basePitch_, baseYaw_;
   CntrlManual baseSpeed_;
-  
+
   CntrlPiDamp resRoll_, resPitch_, resYaw_;
   CntrlPi resSpeed_;
 

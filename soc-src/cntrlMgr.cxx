@@ -107,20 +107,19 @@ VecCmd CntrlMgr::CmdCntrlBase(const float& time_s, const FmuData& fmuData, const
   timePrevBase_s_ = time_s;
 
 
-  VecCmd refVec(kMaxCntrlCmd);
-  refVec[0] = fmuData.SbusRx[0].Inceptors[0];
-  refVec[1] = fmuData.SbusRx[0].Inceptors[1];
-  refVec[2] = fmuData.SbusRx[0].Inceptors[2];
-  refVec[3] = fmuData.SbusRx[0].Inceptors[4];
+  cntrlMgrOut_.refVec[0] = fmuData.SbusRx[0].Inceptors[0];
+  cntrlMgrOut_.refVec[1] = fmuData.SbusRx[0].Inceptors[1];
+  cntrlMgrOut_.refVec[2] = fmuData.SbusRx[0].Inceptors[2];
+  cntrlMgrOut_.refVec[3] = fmuData.SbusRx[0].Inceptors[4];
 
   // Zero the Command - FIXIT shouldn't be required, variable size
   cntrlMgrOut_.cmdCntrlBase.setZero(kMaxCntrlCmd);
 
   // Run the Controllers
-  cntrlMgrOut_.cmdCntrlBase[0] = baseRoll_.Compute(refVec[0]);
-  cntrlMgrOut_.cmdCntrlBase[1] = basePitch_.Compute(refVec[1]);
-  cntrlMgrOut_.cmdCntrlBase[2] = baseYaw_.Compute(refVec[2]);
-  cntrlMgrOut_.cmdCntrlBase[3] = baseSpeed_.Compute(refVec[3]);
+  cntrlMgrOut_.cmdCntrlBase[0] = baseRoll_.Compute(cntrlMgrOut_.refVec[0]);
+  cntrlMgrOut_.cmdCntrlBase[1] = basePitch_.Compute(cntrlMgrOut_.refVec[1]);
+  cntrlMgrOut_.cmdCntrlBase[2] = baseYaw_.Compute(cntrlMgrOut_.refVec[2]);
+  cntrlMgrOut_.cmdCntrlBase[3] = baseSpeed_.Compute(cntrlMgrOut_.refVec[3]);
 
   return cntrlMgrOut_.cmdCntrlBase;
 }
@@ -128,17 +127,18 @@ VecCmd CntrlMgr::CmdCntrlBase(const float& time_s, const FmuData& fmuData, const
 // Define the Research Controller - FIXIT
 VecCmd CntrlMgr::CmdCntrlRes(const float& time_s, const FmuData& fmuData, const NavOut& navOut, const AirdataOut& airdataOut)
 {
+
+
   if (timePrevRes_s_ <= 0.0) timePrevRes_s_ = time_s;
   float dt_s = time_s - timePrevRes_s_;
   timePrevRes_s_ = time_s;
 
 
-  VecCmd refVec(kMaxCntrlCmd);
-  refVec[0] = fmuData.SbusRx[0].Inceptors[0];
-  refVec[1] = fmuData.SbusRx[0].Inceptors[1];
-  refVec[2] = fmuData.SbusRx[0].Inceptors[2];
-  // refVec[3] = 23; // 23 m/s
-  refVec[3] = 17; // 17 m/s
+  cntrlMgrOut_.refVec[0] = fmuData.SbusRx[0].Inceptors[0];
+  cntrlMgrOut_.refVec[1] = fmuData.SbusRx[0].Inceptors[1];
+  cntrlMgrOut_.refVec[2] = fmuData.SbusRx[0].Inceptors[2];
+  // cntrlMgrOut_.refVec[3] = 23; // 23 m/s
+  cntrlMgrOut_.refVec[3] = 17; // 17 m/s
 
   VecCmd measVec(kMaxCntrlCmd);
   measVec[0] = navOut.Euler_rad[0];
@@ -285,6 +285,7 @@ CntrlMgrLog CntrlMgr::Log(const CntrlMgrOut& cntrlMgrOut)
   cntrlMgrLog.mode = cntrlMgrOut.mode;
 
   for (int i = 0; i < kMaxCntrlCmd; i++) {
+    cntrlMgrLog.refVec[i] = cntrlMgrOut.refVec[i];
     cntrlMgrLog.cmdCntrlBase[i] = cntrlMgrOut.cmdCntrlBase[i];
     cntrlMgrLog.cmdCntrlRes[i] = cntrlMgrOut.cmdCntrlRes[i];
     cntrlMgrLog.cmdCntrl[i] = cntrlMgrOut.cmdCntrl[i];
