@@ -7,6 +7,7 @@ See: LICENSE.md for Copyright and License Agreement
 
 #include "cntrlMgr.hxx"
 #include <iostream>
+#include <deque>
 
 
 void CntrlMgr::Init(const CntrlAllocDef& cntrlAllocDef)
@@ -152,14 +153,31 @@ VecCmd CntrlMgr::CmdCntrlRes(const float& time_s, const FmuData& fmuData, const 
   dMeasVec[2] = fmuData.Mpu9250.Gyro_rads[2];
   dMeasVec[3] = 0.0;
 
+  // Artificial added delay
+  uint8_t frameDelay_cnt = 4; // Number of frames to delay the measurements
+  std::deque<VecCmd> measVecDeque (frameDelay_cnt, measVec);
+  std::deque<VecCmd> dMeasVecDeque (frameDelay_cnt, measVec);
+
+  // Push new data on the front, Pop off the back
+  VecCmd measVecDelay(kMaxCntrlCmd);
+  measVecDeque.push_front (measVec);
+  measVecDelay = measVecDeque.back();
+  measVecDeque.pop_back();
+
+  VecCmd dMeasVecDelay(kMaxCntrlCmd);
+  dMeasVecDeque.push_front (dMeasVec);
+  dMeasVecDelay = dMeasVecDeque.back();
+  dMeasVecDeque.pop_back();
+
+
   // Zero the Command - FIXIT shouldn't be required, variable size
   cntrlMgrOut_.cmdCntrlRes.setZero(kMaxCntrlCmd);
 
   // Run the Controllers
-  cntrlMgrOut_.cmdCntrlRes[0] = resRoll_.Compute(refVec[0], measVec[0], dMeasVec[0], dt_s);
-  cntrlMgrOut_.cmdCntrlRes[1] = resPitch_.Compute(refVec[1], measVec[1], dMeasVec[1], dt_s);
-  cntrlMgrOut_.cmdCntrlRes[2] = resYaw_.Compute(refVec[2], measVec[2], dMeasVec[2], dt_s);
-  cntrlMgrOut_.cmdCntrlRes[3] = resSpeed_.Compute(refVec[3], measVec[3], dt_s);
+  cntrlMgrOut_.cmdCntrlRes[0] = resRoll_.Compute(cntrlMgrOut_.refVec[0], measVecDelay[0], dMeasVecDelay[0], dt_s);
+  cntrlMgrOut_.cmdCntrlRes[1] = resPitch_.Compute(cntrlMgrOut_.refVec[1], measVecDelay[1], dMeasVecDelay[1], dt_s);
+  cntrlMgrOut_.cmdCntrlRes[2] = resYaw_.Compute(cntrlMgrOut_.refVec[2], measVecDelay[2], dMeasVecDelay[2], dt_s);
+  cntrlMgrOut_.cmdCntrlRes[3] = resSpeed_.Compute(cntrlMgrOut_.refVec[3], measVecDelay[3], dt_s);
 
   return cntrlMgrOut_.cmdCntrlRes;
 }
