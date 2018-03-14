@@ -8,6 +8,14 @@ See: LICENSE.md for Copyright and License Agreement
 
 #include "CtrlSys.hxx"
 
+// Create and Configure a map describing the groups of control systems
+void CtrlSys::ConfigGroup(const ObjJson &objJson, SysGroupMap *sysGroupMap) {
+  // Iterate through each of the CtrlSys entities, Create a Map of CtrlSys Classes
+  assert(objJson.IsObject()); // objJson is an object, iterate through each member
+  Json2Stl_MapVecString(objJson, sysGroupMap);
+}
+
+
 // Create and Configure a map of Ctrl systems
 void CtrlSys::ConfigDef(const ObjJson &objJson, SysDefMap *sysDefMap) {
   // Iterate through each of the CtrlSys entities, Create a Map of CtrlSys Classes

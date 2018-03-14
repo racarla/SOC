@@ -101,7 +101,6 @@ class CtrlSys {
   typedef std::vector<std::string> SysGroupVec; // Vector of strings descriptors
   typedef std::map <std::string, SysGroupVec> SysGroupMap; // Map of Vectors
   static void ConfigGroup(const ObjJson &objJson, SysGroupMap *sysGroupMap); // Configuration of the Controller Groups, ie. "Baseline" (consisting of "GuidBaseline" and "ScasBaseline")
-  static void ConfigGroupVec(const ObjJson &objJson, SysGroupVec *sysGroupVec);
 
   static void Run(const float &tCurr_s); // Run a Grouping of Controllers, ie. "Baseline" (consisting of "GuidBaseline" and "ScasBaseline")
 
