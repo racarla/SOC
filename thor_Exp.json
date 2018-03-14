@@ -1,0 +1,238 @@
+{
+  "CtrlMgr": {
+
+    "VehDef": {
+      "MassProp": {"Mass": 1.0, "PosCG": [-0.1, 0.0, 0.0], "Ixx": 1.0, "Iyy": 0.5, "Izz": 1.0, "Ixy": 0.0, "Iyz": 0.0, "Ixz": 0.0},
+      "GeomRef": {"Span": 1.0, "Chord": 0.1},
+      "Aero": {"PosRef": [-0.1, 0.0, 0.0], "AeroCoef": 0},
+      "Prop": {"PosRef": [0.01, 0.0, 0.0], "PropCoef": 0},
+      "Sens": {"ImuRef": [-0.1, 0.0, 0.0], "GpsRef": [-0.1, 0.0, 0.0], "PitotRef": [0.0, 0.0, 0.0]}
+    },
+
+    "Signals": {
+      "CtrlPilot": ["Roll", "Pitch", "Yaw", "Lift", "Speed"],
+      "CtrlGuid": ["Roll", "Pitch", "Yaw", "Lift", "Speed"],
+      "CtrlScas": ["Roll", "Pitch", "Yaw", "Lift", "Speed"],
+      "CtrlAlloc": ["Roll", "Pitch", "Yaw", "Lift", "Speed"],
+      "CtrlEff": ["Thottle", "Elev", "Rud", "AilR", "FlapR", "FlapL", "AilL"],
+      "Euler": ["Roll", "Pitch", "Yaw"],
+      "RotRate": ["Roll", "Pitch", "Yaw"],
+      "Airdata": ["Alt", "Airspeed"]
+    },
+
+
+    "InputProcSys": {
+      "Group": {
+        "Baseline": ["NavFiltBaseline"],
+        "Research1": ["NavFiltBaseline"]
+      },
+      "Define": {
+        "NavFiltBaseline": {"Type": "EKF15", "Config": "Default"}
+      }
+    },
+
+    "CtrlSys": {
+      "Group": {
+        "Baseline": ["GuidBaseline", "ScasBaseline"],
+        "Research1": ["GuidSpeedHold", "ScasAttitude+SpeedHold"]
+      },
+
+      "Define": {
+        "GuidBaseline": [
+          {"Desc": "Roll", "Type": "None"},
+          {"Desc": "Pitch", "Type": "None"},
+          {"Desc": "Yaw", "Type": "None"},
+          {"Desc": "Lift", "Type": "None"},
+          {"Desc": "Speed", "Type": "None"}
+        ],
+
+        "ScasBaseline": [
+          {"Desc": "Roll", "Type": "Manual",
+            "RefSignal": {"CtrlPilot": "Roll"}, "OutSignal": {"CtrlScas": "Roll"}, "MeasSignal": 0,
+            "refScale": 1.0472, "cmdRng": [-1.0472, 1.0472], "Kp": 1.0},
+          {"Desc": "Pitch", "Type": "Manual",
+            "RefSignal": {"CtrlPilot": "Pitch"}, "OutSignal": {"CtrlScas": "Pitch"}, "MeasSignal": 0,
+            "refScale": 1.0472, "cmdRng": [-1.0472, 1.0472], "Kp": 1.0},
+          {"Desc": "Yaw", "Type": "Manual",
+            "RefSignal": {"CtrlPilot": "Yaw"}, "OutSignal": {"CtrlScas": "Yaw"}, "MeasSignal": 0,
+            "refScale": 0.523599, "cmdRng": [-0.523599, 0.523599], "Kp": 1.0},
+          {"Desc": "Lift", "Type": "Manual",
+            "RefSignal": {"CtrlPilot": "Flap"}, "OutSignal": {"CtrlScas": "Lift"}, "MeasSignal": 0,
+            "refScale": 0.436332, "cmdRng": [-0.436332, 0.436332], "Kp": 1.0},
+          {"Desc": "Speed", "Type": "Manual",
+            "RefSignal": {"CtrlPilot": "Speed"}, "OutSignal": {"CtrlScas": "Speed"}, "MeasSignal": 0,
+            "refScale": 1.0, "cmdRng": [0.0, 1.0], "Kp": 1.0}
+        ],
+
+        "GuidSpeedHold": [
+          {"Desc": "Roll", "Type": "None"},
+          {"Desc": "Pitch", "Type": "None"},
+          {"Desc": "Yaw", "Type": "None"},
+          {"Desc": "Lift", "Type": "None"},
+          {"Desc": "Speed", "Type": "PID2",
+            "RefSignal": 17, "OutSignal": {"CtrlGuid": "Speed"}, "MeasSignal": {"Airdata": "Speed"},
+            "refScale": 30.0, "cmdRng": [0.0, 1.0], "Kp": 0.150, "Ki": 0.040}
+        ],
+
+        "ScasAttitude+SpeedHold": [
+          {"Desc": "Roll", "Type": "PI+Damp",
+            "RefSignal": {"CtrlPilot": "Roll"}, "OutSignal": {"CtrlScas": "Roll"}, "MeasSignal": {"Euler": "Roll"}, "MeasDamp": {"RotRate": "Roll"},
+            "refScale": 1.0472, "cmdRng": [-1.0472, 1.0472], "Kp": 0.640, "Ki": 0.200, "Kd": 0.070},
+          {"Desc": "Pitch", "Type": "PI+Damp",
+            "RefSignal": {"CtrlPilot": "Pitch"}, "OutSignal": {"CtrlScas": "Pitch"}, "MeasSignal": {"Euler": "Pitch"}, "MeasDamp": {"RotRate": "Pitch"},
+            "refScale": 1.0472, "cmdRng": [-1.0472, 1.0472], "Kp": 0.900, "Ki": 0.300, "Kd": 0.080},
+          {"Desc": "Yaw", "Type": "PI+Damp",
+            "RefSignal": {"CtrlPilot": "Yaw"}, "OutSignal": {"CtrlScas": "Yaw"}, "MeasSignal": {"RotRate": "Yaw"}, "MeasDamp": {"RotRate": "Yaw"},
+            "refScale": 0.523599, "cmdRng": [-0.523599, 0.523599], "Kp": 0.000, "Ki": 0.000, "Kd": 0.000},
+          {"Desc": "Lift", "Type": "Manual",
+            "RefSignal": {"CtrlPilot": "Flap"}, "OutSignal": {"CtrlScas": "Lift"},
+            "refScale": 0.436332, "cmdRng": [-0.436332, 0.436332]},
+          {"Desc": "Speed", "Type": "Pass",
+            "RefSignal": {"CtrlGuid": "Speed"}, "OutSignal": {"CtrlScas": "Speed"}}
+        ],
+
+        "ScasExampleSS": [
+          {"Desc": "ThreeAxis", "Type": "SS",
+            "MeasSignal": [{"Euler": "Roll"}, {"Euler": "Pitch"}, {"Euler": "Yaw"}],
+            "OutSignal": [{"CtrlScas": "Roll"}, {"CtrlScas": "Roll"}, {"CtrlScas": "Roll"}],
+            "A": [[1,0,0],[0,1,0],[0,0,1]],
+            "B": [[1],[1],[1]],
+            "C": [[1,0,0],[0,1,0],[0,0,1]],
+            "D": [[1],[1],[1]]}
+        ]
+      }
+    },
+
+    "AllocSys": {
+      "Baseline": {
+        "Type": "Pseudo",
+        "RefSignal": [{"CtrlScas": "Roll"}, {"CtrlScas": "Pitch"}, {"CtrlScas": "Yaw"}],
+        "OutSignal": [{"CtrlEff": "Elev"}, {"CtrlEff": "Rud"}, {"CtrlEff": "AilR"}, {"CtrlEff": "FlapR"}, {"CtrlEff": "FlapL"}, {"CtrlEff": "AilL"}],
+        "cntrlEff": [
+          [0.0000,  0.0000, -78.235,  0.0000,  0.0000,  78.235],
+          [-133.69,  0.0000,  0.0000,  0.0000,  0.0000,  0.0000],
+          [0.0000, -82.041,  0.0000,  0.0000,  0.0000,  0.0000]],
+        "uMin": [-0.436332, -0.261799, -0.436332, -0.436332, -0.436332, -0.436332],
+        "uMax": [0.436332, 0.261799, 0.436332, 0.436332, 0.436332, 0.436332],
+        "uPref": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+        "wtObjDiag": [1.0, 1.0, 1.0],
+        "wtEffDiag": [1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
+        },
+
+      "PseudoCrossMix": {
+        "Type": "Pseudo",
+        "RefSignal": [{"CtrlScas": "Roll"}, {"CtrlScas": "Pitch"}, {"CtrlScas": "Yaw"}],
+        "OutSignal": [{"CtrlEff": "Elev"}, {"CtrlEff": "Rud"}, {"CtrlEff": "AilR"}, {"CtrlEff": "FlapR"}, {"CtrlEff": "FlapL"}, {"CtrlEff": "AilL"}],
+        "cntrlEff": [
+          [0.0000, -5.0084, -78.235, -33.013,  33.013,  78.235],
+          [-133.69,  0.0000,  0.0000,  0.0000,  0.0000,  0.0000],
+          [0.0000, -82.041,  0.0000,  0.0000,  0.0000,  0.0000]],
+        "uMin": [-0.436332, -0.261799, -0.436332, -0.436332, -0.436332, -0.436332],
+        "uMax": [0.436332, 0.261799, 0.436332, 0.436332, 0.436332, 0.436332],
+        "uPref": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+        "wtObjDiag": [1.0, 1.0, 1.0],
+        "wtEffDiag": [1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
+        }
+      }
+  },
+
+  "MissionMgr": {
+    "WaveSys": {
+      "1": {"Type": "Multisine", "SubType": "OMS", "tDur_s": 20.0,
+        "freq_rps": [0.37699112, 1.5079645, 2.6389378, 3.7699112, 4.9008845, 6.0318579, 7.1628313, 8.2938046, 9.424778, 10.555751, 11.686725, 12.817698, 13.948671, 15.079645, 16.210618, 17.341591, 18.472565, 19.603538, 20.734512, 21.865485, 22.996458, 24.127432, 25.258405, 26.389378, 27.520352, 28.651325, 29.782298, 30.913272, 32.044245, 33.175218, 34.306192, 35.437165, 36.568138, 37.699112, 38.830085, 39.961059, 41.092032, 42.223005, 43.353979, 44.484952, 45.615925, 46.746899, 47.877872, 49.008845, 50.139819, 51.270792],
+        "phase_deg": [5.9016971, 6.2538491, 6.1650954, 5.1281552, 4.1778432, 1.6285662, 4.6472567, 3.1525262, 0.59737482, 3.0422108, 4.3487778, 1.057283, 2.4681359, 3.8892176, 4.572762, 4.4076866, 4.2568904, 3.9038365, 3.0647889, 2.0038473, 0.16939258, 4.493568, 1.5003072, 4.9830828, 1.9330228, 4.4933183, 0.39175709, 1.7847209, 3.2378917, 4.082671, 4.8560003, 5.771154, 5.2581741, 3.9548764, 3.2079124, 0.88731294, 0.19942676, 4.1682276, 0.80510679, 3.1808851, 0.52565461, 3.3325046, 4.9277457, 5.97419, 0.47236376, 0.49175571],
+        "amp_nd": [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]},
+      "2": {"Type": "Multisine", "SubType": "OMS", "tDur_s": 20.0,
+        "freq_rps": [0.75398224, 1.8849556, 3.0159289, 4.1469023, 5.2778757, 6.408849, 7.5398224, 8.6707957, 9.8017691, 10.932742, 12.063716, 13.194689, 14.325663, 15.456636, 16.587609, 17.718583, 18.849556, 19.980529, 21.111503, 22.242476, 23.373449, 24.504423, 25.635396, 26.766369, 27.897343, 29.028316, 30.159289, 31.290263, 32.421236, 33.55221, 34.683183, 35.814156, 36.94513, 38.076103, 39.207076, 40.33805, 41.469023, 42.599996, 43.73097, 44.861943, 45.992916, 47.12389, 48.254863, 49.385837, 50.51681, 51.647783],
+        "phase_deg": [0.014002804, 5.9246153, 5.7092199, 4.7799348, 3.8593411, 1.6442684, 5.2979782, 2.6258336, 5.1595102, 1.9999655, 3.0089759, 0.10668298, 1.1074845, 1.8899931, 3.1080334, 2.61301, 2.6675991, 2.1992089, 1.2138536, 6.2414265, 3.5767561, 2.3398115, 6.0598285, 2.9409163, 5.7325057, 1.2230763, 3.8703195, 5.0745416, 0.57376572, 1.3722093, 1.4986473, 2.166559, 1.5280901, 0.3251131, 5.8281177, 3.3081948, 2.3525631, 5.6002565, 3.2288363, 6.2020718, 2.6694611, 5.5588073, 0.38239456, 1.1760769, 2.6580879, 2.5563042],
+        "amp_nd": [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]},
+      "3": {"Type": "Multisine", "SubType": "OMS", "tDur_s": 20.0,
+        "freq_rps": [1.1309734, 2.2619467, 3.3929201, 4.5238934, 5.6548668, 6.7858401, 7.9168135, 9.0477868, 10.17876, 11.309734, 12.440707, 13.57168, 14.702654, 15.833627, 16.9646, 18.095574, 19.226547, 20.35752, 21.488494, 22.619467, 23.75044, 24.881414, 26.012387, 27.143361, 28.274334, 29.405307, 30.536281, 31.667254, 32.798227, 33.929201, 35.060174, 36.191147, 37.322121, 38.453094, 39.584067, 40.715041, 41.846014, 42.976988, 44.107961, 45.238934, 46.369908, 47.500881, 48.631854, 49.762828, 50.893801, 52.024774],
+        "phase_deg": [6.2602334, 6.1547622, 5.2585879, 5.0002279, 3.0932728, 1.5189961, 5.0744861, 2.8854728, 5.4922339, 1.7069495, 4.5138175, 0.74718441, 2.1882407, 2.0680044, 3.1615818, 2.4686575, 2.9614832, 1.467005, 1.6882923, 5.7396093, 3.6801636, 2.2753249, 0.10608188, 3.1185444, 5.2924911, 1.437739, 3.7808623, 5.1409061, 0.39154347, 1.275829, 1.444546, 1.7425124, 1.4288283, 0.76206931, 5.4719223, 3.5979659, 2.2381699, 5.961423, 2.9512973, 6.2545468, 1.9831563, 4.1344995, 5.3139185, 0.89666996, 1.4347399, 2.3232479],
+        "amp_nd": [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]},
+      "4": {"Type": "Chirp", "SubType": "Linear", "tDur_s": 20.0, "freq_rps": [1.0, 50.0], "amp_nd": [1.0, 1.0]},
+      "5": {"Type": "Chirp", "SubType": "Linear", "tDur_s": 20.0, "freq_rps": [50.0, 1.0], "amp_nd": [1.0, 1.0]},
+      "6": {"Type": "Discrete", "SubType": "Doublet", "tPulse_s": 0.23, "amp_nd": 1.0},
+      "7": {"Type": "Discrete", "SubType": "Doublet", "tPulse_s": 0.54, "amp_nd": 1.0},
+      "8": {"Type": "Discrete", "SubType": "Pulse", "tPulse_s": 0.23, "amp_nd": 1.0},
+      "9": {"Type": "Discrete", "SubType": "Pulse", "tPulse_s": 0.54, "amp_nd": 1.0},
+      "10": {"Type": "Discrete", "SubType": "Pulse", "tPulse_s": 0.60, "amp_nd": 1.0},
+      "11": {"Type": "Discrete", "SubType": "3211", "tPulse_s": 0.23, "amp_nd": 1.0},
+      "12": {"Type": "Discrete", "SubType": "3211", "tPulse_s": 0.54, "amp_nd": 1.0}
+    },
+
+    "ExciteSys": {
+      "None": {},
+      "1": {"Inject": [{"CtrlAlloc": "Pitch"}], "WaveSys": ["1"], "amp_nd": [0.0698132], "tStart_s": [1.0], "tEndPad_s": [1.0]},
+      "2": {"Inject": [{"CtrlAlloc": "Roll"}], "WaveSys": ["2"], "amp_nd": [0.0698132], "tStart_s": [1.0], "tEndPad_s": [1.0]},
+      "3": {"Inject": [{"CtrlAlloc": "Yaw"}], "WaveSys": ["3"], "amp_nd": [0.0698132], "tStart_s": [1.0], "tEndPad_s": [1.0]},
+      "4": {"Inject": [{"CtrlAlloc": "Pitch"}, {"CtrlAlloc": "Roll"}], "WaveSys": ["1", "2"], "amp_nd": [0.0698132, 0.0698132], "tStart_s": [1.0, 1.0], "tEndPad_s": [1.0, 1.0]},
+      "5": {"Inject": [{"CtrlAlloc": "Pitch"}, {"CtrlAlloc": "Roll"}, {"CtrlAlloc": "Yaw"}], "WaveSys": ["1", "2", "3"], "amp_nd": [0.0698132, 0.0698132, 0.0698132], "tStart_s": [1.0, 1.0, 1.0], "tEndPad_s": [1.0, 1.0, 1.0]},
+      "6": {"Inject": [{"CtrlAlloc": "Pitch"}], "WaveSys": ["4"], "amp_nd": [0.0698132], "tStart_s": [1.0], "tEndPad_s": [1.0]},
+      "7": {"Inject": [{"CtrlAlloc": "Roll"}], "WaveSys": ["4"], "amp_nd": [0.0698132], "tStart_s": [1.0], "tEndPad_s": [1.0]},
+      "8": {"Inject": [{"CtrlAlloc": "Yaw"}], "WaveSys": ["4"], "amp_nd": [0.0698132], "tStart_s": [1.0], "tEndPad_s": [1.0]},
+      "9": {"Inject": [{"CtrlAlloc": "Pitch"}, {"CtrlAlloc": "Roll"}], "WaveSys": ["4", "5"], "amp_nd": [0.0698132, 0.0698132], "tStart_s": [1.0, 1.0], "tEndPad_s": [1.0, 1.0]},
+      "10": {"Inject": [{"CtrlAlloc": "Pitch"}], "WaveSys": ["6"], "amp_nd": [0.0698132], "tStart_s": [1.0], "tEndPad_s": [1.0]},
+      "11": {"Inject": [{"CtrlAlloc": "Roll"}], "WaveSys": ["7"], "amp_nd": [0.0698132], "tStart_s": [1.0], "tEndPad_s": [1.0]},
+      "12": {"Inject": [{"CtrlAlloc": "Yaw"}], "WaveSys": ["7"], "amp_nd": [0.0698132], "tStart_s": [1.0], "tEndPad_s": [1.0]},
+      "13": {"Inject": [{"CtrlAlloc": "Pitch"}], "WaveSys": ["8"], "amp_nd": [0.0698132], "tStart_s": [1.0], "tEndPad_s": [1.0]},
+      "14": {"Inject": [{"CtrlAlloc": "Roll"}], "WaveSys": ["9"], "amp_nd": [0.0698132], "tStart_s": [1.0], "tEndPad_s": [1.0]},
+      "15": {"Inject": [{"CtrlAlloc": "Yaw"}], "WaveSys": ["9"], "amp_nd": [0.0698132], "tStart_s": [1.0], "tEndPad_s": [1.0]},
+      "16": {"Inject": [{"CtrlAlloc": "Roll"}], "WaveSys": ["10"], "amp_nd": [0.436332], "tStart_s": [1.0], "tEndPad_s": [1.0]},
+      "17": {"Inject": [{"CtrlAlloc": "Pitch"}], "WaveSys": ["11"], "amp_nd": [0.0698132], "tStart_s": [1.0], "tEndPad_s": [1.0]},
+      "18": {"Inject": [{"CtrlAlloc": "Roll"}], "WaveSys": ["12"], "amp_nd": [0.0698132], "tStart_s": [1.0], "tEndPad_s": [1.0]},
+      "19": {"Inject": [{"CtrlAlloc": "Yaw"}], "WaveSys": ["12"], "amp_nd": [0.0698132], "tStart_s": [1.0], "tEndPad_s": [1.0]}
+    },
+
+    "TestSys": [
+      {"iTest": "0", "InputProcSys": "Baseline", "CtrlSys": "Baseline", "AllocSys:": "Baseline", "ExciteSys": "None"},
+      {"iTest": "1", "InputProcSys": "Baseline", "CtrlSys": "Research1", "AllocSys:": "Baseline", "ExciteSys": "1"},
+      {"iTest": "2", "InputProcSys": "Baseline", "CtrlSys": "Research1", "AllocSys:": "Baseline", "ExciteSys": "2"},
+      {"iTest": "3", "InputProcSys": "Baseline", "CtrlSys": "Research1", "AllocSys:": "Baseline", "ExciteSys": "3"},
+      {"iTest": "4", "InputProcSys": "Baseline", "CtrlSys": "Research1", "AllocSys:": "Baseline", "ExciteSys": "4"},
+      {"iTest": "5", "InputProcSys": "Baseline", "CtrlSys": "Research1", "AllocSys:": "Baseline", "ExciteSys": "5"},
+      {"iTest": "6", "InputProcSys": "Baseline", "CtrlSys": "Research1", "AllocSys:": "Baseline", "ExciteSys": "6"},
+      {"iTest": "7", "InputProcSys": "Baseline", "CtrlSys": "Research1", "AllocSys:": "Baseline", "ExciteSys": "7"},
+      {"iTest": "8", "InputProcSys": "Baseline", "CtrlSys": "Research1", "AllocSys:": "Baseline", "ExciteSys": "8"},
+      {"iTest": "9", "InputProcSys": "Baseline", "CtrlSys": "Research1", "AllocSys:": "Baseline", "ExciteSys": "9"},
+      {"iTest": "10", "InputProcSys": "Baseline", "CtrlSys": "Research1", "AllocSys:": "Baseline", "ExciteSys": "10"},
+      {"iTest": "11", "InputProcSys": "Baseline", "CtrlSys": "Research1", "AllocSys:": "Baseline", "ExciteSys": "11"},
+      {"iTest": "12", "InputProcSys": "Baseline", "CtrlSys": "Research1", "AllocSys:": "Baseline", "ExciteSys": "12"},
+      {"iTest": "13", "InputProcSys": "Baseline", "CtrlSys": "Research1", "AllocSys:": "Baseline", "ExciteSys": "13"},
+      {"iTest": "14", "InputProcSys": "Baseline", "CtrlSys": "Research1", "AllocSys:": "Baseline", "ExciteSys": "14"},
+      {"iTest": "15", "InputProcSys": "Baseline", "CtrlSys": "Research1", "AllocSys:": "Baseline", "ExciteSys": "15"},
+      {"iTest": "16", "InputProcSys": "Baseline", "CtrlSys": "Research1", "AllocSys:": "Baseline", "ExciteSys": "16"},
+      {"iTest": "17", "InputProcSys": "Baseline", "CtrlSys": "Research1", "AllocSys:": "Baseline", "ExciteSys": "17"},
+      {"iTest": "18", "InputProcSys": "Baseline", "CtrlSys": "Research1", "AllocSys:": "Baseline", "ExciteSys": "18"},
+      {"iTest": "19", "InputProcSys": "Baseline", "CtrlSys": "Research1", "AllocSys:": "Baseline", "ExciteSys": "19"}
+    ]
+  },
+
+  "Nodes": [
+    {"BfsAddr": 2,
+    "Rotation": [-1,0,0,0,-1,0,0,0,1],
+    "Sensors": [
+      {"Type": "SbusRx"},
+      {"Type": "Gps", "Uart": 4, "Baud": 115200}
+      ],
+    "Effectors": [
+      {"Type": "Motor", "Channel": 0, "Calibration": [0, 0, 1000, 1000], "Limits": [0, 1], "Scale": [0,0,0,0,1]},
+      {"Type": "Pwm", "Channel": 1, "Calibration": [ 0.00000000, 0.00000000, 924.56549031, 1530.95589690], "Limits": [-0.5236, 0.5236], "Scale": [0,-0.5236,0,0,0]},
+      {"Type": "Pwm", "Channel": 2, "Calibration": [ -539.21605470, -47.75846306, -828.42969874, 1496.26132074], "Limits": [-0.3491, 0.3491], "Scale": [0,0,-0.3491,0,0]}
+      ]
+    },
+    {"BfsAddr": 3,
+    "Sensors": [
+      {"Type": "Pitot", "I2c": 1,
+              "Static": {"Addr": 20},
+              "Diff": {"Addr": 21, "Transducer": "AMS5915_0020_D"}}
+      ],
+    "Effectors": [
+      {"Type": "Pwm", "Channel": 0, "Calibration": [ 0.00000000, 0.00000000, -863.00801135, 1449.77716905], "Limits": [-0.5236, 0.5236], "Scale": [-0.5236,0,0,0,0]},
+      {"Type": "Pwm", "Channel": 2, "Calibration": [ 0.00000000, -159.95018618, 782.40435267, 1581.40035883], "Limits": [-0.5236, 0.5236], "Scale": [0,0,0,0.5236,0]},
+      {"Type": "Pwm", "Channel": 5, "Calibration": [ 0.00000000, 100.21749748, -869.72018686, 1441.38452474], "Limits": [-0.5236, 0.5236], "Scale": [0,0,0,0.5236,0]},
+      {"Type": "Pwm", "Channel": 7, "Calibration": [ 0.00000000, 0.00000000, 823.80216589, 1496.02691063], "Limits": [-0.5236, 0.5236], "Scale": [0.5236,0,0,0,0]}
+      ]
+    }
+  ]
+}

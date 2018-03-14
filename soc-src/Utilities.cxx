@@ -64,10 +64,11 @@ void Json2Stl_MapVecString(const ObjJson &objJson, MapVecString *mapVecString) {
   }
 }
 
-// Convert a Json Object (list of objects of strings) to a vector of strings
+// Convert a Json Object (array of strings) to a vector of strings
 void Json2Stl_VecString(const ObjJson &objJson, VecString *vecString) {
-  for (ObjJson::ConstMemberIterator iObj = objJson.MemberBegin(); iObj != objJson.MemberEnd(); ++iObj) {
-    vecString->push_back(iObj->name.GetString());
+  rapidjson::SizeType numElemJson = (uint8_t) objJson.Size();
+  for (rapidjson::SizeType i = 0; i < numElemJson; i++) {
+    vecString->push_back(objJson[i].GetString());
   }
 }
 

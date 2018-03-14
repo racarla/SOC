@@ -101,6 +101,3 @@ int main(void)  /* Program tester */
   vErr = vObj - (cntrlEff * uCmd);
   std::cout << "Saturation Solution Error:\n" << vErr << std::endl;
 }
-
-
-

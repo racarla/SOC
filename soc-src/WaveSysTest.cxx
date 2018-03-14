@@ -24,7 +24,7 @@ uint8_t iWave_ = 0;
 int main(void) {
 
   // Load JSON config file
-  std::ifstream ConfigFile("../../thor_Exp.json");
+  std::ifstream ConfigFile("../thor_Exp.json");
   std::string ConfigBuffer((std::istreambuf_iterator<char>(ConfigFile)),std::istreambuf_iterator<char>());
 
   // Parse JSON config file
