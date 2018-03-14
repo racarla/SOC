@@ -13,6 +13,7 @@ History:
 #include <Eigen/Core>
 #include <math.h>
 #include <stdint.h>
+#include <deque>
 
 #ifndef kMaxCntrlCmd
 #define kMaxCntrlCmd 4
@@ -30,8 +31,8 @@ History:
 #define kMaxAllocEff 6
 #endif
 
-extern uint8_t kConfigSpeed; // Reference speed setpoint
-extern uint8_t kCtrlDelay; // Controller Delay, number of frames
+extern int kConfigSpeed; // Reference speed setpoint
+extern int kCtrlDelay; // Controller Delay, number of frames
 
 
 #include "cntrlFunc.hxx"
@@ -113,6 +114,10 @@ class CntrlMgr {
 
   void CntrlBaseDef();
   void CntrlResDef();
+
+  std::deque<VecCmd> measVecDeque_;
+  std::deque<VecCmd> dMeasVecDeque_;
+
 
   CntrlAllocDef cntrlAllocDef_;
 };

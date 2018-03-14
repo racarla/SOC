@@ -179,7 +179,7 @@ void ExciteMgr::Init()
 
   // Excitation 16: Pulse, Aileron (wider)
   if (kConfigSpeed==23) timeStart_s = 1.0; timeOnePulse_s = 0.6; amp_nd = 25 * kD2R; // 23 m/s
-  if (kConfigSpeed==17) timeStart_s = 1.0; timeOnePulse_s = 0.6; amp_nd = 4 * kD2R; // 17 m/s
+  if (kConfigSpeed==17) timeStart_s = 1.0; timeOnePulse_s = 0.6; amp_nd = 25 * kD2R; // 17 m/s
 
   numChan = 1;
 

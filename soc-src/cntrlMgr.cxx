@@ -7,7 +7,6 @@ See: LICENSE.md for Copyright and License Agreement
 
 #include "cntrlMgr.hxx"
 #include <iostream>
-#include <deque>
 
 
 void CntrlMgr::Init(const CntrlAllocDef& cntrlAllocDef)
@@ -17,6 +16,7 @@ void CntrlMgr::Init(const CntrlAllocDef& cntrlAllocDef)
   timePrevBase_s_ = 0.0;
   timePrevRes_s_ = 0.0;
 
+  cntrlMgrOut_.refVec.setZero(kMaxCntrlCmd);
   cntrlMgrOut_.cmdCntrlBase.setZero(kMaxCntrlCmd);
   cntrlMgrOut_.cmdCntrlRes.setZero(kMaxCntrlCmd);
   cntrlMgrOut_.cmdCntrl.setZero(kMaxCntrlCmd);
@@ -25,6 +25,9 @@ void CntrlMgr::Init(const CntrlAllocDef& cntrlAllocDef)
 
   CntrlBaseDef();
   CntrlResDef();
+
+  measVecDeque_.assign (kCtrlDelay, cntrlMgrOut_.refVec);
+  dMeasVecDeque_.assign (kCtrlDelay, cntrlMgrOut_.refVec);
 
   cntrlAllocDef_ = cntrlAllocDef;
 
@@ -107,16 +110,14 @@ VecCmd CntrlMgr::CmdCntrlBase(const float& time_s, const FmuData& fmuData, const
   if (timePrevBase_s_ <= 0.0) timePrevBase_s_ = time_s;
   timePrevBase_s_ = time_s;
 
-
+  cntrlMgrOut_.refVec.setZero(kMaxCntrlCmd);
   cntrlMgrOut_.refVec[0] = fmuData.SbusRx[0].Inceptors[0];
   cntrlMgrOut_.refVec[1] = fmuData.SbusRx[0].Inceptors[1];
   cntrlMgrOut_.refVec[2] = fmuData.SbusRx[0].Inceptors[2];
   cntrlMgrOut_.refVec[3] = fmuData.SbusRx[0].Inceptors[4];
 
-  // Zero the Command - FIXIT shouldn't be required, variable size
-  cntrlMgrOut_.cmdCntrlBase.setZero(kMaxCntrlCmd);
-
   // Run the Controllers
+  cntrlMgrOut_.cmdCntrlBase.setZero(kMaxCntrlCmd); // Zero the Command - FIXIT shouldn't be required, variable size
   cntrlMgrOut_.cmdCntrlBase[0] = baseRoll_.Compute(cntrlMgrOut_.refVec[0]);
   cntrlMgrOut_.cmdCntrlBase[1] = basePitch_.Compute(cntrlMgrOut_.refVec[1]);
   cntrlMgrOut_.cmdCntrlBase[2] = baseYaw_.Compute(cntrlMgrOut_.refVec[2]);
@@ -128,19 +129,16 @@ VecCmd CntrlMgr::CmdCntrlBase(const float& time_s, const FmuData& fmuData, const
 // Define the Research Controller - FIXIT
 VecCmd CntrlMgr::CmdCntrlRes(const float& time_s, const FmuData& fmuData, const NavOut& navOut, const AirdataOut& airdataOut)
 {
-
-
   if (timePrevRes_s_ <= 0.0) timePrevRes_s_ = time_s;
   float dt_s = time_s - timePrevRes_s_;
   timePrevRes_s_ = time_s;
 
-
+  cntrlMgrOut_.refVec.setZero(kMaxCntrlCmd);
   cntrlMgrOut_.refVec[0] = fmuData.SbusRx[0].Inceptors[0];
   cntrlMgrOut_.refVec[1] = fmuData.SbusRx[0].Inceptors[1];
   cntrlMgrOut_.refVec[2] = fmuData.SbusRx[0].Inceptors[2];
   if (kConfigSpeed==23) cntrlMgrOut_.refVec[3] = 23; // 23 m/s
   if (kConfigSpeed==17) cntrlMgrOut_.refVec[3] = 17; // 17 m/s
-
 
   VecCmd measVec(kMaxCntrlCmd);
   measVec[0] = navOut.Euler_rad[0];
@@ -159,27 +157,24 @@ VecCmd CntrlMgr::CmdCntrlRes(const float& time_s, const FmuData& fmuData, const 
   VecCmd dMeasVecDelay(kMaxCntrlCmd);
 
   if (kCtrlDelay > 0) {
-    std::deque<VecCmd> measVecDeque (kCtrlDelay, measVec);
-    std::deque<VecCmd> dMeasVecDeque (kCtrlDelay, measVec);
 
     // Push new data on the front, Pop off the back
-    measVecDeque.push_front (measVec);
-    measVecDelay = measVecDeque.back();
-    measVecDeque.pop_back();
+    measVecDeque_.push_front(measVec);
+    dMeasVecDeque_.push_front(dMeasVec);
 
-    dMeasVecDeque.push_front (dMeasVec);
-    dMeasVecDelay = dMeasVecDeque.back();
-    dMeasVecDeque.pop_back();
+    measVecDelay = measVecDeque_.back();
+    dMeasVecDelay = dMeasVecDeque_.back();
+
+    measVecDeque_.pop_back();
+    dMeasVecDeque_.pop_back();
 
   } else {
     measVecDelay = measVec;
     dMeasVecDelay = dMeasVec;
   }
 
-  // Zero the Command - FIXIT shouldn't be required, variable size
-  cntrlMgrOut_.cmdCntrlRes.setZero(kMaxCntrlCmd);
-
   // Run the Controllers
+  cntrlMgrOut_.cmdCntrlRes.setZero(kMaxCntrlCmd); // Zero the Command - FIXIT shouldn't be required, variable size
   cntrlMgrOut_.cmdCntrlRes[0] = resRoll_.Compute(cntrlMgrOut_.refVec[0], measVecDelay[0], dMeasVecDelay[0], dt_s);
   cntrlMgrOut_.cmdCntrlRes[1] = resPitch_.Compute(cntrlMgrOut_.refVec[1], measVecDelay[1], dMeasVecDelay[1], dt_s);
   cntrlMgrOut_.cmdCntrlRes[2] = resYaw_.Compute(cntrlMgrOut_.refVec[2], measVecDelay[2], dMeasVecDelay[2], dt_s);

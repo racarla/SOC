@@ -21,7 +21,7 @@ History:
 #define kMaxExciteElem 46
 #endif
 
-extern uint8_t kConfigSpeed; // Reference speed setpoint
+extern int kConfigSpeed; // Reference speed setpoint
 
 #include "exciteGenFunc.hxx"
 
