@@ -1,7 +1,13 @@
 *.bin
 *.h5
+*.gch
+*.o
 
 flightcode
 config
 calib
 bin2hdf
+
+CtrlFuncTest
+WaveSysTest
+CtrlSysTest
