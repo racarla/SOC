@@ -1,11 +1,6 @@
 
 #include "fmu.hxx"
 
-FlightManagementUnit::FlightManagementUnit(const char *Port,const speed_t &Baud) {
-  Port_ = Port;
-  Baud_ = Baud;
-}
-
 /* Opens port to communicate with FMU. */
 void FlightManagementUnit::Begin() {
   std::cout << "Opening UART port with FMU...";
@@ -26,7 +21,35 @@ void FlightManagementUnit::Begin() {
   std::cout << "done!" << std::endl;
 }
 
-/* Receiver sensor data from FMU */
+/* Registers data with global defs */
+void FlightManagementUnit::RegisterGlobalData(DefinitionTree *DefinitionTreePtr) {
+  DefinitionTreePtr->InitMember("/Sensors/Fmu/Time_us");
+  DefinitionTreePtr->SetValue("/Sensors/Fmu/Time_us",&SensorData_.Time_us);
+  DefinitionTreePtr->SetDescription("/Sensors/Fmu/Time_us","Flight management unit time, us");
+  DefinitionTreePtr->SetDatalog("/Sensors/Fmu/Time_us",true);
+  DefinitionTreePtr->SetTelemetry("/Sensors/Fmu/Time_us",true);
+
+  // DefinitionTreePtr->InitMember("/Sensors/Fmu/Mpu9250/AccelX");
+  // DefinitionTreePtr->SetValue("/Sensors/Fmu/Mpu9250/AccelX",&SensorData_.InternalMpu9250.Accel_mss(0,0));
+  // DefinitionTreePtr->SetDescription("/Sensors/Fmu/Mpu9250/AccelX","X accelerometer, m/s/s");
+  // DefinitionTreePtr->SetDatalog("/Sensors/Fmu/Mpu9250/AccelX",true);
+  // DefinitionTreePtr->SetTelemetry("/Sensors/Fmu/Mpu9250/AccelX",true);
+  //
+  // DefinitionTreePtr->InitMember("/Sensors/Fmu/Mpu9250/AccelY");
+  // DefinitionTreePtr->SetValue("/Sensors/Fmu/Mpu9250/AccelY",&SensorData_.InternalMpu9250.Accel_mss(1,0));
+  // DefinitionTreePtr->SetDescription("/Sensors/Fmu/Mpu9250/AccelY","Y accelerometer, m/s/s");
+  // DefinitionTreePtr->SetDatalog("/Sensors/Fmu/Mpu9250/AccelY",true);
+  // DefinitionTreePtr->SetTelemetry("/Sensors/Fmu/Mpu9250/AccelY",true);
+  //
+  // DefinitionTreePtr->InitMember("/Sensors/Fmu/Mpu9250/AccelZ");
+  // DefinitionTreePtr->SetValue("/Sensors/Fmu/Mpu9250/AccelZ",&SensorData_.InternalMpu9250.Accel_mss(2,0));
+  // DefinitionTreePtr->SetDescription("/Sensors/Fmu/Mpu9250/AccelZ","Z accelerometer, m/s/s");
+  // DefinitionTreePtr->SetDatalog("/Sensors/Fmu/Mpu9250/AccelZ",true);
+  // DefinitionTreePtr->SetTelemetry("/Sensors/Fmu/Mpu9250/AccelZ",true);
+
+}
+
+/* Receive sensor data from FMU */
 bool FlightManagementUnit::ReceiveSensorData() {
   Message message;
   std::vector<uint8_t> Payload;
@@ -80,7 +103,6 @@ bool FlightManagementUnit::ReceiveSensorData() {
       PayloadLocation += SensorData_.Sbus.size()*sizeof(SbusSensorData);
       memcpy(&SensorData_.Analog,Payload.data()+PayloadLocation,SensorData_.Analog.size()*sizeof(AnalogSensorData));
       PayloadLocation += SensorData_.Analog.size()*sizeof(AnalogSensorData);
-      
       return true;
     } else {
       return false;
@@ -90,126 +112,9 @@ bool FlightManagementUnit::ReceiveSensorData() {
   }
 }
 
-/* Gets sensor data */
-void FlightManagementUnit::GetSensorData(struct SensorData *SensorDataPtr) {
-  *SensorDataPtr=SensorData_;
-}
-
-/* Gets serialized sensor data buffer */
-void FlightManagementUnit::GetSerializedSensorData(std::vector<uint8_t> *Buffer) {
-  size_t BufferLocation = 0;
-  Buffer->resize(SerializedDataMetadataSize+
-    sizeof(SensorData_.Time_us)+
-    sizeof(Mpu9250SensorData)*(1+SensorData_.Mpu9250.size())+
-    sizeof(Bme280SensorData)*(1+SensorData_.Bme280.size())+
-    sizeof(VoltageSensorsData)+
-    sizeof(uBloxSensorData)*SensorData_.uBlox.size()+
-    sizeof(SwiftSensorData)*SensorData_.Swift.size()+
-    sizeof(SbusSensorData)*SensorData_.Sbus.size()+
-    sizeof(Ams5915SensorData)*SensorData_.Ams5915.size()+
-    sizeof(AnalogSensorData)*SensorData_.Analog.size());
-  // meta data
-  uint8_t NumberMpu9250Sensor,NumberBme280Sensor,NumberuBloxSensor,NumberSwiftSensor,NumberAms5915Sensor,NumberSbusSensor,NumberAnalogSensor;
-  NumberMpu9250Sensor = SensorData_.Mpu9250.size();
-  NumberBme280Sensor = SensorData_.Bme280.size();
-  NumberuBloxSensor = SensorData_.uBlox.size();
-  NumberSwiftSensor = SensorData_.Swift.size();
-  NumberAms5915Sensor = SensorData_.Ams5915.size();
-  NumberSbusSensor = SensorData_.Sbus.size();
-  NumberAnalogSensor = SensorData_.Analog.size();
-  memcpy(Buffer->data()+BufferLocation,&NumberMpu9250Sensor,sizeof(NumberMpu9250Sensor));
-  BufferLocation+=sizeof(NumberMpu9250Sensor);
-  memcpy(Buffer->data()+BufferLocation,&NumberBme280Sensor,sizeof(NumberBme280Sensor));
-  BufferLocation+=sizeof(NumberBme280Sensor);
-  memcpy(Buffer->data()+BufferLocation,&NumberuBloxSensor,sizeof(NumberuBloxSensor));
-  BufferLocation+=sizeof(NumberuBloxSensor);
-  memcpy(Buffer->data()+BufferLocation,&NumberSwiftSensor,sizeof(NumberSwiftSensor));
-  BufferLocation+=sizeof(NumberSwiftSensor);
-  memcpy(Buffer->data()+BufferLocation,&NumberAms5915Sensor,sizeof(NumberAms5915Sensor));
-  BufferLocation+=sizeof(NumberAms5915Sensor);
-  memcpy(Buffer->data()+BufferLocation,&NumberSbusSensor,sizeof(NumberSbusSensor));
-  BufferLocation+=sizeof(NumberSbusSensor);
-  memcpy(Buffer->data()+BufferLocation,&NumberAnalogSensor,sizeof(NumberAnalogSensor));
-  BufferLocation+=sizeof(NumberAnalogSensor);
-  // sensor data
-  memcpy(Buffer->data()+BufferLocation,&SensorData_.Time_us,sizeof(SensorData_.Time_us));
-  BufferLocation+=sizeof(SensorData_.Time_us);
-  memcpy(Buffer->data()+BufferLocation,&SensorData_.InternalMpu9250,sizeof(Mpu9250SensorData));
-  BufferLocation+=sizeof(Mpu9250SensorData);
-  memcpy(Buffer->data()+BufferLocation,&SensorData_.InternalBme280,sizeof(Bme280SensorData));
-  BufferLocation+=sizeof(Bme280SensorData);
-  memcpy(Buffer->data()+BufferLocation,&SensorData_.InternalVoltage,sizeof(VoltageSensorsData));
-  BufferLocation+=sizeof(VoltageSensorsData);
-  memcpy(Buffer->data()+BufferLocation,&SensorData_.Mpu9250,SensorData_.Mpu9250.size()*sizeof(Mpu9250SensorData));
-  BufferLocation+=SensorData_.Mpu9250.size()*sizeof(Mpu9250SensorData);
-  memcpy(Buffer->data()+BufferLocation,&SensorData_.Bme280,SensorData_.Bme280.size()*sizeof(Bme280SensorData));
-  BufferLocation+=SensorData_.Bme280.size()*sizeof(Bme280SensorData);
-  memcpy(Buffer->data()+BufferLocation,&SensorData_.uBlox,SensorData_.uBlox.size()*sizeof(uBloxSensorData));
-  BufferLocation+=SensorData_.uBlox.size()*sizeof(uBloxSensorData);
-  memcpy(Buffer->data()+BufferLocation,&SensorData_.Swift,SensorData_.Swift.size()*sizeof(SwiftSensorData));
-  BufferLocation+=SensorData_.Swift.size()*sizeof(SwiftSensorData);
-  memcpy(Buffer->data()+BufferLocation,&SensorData_.Ams5915,SensorData_.Ams5915.size()*sizeof(Ams5915SensorData));
-  BufferLocation+=SensorData_.Ams5915.size()*sizeof(Ams5915SensorData);
-  memcpy(Buffer->data()+BufferLocation,&SensorData_.Sbus,SensorData_.Sbus.size()*sizeof(SbusSensorData));
-  BufferLocation+=SensorData_.Sbus.size()*sizeof(SbusSensorData);
-  memcpy(Buffer->data()+BufferLocation,&SensorData_.Analog,SensorData_.Analog.size()*sizeof(AnalogSensorData));
-  BufferLocation+=SensorData_.Analog.size()*sizeof(AnalogSensorData);
-}
-
-/* Receiver sensor data from FMU */
-void FlightManagementUnit::DeserializeSensorData(std::vector<uint8_t> &Buffer) {
-  size_t PayloadLocation = 0;
-  // meta data
-  uint8_t NumberMpu9250Sensor,NumberBme280Sensor,NumberuBloxSensor,NumberSwiftSensor,NumberAms5915Sensor,NumberSbusSensor,NumberAnalogSensor;
-  memcpy(&NumberMpu9250Sensor,Buffer.data()+PayloadLocation,sizeof(NumberMpu9250Sensor));
-  PayloadLocation += sizeof(NumberMpu9250Sensor);
-  memcpy(&NumberBme280Sensor,Buffer.data()+PayloadLocation,sizeof(NumberBme280Sensor));
-  PayloadLocation += sizeof(NumberBme280Sensor);
-  memcpy(&NumberuBloxSensor,Buffer.data()+PayloadLocation,sizeof(NumberuBloxSensor));
-  PayloadLocation += sizeof(NumberuBloxSensor);
-  memcpy(&NumberSwiftSensor,Buffer.data()+PayloadLocation,sizeof(NumberSwiftSensor));
-  PayloadLocation += sizeof(NumberSwiftSensor);
-  memcpy(&NumberAms5915Sensor,Buffer.data()+PayloadLocation,sizeof(NumberAms5915Sensor));
-  PayloadLocation += sizeof(NumberAms5915Sensor);
-  memcpy(&NumberSbusSensor,Buffer.data()+PayloadLocation,sizeof(NumberSbusSensor));
-  PayloadLocation += sizeof(NumberSbusSensor);
-  memcpy(&NumberAnalogSensor,Buffer.data()+PayloadLocation,sizeof(NumberAnalogSensor));
-  PayloadLocation += sizeof(NumberAnalogSensor);
-  // resize data buffers
-  SensorData_.Mpu9250.resize(NumberMpu9250Sensor);
-  SensorData_.Bme280.resize(NumberBme280Sensor);
-  SensorData_.uBlox.resize(NumberuBloxSensor);
-  SensorData_.Swift.resize(NumberSwiftSensor);
-  SensorData_.Ams5915.resize(NumberAms5915Sensor);
-  SensorData_.Sbus.resize(NumberSbusSensor);
-  SensorData_.Analog.resize(NumberAnalogSensor);
-  // sensor data
-  memcpy(&SensorData_.Time_us,Buffer.data()+PayloadLocation,sizeof(SensorData_.Time_us));
-  PayloadLocation += sizeof(SensorData_.Time_us);
-  memcpy(&SensorData_.InternalMpu9250,Buffer.data()+PayloadLocation,sizeof(Mpu9250SensorData));
-  PayloadLocation += sizeof(SensorData_.InternalMpu9250);
-  memcpy(&SensorData_.InternalBme280,Buffer.data()+PayloadLocation,sizeof(Bme280SensorData));
-  PayloadLocation += sizeof(SensorData_.InternalBme280);
-  memcpy(&SensorData_.InternalVoltage,Buffer.data()+PayloadLocation,sizeof(VoltageSensorsData));
-  PayloadLocation += sizeof(SensorData_.InternalVoltage);
-  memcpy(&SensorData_.Mpu9250,Buffer.data()+PayloadLocation,SensorData_.Mpu9250.size()*sizeof(Mpu9250SensorData));
-  PayloadLocation += SensorData_.Mpu9250.size()*sizeof(Mpu9250SensorData);
-  memcpy(&SensorData_.Bme280,Buffer.data()+PayloadLocation,SensorData_.Bme280.size()*sizeof(Bme280SensorData));
-  PayloadLocation += SensorData_.Bme280.size()*sizeof(Bme280SensorData);
-  memcpy(&SensorData_.uBlox,Buffer.data()+PayloadLocation,SensorData_.uBlox.size()*sizeof(uBloxSensorData));
-  PayloadLocation += SensorData_.uBlox.size()*sizeof(uBloxSensorData);
-  memcpy(&SensorData_.Swift,Buffer.data()+PayloadLocation,SensorData_.Swift.size()*sizeof(SwiftSensorData));
-  PayloadLocation += SensorData_.Swift.size()*sizeof(SwiftSensorData);
-  memcpy(&SensorData_.Ams5915,Buffer.data()+PayloadLocation,SensorData_.Ams5915.size()*sizeof(Ams5915SensorData));
-  PayloadLocation += SensorData_.Ams5915.size()*sizeof(Ams5915SensorData);
-  memcpy(&SensorData_.Sbus,Buffer.data()+PayloadLocation,SensorData_.Sbus.size()*sizeof(SbusSensorData));
-  PayloadLocation += SensorData_.Sbus.size()*sizeof(SbusSensorData);
-  memcpy(&SensorData_.Analog,Buffer.data()+PayloadLocation,SensorData_.Analog.size()*sizeof(AnalogSensorData));
-  PayloadLocation += SensorData_.Analog.size()*sizeof(AnalogSensorData);
-}
-
 /* Send a BFS Bus message. */
 void FlightManagementUnit::SendMessage(Message message,std::vector<uint8_t> &Payload) {
+  // check that the payload length is within the maximum buffer size
   if (Payload.size() < (kUartBufferMaxSize-headerLength_-checksumLength_)) {
     // header
     Buffer_[0] = header_[0];
@@ -240,6 +145,7 @@ bool FlightManagementUnit::ReceiveMessage(Message *message,std::vector<uint8_t> 
         Buffer_[ParserState_] = RxByte_;
         ParserState_++;
       }
+    // length
     } else if (ParserState_ == 3) {
       LengthBuffer_[0] = RxByte_;
       Buffer_[ParserState_] = RxByte_;
@@ -258,9 +164,11 @@ bool FlightManagementUnit::ReceiveMessage(Message *message,std::vector<uint8_t> 
       }
       Buffer_[ParserState_] = RxByte_;
       ParserState_++;
+    // message ID and payload
     } else if (ParserState_ < (Length_ + headerLength_)) {
       Buffer_[ParserState_] = RxByte_;
       ParserState_++;
+    // checksum 0
     } else if (ParserState_ == (Length_ + headerLength_)) {
       CalcChecksum(Length_ + headerLength_,Buffer_,Checksum_);
       if (RxByte_ == Checksum_[0]) {

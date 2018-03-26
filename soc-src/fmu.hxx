@@ -4,6 +4,7 @@
 #define FMU_HXX_
 
 #include "hardware-defs.hxx"
+#include "global-defs.hxx"
 #include <stdio.h>
 #include <fcntl.h>
 #include <unistd.h>
@@ -20,10 +21,14 @@ class FlightManagementUnit {
   public:
     enum Message {
       ModeCommand,
-      Configuration,   
+      Configuration,
       SensorData,
       EffectorCommand
     };
+    void Begin();
+    void RegisterGlobalData(DefinitionTree *DefinitionTreePtr);
+    bool ReceiveSensorData();
+  private:
     struct Mpu9250SensorData {
       Eigen::Matrix<float,3,1>Accel_mss;        // x,y,z accelerometers, m/s/s
       Eigen::Matrix<float,3,1>Gyro_rads;        // x,y,z gyros, rad/s
@@ -54,7 +59,7 @@ class FlightManagementUnit {
       Eigen::Matrix<double,3,1>LLA;             // Latitude (rad), Longitude (rad), Altitude (m)
       Eigen::Matrix<double,3,1>NEDVelocity_ms;  // NED Velocity, m/s
       Eigen::Matrix<double,3,1>Accuracy;        // Horizontal (m), vertical (m), and speed (m/s) accuracy estimates
-      double pDOP;                              // Position DOP      
+      double pDOP;                              // Position DOP
     };
     struct Ams5915SensorData {
       float Pressure_Pa;                        // Pressure, Pa
@@ -86,30 +91,23 @@ class FlightManagementUnit {
       std::vector<SbusSensorData> Sbus;
       std::vector<AnalogSensorData> Analog;
     };
-    FlightManagementUnit(const char *Port,const speed_t &Baud);
-    void Begin();
-    bool ReceiveSensorData();
-    void GetSensorData(struct SensorData *SensorDataPtr);
-    void GetSerializedSensorData(std::vector<uint8_t> *Buffer);
-    void DeserializeSensorData(std::vector<uint8_t> &Buffer);
-  private:
-    struct SensorData SensorData_;
+    const std::string Port_ = FmuPort;
+    const speed_t Baud_ = FmuBaud;
     int FmuFileDesc_;
-    std::string Port_;
-    speed_t Baud_;
     uint8_t Buffer_[kUartBufferMaxSize];
     const uint8_t header_[2] = {0x42,0x46};
     const uint8_t headerLength_ = 5;
     const uint8_t checksumLength_ = 2;
     uint8_t RxByte_;
-    uint16_t ParserState_ =0;
+    uint16_t ParserState_ = 0;
     uint8_t LengthBuffer_[2];
-    uint16_t Length_;
+    uint16_t Length_ = 0;
     uint8_t Checksum_[2];
+    struct SensorData SensorData_;
     size_t SerializedDataMetadataSize = 7;
     void SendMessage(Message message,std::vector<uint8_t> &Payload);
     bool ReceiveMessage(Message *message,std::vector<uint8_t> *Payload);
-    void WritePort(uint8_t* Buffer,size_t BufferSize);    
+    void WritePort(uint8_t* Buffer,size_t BufferSize);
     void CalcChecksum(size_t ArraySize, uint8_t *ByteArray, uint8_t *Checksum);
 };
 
