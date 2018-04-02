@@ -20,8 +20,8 @@
 #
 
 # compiler
-CC_FLIGHT=arm-linux-gnueabihf-g++-7 -std=c++17 -Wno-psabi
-CC_DATALOG=arm-linux-gnueabihf-g++-7 -std=c++17 -Wno-psabi
+CC_FLIGHT=arm-linux-gnueabihf-g++-7 -std=c++17 -O3 -Wno-psabi
+CC_DATALOG=arm-linux-gnueabihf-g++-7 -std=c++17 -O3 -Wno-psabi
 
 # includes
 IFLAGS_FLIGHT=-I../includes/
