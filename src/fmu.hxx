@@ -42,9 +42,13 @@ class FlightManagementUnit {
   public:
     enum Message {
       ModeCommand,
-      Configuration,
+      ConfigMesg,
       SensorData,
       EffectorCommand
+    };
+    enum Mode {
+      ConfigMode,
+      RunMode
     };
     void Begin();
     void RegisterGlobalData(DefinitionTree *DefinitionTreePtr);
