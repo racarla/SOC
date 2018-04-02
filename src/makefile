@@ -33,6 +33,7 @@ LFLAGS_DATALOG=-L/usr/lib/arm-linux-gnueabihf
 
 # code to be compiled
 OBJ_FLIGHT =\
+configuration.cxx \
 definition-tree.cxx \
 datalog.cxx \
 fmu.cxx \
@@ -57,7 +58,7 @@ datalog-server: $(OBJ_DATALOG)
 	mv datalog-server ../bin
 
 clean:
-	-rm flightcode datalog-server
+	-rm ../bin/flightcode ../bin/datalog-server
 
 display:
 	@ echo

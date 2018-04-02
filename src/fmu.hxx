@@ -23,6 +23,9 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SO
 
 #include "hardware-defs.hxx"
 #include "definition-tree.hxx"
+#include "../includes/rapidjson/document.h"
+#include "../includes/rapidjson/stringbuffer.h"
+#include "../includes/rapidjson/writer.h"
 #include <stdio.h>
 #include <fcntl.h>
 #include <unistd.h>
@@ -46,6 +49,7 @@ class FlightManagementUnit {
     void Begin();
     void RegisterGlobalData(DefinitionTree *DefinitionTreePtr);
     bool ReceiveSensorData();
+    void UpdateConfiguration(const rapidjson::Value& SensorConfig);
   private:
     struct Mpu9250SensorData {
       Eigen::Matrix<float,3,1>Accel_mss;        // x,y,z accelerometers, m/s/s

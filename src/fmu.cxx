@@ -38,11 +38,11 @@ void FlightManagementUnit::Begin() {
   tcsetattr(FmuFileDesc_,TCSANOW,&Options);
   fcntl(FmuFileDesc_,F_SETFL,O_NONBLOCK);
   std::cout <<  "done!" << std::endl;
-  std::cout << "\t\tGetting FMU configuration..." << std::flush;
-  while(1) {
-    if (ReceiveSensorData()) {break;}
-  }
-  std::cout <<  "done!" << std::endl;
+  // std::cout << "\t\tGetting FMU configuration..." << std::flush;
+  // while(1) {
+  //   if (ReceiveSensorData()) {break;}
+  // }
+  // std::cout <<  "done!" << std::endl;
   std::cout << "\t\tFMU configuration:" << std::endl;
   std::cout << "\t\t\tSensors:" << std::endl;
   std::cout << "\t\t\t\tMPU-9250:" << SensorData_.Mpu9250.size() << std::endl;
@@ -198,6 +198,10 @@ bool FlightManagementUnit::ReceiveSensorData() {
   } else {
     return false;
   }
+}
+
+void FlightManagementUnit::UpdateConfiguration(const rapidjson::Value& SensorConfig) {
+  
 }
 
 /* Send a BFS Bus message. */

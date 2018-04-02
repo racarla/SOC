@@ -1,5 +1,5 @@
 /*
-flightcode.cxx
+configuration.hxx
 Brian R Taylor
 brian.taylor@bolderflight.com
 
@@ -18,54 +18,23 @@ DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
-#include "hardware-defs.hxx"
-#include "definition-tree.hxx"
-#include "configuration.hxx"
-#include "datalog.hxx"
-#include "fmu.hxx"
+#ifndef CONFIGURATION_HXX_
+#define CONFIGURATION_HXX_
+
 #include "../includes/rapidjson/document.h"
 #include "../includes/rapidjson/stringbuffer.h"
 #include "../includes/rapidjson/writer.h"
 #include <iostream>
-#include <iomanip>
+#include <fstream>
 #include <stdint.h>
-#include <variant>
 
-int main(int argc, char* argv[]) {
-  if (argc!=2) {
-      std::cerr << "ERROR: Incorrect number of input arguments." << std::endl;
-      std::cerr << "Configuration file name needed." << std::endl;
-      return -1;
-  }
+class Configuration {
+  public:
+    void LoadConfiguration(std::string FileName);
+    const rapidjson::Value& GetSensorConfiguration();
+  private:
+    rapidjson::Document AircraftConfiguration_;
+    rapidjson::Value AircraftSensors_;
+};
 
-  std::cout << "Bolder Flight Systems" << std::endl;
-  std::cout << "Flight Software Version " << SoftwareVersion << std::endl << std::endl;
-
-  /* declare classes */
-  Configuration Config;
-  DefinitionTree GlobalData;
-  FlightManagementUnit Fmu;
-  DatalogClient Datalog;
-
-  /* initialize classes */
-  std::cout << "Initializing software modules..." << std:: endl;
-  std::cout << "\tInitializing FMU..." << std::endl;
-  Fmu.Begin();
-
-  /* configure classes */
-  Config.LoadConfiguration(argv[1]);
-  Fmu.UpdateConfiguration(Config.GetSensorConfiguration());
-
-  /* Register classes with GlobalData */
-  std::cout << "Registering classes with global definition tree..." << std:: endl;
-  Fmu.RegisterGlobalData(&GlobalData);
-  Datalog.RegisterGlobalData(GlobalData);
-
-  while(1) {
-    if (Fmu.ReceiveSensorData()) {
-      Datalog.LogBinaryData();
-    }
-  }
-
-	return 0;
-}
+#endif
