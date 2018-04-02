@@ -20,8 +20,8 @@
 #
 
 # compiler
-CC_FLIGHT=arm-linux-gnueabihf-g++-7 -std=c++17 -Wno-psabi
-CC_DATALOG=arm-linux-gnueabihf-g++-7 -std=c++17 -Wno-psabi
+CC_FLIGHT=arm-linux-gnueabihf-g++-7 -std=c++17 -O3 -Wno-psabi
+CC_DATALOG=arm-linux-gnueabihf-g++-7 -std=c++17 -O3 -Wno-psabi
 
 # includes
 IFLAGS_FLIGHT=-I../includes/
@@ -57,7 +57,7 @@ datalog-server: $(OBJ_DATALOG)
 	mv datalog-server ../bin
 
 clean:
-	-rm flightcode datalog-server
+	-rm ../bin/flightcode ../bin/datalog-server
 
 display:
 	@ echo
