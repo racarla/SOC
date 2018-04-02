@@ -23,8 +23,8 @@
 
     "InputProcSys": {
       "Group": {
-        "Baseline": ["NavFiltBaseline"],
-        "Research1": ["NavFiltBaseline"]
+        "InputBaseline": ["NavFiltBaseline"],
+        "InputResearch1": ["NavFiltBaseline"]
       },
       "Define": {
         "NavFiltBaseline": {"Type": "EKF15", "Config": "Default"}
@@ -33,8 +33,8 @@
 
     "CtrlSys": {
       "Group": {
-        "Baseline": ["GuidBaseline", "ScasBaseline"],
-        "Research1": ["GuidSpeedHold", "ScasAttitude+SpeedHold"]
+        "CtrlBaseline": ["GuidBaseline", "ScasBaseline"],
+        "CtrlResearch1": ["GuidSpeedHold", "ScasAttitude+SpeedHold"]
       },
 
       "Define": {
@@ -48,19 +48,19 @@
 
         "ScasBaseline": [
           {"Desc": "Roll", "Type": "Manual",
-            "RefSignal": {"CtrlPilot": "Roll"}, "OutSignal": {"CtrlScas": "Roll"}, "MeasSignal": 0,
+            "RefSignal": [], "OutSignal": [], "MeasSignal": 0,
             "refScale": 1.0472, "cmdRng": [-1.0472, 1.0472], "Kp": 1.0},
           {"Desc": "Pitch", "Type": "Manual",
-            "RefSignal": {"CtrlPilot": "Pitch"}, "OutSignal": {"CtrlScas": "Pitch"}, "MeasSignal": 0,
+            "RefSignal": [], "OutSignal": [], "MeasSignal": 0,
             "refScale": 1.0472, "cmdRng": [-1.0472, 1.0472], "Kp": 1.0},
           {"Desc": "Yaw", "Type": "Manual",
-            "RefSignal": {"CtrlPilot": "Yaw"}, "OutSignal": {"CtrlScas": "Yaw"}, "MeasSignal": 0,
+            "RefSignal": [], "OutSignal": [], "MeasSignal": 0,
             "refScale": 0.523599, "cmdRng": [-0.523599, 0.523599], "Kp": 1.0},
           {"Desc": "Lift", "Type": "Manual",
-            "RefSignal": {"CtrlPilot": "Flap"}, "OutSignal": {"CtrlScas": "Lift"}, "MeasSignal": 0,
+            "RefSignal": [], "OutSignal": [], "MeasSignal": 0,
             "refScale": 0.436332, "cmdRng": [-0.436332, 0.436332], "Kp": 1.0},
           {"Desc": "Speed", "Type": "Manual",
-            "RefSignal": {"CtrlPilot": "Speed"}, "OutSignal": {"CtrlScas": "Speed"}, "MeasSignal": 0,
+            "RefSignal": [], "OutSignal": [], "MeasSignal": 0,
             "refScale": 1.0, "cmdRng": [0.0, 1.0], "Kp": 1.0}
         ],
 
@@ -70,31 +70,31 @@
           {"Desc": "Yaw", "Type": "None"},
           {"Desc": "Lift", "Type": "None"},
           {"Desc": "Speed", "Type": "PID2",
-            "RefSignal": 17, "OutSignal": {"CtrlGuid": "Speed"}, "MeasSignal": {"Airdata": "Speed"},
+            "RefSignal": 17, "OutSignal": ["cmdGuidSpeed_mps"], "MeasSignal": ["/InProc/Airdata/vIasFilt_mps"],
             "refScale": 30.0, "cmdRng": [0.0, 1.0], "Kp": 0.150, "Ki": 0.040}
         ],
 
         "ScasAttitude+SpeedHold": [
           {"Desc": "Roll", "Type": "PI+Damp",
-            "RefSignal": {"CtrlPilot": "Roll"}, "OutSignal": {"CtrlScas": "Roll"}, "MeasSignal": {"Euler": "Roll"}, "MeasDamp": {"RotRate": "Roll"},
+            "RefSignal": ["cmdPilotRoll_nd"], "OutSignal": ["cmdAllocRoll_rps"], "MeasSignal": ["/InProc/NavFilt/eulerRoll_rad"], "MeasDamp": ["/InProc/NavFilt/omegaRoll_rps"],
             "refScale": 1.0472, "cmdRng": [-1.0472, 1.0472], "Kp": 0.640, "Ki": 0.200, "Kd": 0.070},
           {"Desc": "Pitch", "Type": "PI+Damp",
-            "RefSignal": {"CtrlPilot": "Pitch"}, "OutSignal": {"CtrlScas": "Pitch"}, "MeasSignal": {"Euler": "Pitch"}, "MeasDamp": {"RotRate": "Pitch"},
+            "RefSignal": ["cmdPilotPitch_nd"], "OutSignal": ["cmdAllocPitch_rps"], "MeasSignal": ["/InProc/NavFilt/eulerRoll_rad"], "MeasDamp": ["/InProc/NavFilt/omegaPitch_rps"],
             "refScale": 1.0472, "cmdRng": [-1.0472, 1.0472], "Kp": 0.900, "Ki": 0.300, "Kd": 0.080},
           {"Desc": "Yaw", "Type": "PI+Damp",
-            "RefSignal": {"CtrlPilot": "Yaw"}, "OutSignal": {"CtrlScas": "Yaw"}, "MeasSignal": {"RotRate": "Yaw"}, "MeasDamp": {"RotRate": "Yaw"},
+            "RefSignal": ["cmdPilotYaw_nd"], "OutSignal": ["cmdAllocYaw_rps"], "MeasSignal": ["/InProc/NavFilt/omegaYaw_rps"], "MeasDamp": ["/InProc/NavFilt/omegaYaw_rps"],
             "refScale": 0.523599, "cmdRng": [-0.523599, 0.523599], "Kp": 0.000, "Ki": 0.000, "Kd": 0.000},
           {"Desc": "Lift", "Type": "Manual",
-            "RefSignal": {"CtrlPilot": "Flap"}, "OutSignal": {"CtrlScas": "Lift"},
+            "RefSignal": ["cmdPilotFlap_nd"], "OutSignal": ["cmdEffFlap_nd"],
             "refScale": 0.436332, "cmdRng": [-0.436332, 0.436332]},
           {"Desc": "Speed", "Type": "Pass",
-            "RefSignal": {"CtrlGuid": "Speed"}, "OutSignal": {"CtrlScas": "Speed"}}
+            "RefSignal": ["cmdGuidSpeed_mps"], "OutSignal": ["cmdEffThrot_nd"]}
         ],
 
         "ScasExampleSS": [
           {"Desc": "ThreeAxis", "Type": "SS",
-            "MeasSignal": [{"Euler": "Roll"}, {"Euler": "Pitch"}, {"Euler": "Yaw"}],
-            "OutSignal": [{"CtrlScas": "Roll"}, {"CtrlScas": "Roll"}, {"CtrlScas": "Roll"}],
+            "MeasSignal": ["/InProc/NavFilt/EulerRoll_rad", "/InProc/NavFilt/EulerPitch_rad", "/InProc/NavFilt/EulerYaw_rad"],
+            "OutSignal": ["cmdAllocRoll_rps", "cmdAllocPitch_rps", "cmdAllocYaw_rps"],
             "A": [[1,0,0],[0,1,0],[0,0,1]],
             "B": [[1],[1],[1]],
             "C": [[1,0,0],[0,1,0],[0,0,1]],
@@ -106,8 +106,8 @@
     "AllocSys": {
       "Baseline": {
         "Type": "Pseudo",
-        "RefSignal": [{"CtrlScas": "Roll"}, {"CtrlScas": "Pitch"}, {"CtrlScas": "Yaw"}],
-        "OutSignal": [{"CtrlEff": "Elev"}, {"CtrlEff": "Rud"}, {"CtrlEff": "AilR"}, {"CtrlEff": "FlapR"}, {"CtrlEff": "FlapL"}, {"CtrlEff": "AilL"}],
+        "RefSignal": ["cmdAllocRoll_rps", "cmdAllocPitch_rps", "cmdAllocYaw_rps"],
+        "OutSignal": ["cmdEffElev_rad", "cmdEffRud_rad", "cmdEffAilR_rad", "cmdEffFlapR_rad", "cmdEffFlapL_rad", "cmdEffAilL_rad"],
         "cntrlEff": [
           [0.0000,  0.0000, -78.235,  0.0000,  0.0000,  78.235],
           [-133.69,  0.0000,  0.0000,  0.0000,  0.0000,  0.0000],
@@ -121,8 +121,8 @@
 
       "PseudoCrossMix": {
         "Type": "Pseudo",
-        "RefSignal": [{"CtrlScas": "Roll"}, {"CtrlScas": "Pitch"}, {"CtrlScas": "Yaw"}],
-        "OutSignal": [{"CtrlEff": "Elev"}, {"CtrlEff": "Rud"}, {"CtrlEff": "AilR"}, {"CtrlEff": "FlapR"}, {"CtrlEff": "FlapL"}, {"CtrlEff": "AilL"}],
+        "RefSignal": ["cmdAllocRoll_rps", "cmdAllocPitch_rps", "cmdAllocYaw_rps"],
+        "OutSignal": ["cmdEffElev_rad", "cmdEffRud_rad", "cmdEffAilR_rad", "cmdEffFlapR_rad", "cmdEffFlapL_rad", "cmdEffAilL_rad"],
         "cntrlEff": [
           [0.0000, -5.0084, -78.235, -33.013,  33.013,  78.235],
           [-133.69,  0.0000,  0.0000,  0.0000,  0.0000,  0.0000],
@@ -163,25 +163,25 @@
 
     "ExciteSys": {
       "None": {},
-      "1": {"Inject": [{"CtrlAlloc": "Pitch"}], "WaveSys": ["1"], "amp_nd": [0.0698132], "tStart_s": [1.0], "tEndPad_s": [1.0]},
-      "2": {"Inject": [{"CtrlAlloc": "Roll"}], "WaveSys": ["2"], "amp_nd": [0.0698132], "tStart_s": [1.0], "tEndPad_s": [1.0]},
-      "3": {"Inject": [{"CtrlAlloc": "Yaw"}], "WaveSys": ["3"], "amp_nd": [0.0698132], "tStart_s": [1.0], "tEndPad_s": [1.0]},
-      "4": {"Inject": [{"CtrlAlloc": "Pitch"}, {"CtrlAlloc": "Roll"}], "WaveSys": ["1", "2"], "amp_nd": [0.0698132, 0.0698132], "tStart_s": [1.0, 1.0], "tEndPad_s": [1.0, 1.0]},
-      "5": {"Inject": [{"CtrlAlloc": "Pitch"}, {"CtrlAlloc": "Roll"}, {"CtrlAlloc": "Yaw"}], "WaveSys": ["1", "2", "3"], "amp_nd": [0.0698132, 0.0698132, 0.0698132], "tStart_s": [1.0, 1.0, 1.0], "tEndPad_s": [1.0, 1.0, 1.0]},
-      "6": {"Inject": [{"CtrlAlloc": "Pitch"}], "WaveSys": ["4"], "amp_nd": [0.0698132], "tStart_s": [1.0], "tEndPad_s": [1.0]},
-      "7": {"Inject": [{"CtrlAlloc": "Roll"}], "WaveSys": ["4"], "amp_nd": [0.0698132], "tStart_s": [1.0], "tEndPad_s": [1.0]},
-      "8": {"Inject": [{"CtrlAlloc": "Yaw"}], "WaveSys": ["4"], "amp_nd": [0.0698132], "tStart_s": [1.0], "tEndPad_s": [1.0]},
-      "9": {"Inject": [{"CtrlAlloc": "Pitch"}, {"CtrlAlloc": "Roll"}], "WaveSys": ["4", "5"], "amp_nd": [0.0698132, 0.0698132], "tStart_s": [1.0, 1.0], "tEndPad_s": [1.0, 1.0]},
-      "10": {"Inject": [{"CtrlAlloc": "Pitch"}], "WaveSys": ["6"], "amp_nd": [0.0698132], "tStart_s": [1.0], "tEndPad_s": [1.0]},
-      "11": {"Inject": [{"CtrlAlloc": "Roll"}], "WaveSys": ["7"], "amp_nd": [0.0698132], "tStart_s": [1.0], "tEndPad_s": [1.0]},
-      "12": {"Inject": [{"CtrlAlloc": "Yaw"}], "WaveSys": ["7"], "amp_nd": [0.0698132], "tStart_s": [1.0], "tEndPad_s": [1.0]},
-      "13": {"Inject": [{"CtrlAlloc": "Pitch"}], "WaveSys": ["8"], "amp_nd": [0.0698132], "tStart_s": [1.0], "tEndPad_s": [1.0]},
-      "14": {"Inject": [{"CtrlAlloc": "Roll"}], "WaveSys": ["9"], "amp_nd": [0.0698132], "tStart_s": [1.0], "tEndPad_s": [1.0]},
-      "15": {"Inject": [{"CtrlAlloc": "Yaw"}], "WaveSys": ["9"], "amp_nd": [0.0698132], "tStart_s": [1.0], "tEndPad_s": [1.0]},
-      "16": {"Inject": [{"CtrlAlloc": "Roll"}], "WaveSys": ["10"], "amp_nd": [0.436332], "tStart_s": [1.0], "tEndPad_s": [1.0]},
-      "17": {"Inject": [{"CtrlAlloc": "Pitch"}], "WaveSys": ["11"], "amp_nd": [0.0698132], "tStart_s": [1.0], "tEndPad_s": [1.0]},
-      "18": {"Inject": [{"CtrlAlloc": "Roll"}], "WaveSys": ["12"], "amp_nd": [0.0698132], "tStart_s": [1.0], "tEndPad_s": [1.0]},
-      "19": {"Inject": [{"CtrlAlloc": "Yaw"}], "WaveSys": ["12"], "amp_nd": [0.0698132], "tStart_s": [1.0], "tEndPad_s": [1.0]}
+      "1": {"Inject": ["cmdAllocPitch_rps"], "WaveSys": ["1"], "amp_nd": [0.0698132], "tStart_s": [1.0], "tEndPad_s": [1.0]},
+      "2": {"Inject": ["cmdAllocRoll_rps"], "WaveSys": ["2"], "amp_nd": [0.0698132], "tStart_s": [1.0], "tEndPad_s": [1.0]},
+      "3": {"Inject": ["cmdAllocYaw_rps"], "WaveSys": ["3"], "amp_nd": [0.0698132], "tStart_s": [1.0], "tEndPad_s": [1.0]},
+      "4": {"Inject": ["cmdAllocPitch_rps", "cmdAllocRoll_rps"], "WaveSys": ["1", "2"], "amp_nd": [0.0698132, 0.0698132], "tStart_s": [1.0, 1.0], "tEndPad_s": [1.0, 1.0]},
+      "5": {"Inject": ["cmdAllocPitch_rps", "cmdAllocRoll_rps", "cmdAllocYaw_rps"], "WaveSys": ["1", "2", "3"], "amp_nd": [0.0698132, 0.0698132, 0.0698132], "tStart_s": [1.0, 1.0, 1.0], "tEndPad_s": [1.0, 1.0, 1.0]},
+      "6": {"Inject": ["cmdAllocPitch_rps"], "WaveSys": ["4"], "amp_nd": [0.0698132], "tStart_s": [1.0], "tEndPad_s": [1.0]},
+      "7": {"Inject": ["cmdAllocRoll_rps"], "WaveSys": ["4"], "amp_nd": [0.0698132], "tStart_s": [1.0], "tEndPad_s": [1.0]},
+      "8": {"Inject": ["cmdAllocYaw_rps"], "WaveSys": ["4"], "amp_nd": [0.0698132], "tStart_s": [1.0], "tEndPad_s": [1.0]},
+      "9": {"Inject": ["cmdAllocPitch_rps", "cmdAllocRoll_rps"], "WaveSys": ["4", "5"], "amp_nd": [0.0698132, 0.0698132], "tStart_s": [1.0, 1.0], "tEndPad_s": [1.0, 1.0]},
+      "10": {"Inject": ["cmdAllocPitch_rps"], "WaveSys": ["6"], "amp_nd": [0.0698132], "tStart_s": [1.0], "tEndPad_s": [1.0]},
+      "11": {"Inject": ["cmdAllocRoll_rps"], "WaveSys": ["7"], "amp_nd": [0.0698132], "tStart_s": [1.0], "tEndPad_s": [1.0]},
+      "12": {"Inject": ["cmdAllocYaw_rps"], "WaveSys": ["7"], "amp_nd": [0.0698132], "tStart_s": [1.0], "tEndPad_s": [1.0]},
+      "13": {"Inject": ["cmdAllocPitch_rps"], "WaveSys": ["8"], "amp_nd": [0.0698132], "tStart_s": [1.0], "tEndPad_s": [1.0]},
+      "14": {"Inject": ["cmdAllocRoll_rps"], "WaveSys": ["9"], "amp_nd": [0.0698132], "tStart_s": [1.0], "tEndPad_s": [1.0]},
+      "15": {"Inject": ["cmdAllocYaw_rps"], "WaveSys": ["9"], "amp_nd": [0.0698132], "tStart_s": [1.0], "tEndPad_s": [1.0]},
+      "16": {"Inject": ["cmdAllocRoll_rps"], "WaveSys": ["10"], "amp_nd": [0.436332], "tStart_s": [1.0], "tEndPad_s": [1.0]},
+      "17": {"Inject": ["cmdAllocPitch_rps"], "WaveSys": ["11"], "amp_nd": [0.0698132], "tStart_s": [1.0], "tEndPad_s": [1.0]},
+      "18": {"Inject": ["cmdAllocRoll_rps"], "WaveSys": ["12"], "amp_nd": [0.0698132], "tStart_s": [1.0], "tEndPad_s": [1.0]},
+      "19": {"Inject": ["cmdAllocYaw_rps"], "WaveSys": ["12"], "amp_nd": [0.0698132], "tStart_s": [1.0], "tEndPad_s": [1.0]}
     },
 
     "TestSys": [
