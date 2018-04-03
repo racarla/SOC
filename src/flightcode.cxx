@@ -53,8 +53,10 @@ int main(int argc, char* argv[]) {
   Fmu.Begin();
 
   /* configure classes */
-  Config.LoadConfiguration(argv[1]);
-  Fmu.UpdateConfiguration(Config.GetSensorConfiguration());
+  rapidjson::Document AircraftConfiguration;
+  Config.LoadConfiguration(argv[1], &AircraftConfiguration);
+  assert(AircraftConfiguration.HasMember("Sensors"));
+  Fmu.UpdateConfiguration(AircraftConfiguration["Sensors"]);
 
   /* Register classes with GlobalData */
   std::cout << "Registering classes with global definition tree..." << std:: endl;

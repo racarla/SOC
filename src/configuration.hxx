@@ -30,11 +30,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SO
 
 class Configuration {
   public:
-    void LoadConfiguration(std::string FileName);
-    const rapidjson::Value& GetSensorConfiguration();
-  private:
-    rapidjson::Document AircraftConfiguration_;
-    rapidjson::Value AircraftSensors_;
+    void LoadConfiguration(std::string FileName,rapidjson::Document *Configuration);
 };
 
 #endif
