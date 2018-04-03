@@ -23,9 +23,9 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SO
 
 #include "hardware-defs.hxx"
 #include "definition-tree.hxx"
-#include "../includes/rapidjson/document.h"
-#include "../includes/rapidjson/stringbuffer.h"
-#include "../includes/rapidjson/writer.h"
+#include "rapidjson/document.h"
+#include "rapidjson/stringbuffer.h"
+#include "rapidjson/writer.h"
 #include <stdio.h>
 #include <fcntl.h>
 #include <unistd.h>

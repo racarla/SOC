@@ -21,9 +21,9 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SO
 #ifndef CONFIGURATION_HXX_
 #define CONFIGURATION_HXX_
 
-#include "../includes/rapidjson/document.h"
-#include "../includes/rapidjson/stringbuffer.h"
-#include "../includes/rapidjson/writer.h"
+#include "rapidjson/document.h"
+#include "rapidjson/stringbuffer.h"
+#include "rapidjson/writer.h"
 #include <iostream>
 #include <fstream>
 #include <stdint.h>
