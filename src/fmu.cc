@@ -38,20 +38,6 @@ void FlightManagementUnit::Begin() {
   tcsetattr(FmuFileDesc_,TCSANOW,&Options);
   fcntl(FmuFileDesc_,F_SETFL,O_NONBLOCK);
   std::cout <<  "done!" << std::endl;
-  std::cout << "\t\tGetting FMU configuration..." << std::flush;
-  while(1) {
-    if (ReceiveSensorData()) {break;}
-  }
-  std::cout <<  "done!" << std::endl;
-  std::cout << "\t\tFMU configuration:" << std::endl;
-  std::cout << "\t\t\tSensors:" << std::endl;
-  std::cout << "\t\t\t\tMPU-9250:" << SensorData_.Mpu9250.size() << std::endl;
-  std::cout << "\t\t\t\tBME-280:" << SensorData_.Bme280.size() << std::endl;
-  std::cout << "\t\t\t\tuBlox:" << SensorData_.uBlox.size() << std::endl;
-  std::cout << "\t\t\t\tSwift:" << SensorData_.Swift.size() << std::endl;
-  std::cout << "\t\t\t\tAMS-5915:" << SensorData_.Ams5915.size() << std::endl;
-  std::cout << "\t\t\t\tSBUS:" << SensorData_.Sbus.size() << std::endl;
-  std::cout << "\t\t\t\tAnalog:" << SensorData_.Analog.size() << std::endl;
 }
 
 /* Registers data with global defs */
@@ -198,6 +184,52 @@ bool FlightManagementUnit::ReceiveSensorData() {
   } else {
     return false;
   }
+}
+
+/* Updates FMU configuration given a JSON value */
+void FlightManagementUnit::UpdateConfiguration(const rapidjson::Value& SensorConfig) {
+  std::vector<uint8_t> Payload;
+  // switch FMU to configuration mode
+  Payload.push_back((uint8_t)Mode::ConfigMode);
+  SendMessage(Message::ModeCommand,Payload);
+  // parse and send configuration messages
+  assert(SensorConfig.IsArray());
+  for (size_t i=0; i < SensorConfig.Size(); i++) {
+    const rapidjson::Value& Sensor = SensorConfig[i];
+    if (Sensor.HasMember("Type")) {
+      Payload.clear();
+      rapidjson::StringBuffer StringBuff;
+      rapidjson::Writer<rapidjson::StringBuffer> Writer(StringBuff);
+      Sensor.Accept(Writer);
+      std::string OutputString = StringBuff.GetString();
+      std::string ConfigString = std::string("{\"Sensors\":[") + OutputString + std::string("]}");
+      for (size_t j=0; j < ConfigString.size(); j++) {
+        Payload.push_back((uint8_t)ConfigString[j]);
+      }
+      SendMessage(Message::ConfigMesg,Payload);
+    } else {
+      throw std::runtime_error("Flight Management Unit sensor configuration type not specified.");
+    }
+  }
+  // switch FMU to run mode
+  Payload.clear();
+  Payload.push_back((uint8_t)Mode::RunMode);
+  SendMessage(Message::ModeCommand,Payload);
+  // get the updated configuration
+  std::cout << "\t\tGetting FMU configuration..." << std::flush;
+  while(1) {
+    if (ReceiveSensorData()) {break;}
+  }
+  std::cout <<  "done!" << std::endl;
+  std::cout << "\t\tFMU configuration:" << std::endl;
+  std::cout << "\t\t\tSensors:" << std::endl;
+  std::cout << "\t\t\t\tMPU-9250:" << SensorData_.Mpu9250.size() << std::endl;
+  std::cout << "\t\t\t\tBME-280:" << SensorData_.Bme280.size() << std::endl;
+  std::cout << "\t\t\t\tuBlox:" << SensorData_.uBlox.size() << std::endl;
+  std::cout << "\t\t\t\tSwift:" << SensorData_.Swift.size() << std::endl;
+  std::cout << "\t\t\t\tAMS-5915:" << SensorData_.Ams5915.size() << std::endl;
+  std::cout << "\t\t\t\tSBUS:" << SensorData_.Sbus.size() << std::endl;
+  std::cout << "\t\t\t\tAnalog:" << SensorData_.Analog.size() << std::endl;
 }
 
 /* Send a BFS Bus message. */

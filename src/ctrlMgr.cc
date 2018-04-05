@@ -4,13 +4,12 @@ Control System Manager - Defines Controllers, Mangages mode switching
 See: LICENSE.md for Copyright and License Agreement
 */
 
-#include "CtrlMgr.hxx"
+#include "ctrlMgr.hxx"
+
 #include <iostream>
 
 typedef rapidjson::Value ObjJson;
 
-
-#include "ctrlMgr.hxx"
 
 
 void CtrlMgr::Config(const ObjJson &objJson) {

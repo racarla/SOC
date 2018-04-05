@@ -8,10 +8,11 @@ See: LICENSE.md for Copyright and License Agreement
 #define Alloc_H
 
 #include <stdint.h>
-#include <Eigen/Core>
-#include <Eigen/SVD>
-#include <Eigen/LU>
-//#include <Eigen/QR>
+
+#include "Eigen/Core"
+#include "Eigen/SVD"
+#include "Eigen/LU"
+//#include "Eigen/QR"
 
 #ifndef kMaxAllocObj
 #define kMaxAllocObj 3

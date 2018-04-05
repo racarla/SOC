@@ -10,39 +10,22 @@ History:
 #ifndef CNTRLMGR_HXX_
 #define CNTRLMGR_HXX_
 
-#include <Eigen/Core>
+#include "Eigen/Core"
+
 #include <math.h>
 #include <stdint.h>
 
-#ifndef kMaxCntrlCmd
-#define kMaxCntrlCmd 4
-#endif
-
-#ifndef kMaxCntrlEff
-#define kMaxCntrlEff 7
-#endif
-
-#ifndef kMaxAllocObj
-#define kMaxAllocObj 3
-#endif
-
-#ifndef kMaxAllocEff
-#define kMaxAllocEff 6
-#endif
-
 #include "ctrlSys.hxx"
-#include "allocSys.hxx"
-
-#include "navigation.hxx"
-#include "structs.hxx"
-#include "airdata.hxx"
+#include "allocFunc.hxx"
 #include "fmu.hxx"
 
-typedef Eigen::Matrix<float, -1, 1, 0, kMaxCntrlCmd, 1> VecCmd;
-typedef Eigen::Matrix<float, -1, 1, 0, kMaxCntrlEff, 1> VecEff;
+const uint8_t kMaxGuidCmd = 6;
+const uint8_t kMaxScasCmd = kMaxGuidCmd;
+const uint8_t kMaxCtrlEff = 20;
 
-typedef Eigen::Matrix<float, -1, 1, 0, kMaxAllocObj, 1> VecAllocObj;
-typedef Eigen::Matrix<float, -1, 1, 0, kMaxAllocEff, 1> VecAllocEff;
+typedef Eigen::Matrix<float, -1, 1, 0, kMaxGuidCmd, 1> VecGuid;
+typedef Eigen::Matrix<float, -1, 1, 0, kMaxScasCmd, 1> VecScas;
+typedef Eigen::Matrix<float, -1, 1, 0, kMaxCtrlEff, 1> VecEff;
 
 struct CntrlMgrOut {
   CntrlMode mode;
@@ -56,13 +39,13 @@ struct CntrlMgrOut {
 
 struct CntrlMgrLog {
   CntrlMode mode;
-  float cmdCntrlBase[kMaxCntrlCmd] = {0};
-  float cmdCntrlRes[kMaxCntrlCmd] = {0};
-  float cmdCntrl[kMaxCntrlCmd] = {0};
-  float cmdEff[kMaxCntrlEff] = {0};
+  float cmdCntrlBase[kMaxScasCmd] = {0};
+  float cmdCntrlRes[kMaxScasCmd] = {0};
+  float cmdCntrl[kMaxScasCmd] = {0};
+  float cmdEff[kMaxCtrlEff] = {0};
 
-  float vObj[kMaxAllocObj] = {0};
-  float cmdAlloc[kMaxAllocEff] = {0};
+  float vObj[kMaxScasCmd] = {0};
+  float cmdAlloc[kMaxCtrlEff] = {0};
 };
 
 struct CntrlAllocDef {

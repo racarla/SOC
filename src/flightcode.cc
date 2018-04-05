@@ -20,18 +20,29 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SO
 
 #include "hardware-defs.hxx"
 #include "definition-tree.hxx"
+#include "configuration.hxx"
 #include "datalog.hxx"
 #include "fmu.hxx"
+#include "rapidjson/document.h"
+#include "rapidjson/stringbuffer.h"
+#include "rapidjson/writer.h"
 #include <iostream>
 #include <iomanip>
 #include <stdint.h>
 #include <variant>
 
 int main(int argc, char* argv[]) {
+  if (argc!=2) {
+      std::cerr << "ERROR: Incorrect number of input arguments." << std::endl;
+      std::cerr << "Configuration file name needed." << std::endl;
+      return -1;
+  }
+
   std::cout << "Bolder Flight Systems" << std::endl;
   std::cout << "Flight Software Version " << SoftwareVersion << std::endl << std::endl;
 
   /* declare classes */
+  Configuration Config;
   DefinitionTree GlobalData;
   FlightManagementUnit Fmu;
   DatalogClient Datalog;
@@ -40,6 +51,12 @@ int main(int argc, char* argv[]) {
   std::cout << "Initializing software modules..." << std:: endl;
   std::cout << "\tInitializing FMU..." << std::endl;
   Fmu.Begin();
+
+  /* configure classes */
+  rapidjson::Document AircraftConfiguration;
+  Config.LoadConfiguration(argv[1], &AircraftConfiguration);
+  assert(AircraftConfiguration.HasMember("Sensors"));
+  Fmu.UpdateConfiguration(AircraftConfiguration["Sensors"]);
 
   /* Register classes with GlobalData */
   std::cout << "Registering classes with global definition tree..." << std:: endl;

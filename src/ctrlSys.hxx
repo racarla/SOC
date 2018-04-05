@@ -12,21 +12,16 @@ See: LICENSE.md for Copyright and License Agreement
 #include <vector>
 #include <memory>
 
-#include <Eigen/Core>
+#include "Eigen/Core"
 
 #include "ctrlFunc.hxx"
-#include "utilities.hxx"
+#include "configFunc.hxx"
+#include "definition-tree.hxx"
 
 #ifndef kVerboseConfig
 #define kVerboseConfig 1
 #endif
 
-#ifndef kMaxCtrlElem
-#define kMaxCtrlElem 6
-#endif
-
-// Matrix<typename Scalar, int RowsAtCompiletime, int ColsAtCompiletime, int Options = 0, int MaxRowsAtCompiletime = RowsAtCompiletime, int MaxColsAtCompiletime = ColsAtCompiletime>
-typedef Eigen::Matrix<float, -1, 1, 0, kMaxCtrlElem, 1> VecCtrlSig;
 typedef rapidjson::Value ObjJson;
 
 
@@ -37,7 +32,7 @@ struct SigStruct {
 // Base Class for all Ctrl systems
 class CtrlBase {
  public:
-  virtual void Config(const ObjJson &objJson) {};
+  virtual void Config(const ObjJson &objJson, const std::string &defPath) {};
   virtual void Run(const float &dt_s, float *cmd) {};
 
   virtual ~CtrlBase() {};
@@ -46,7 +41,7 @@ class CtrlBase {
 // Ctrl Empty system
 class CtrlNone : public CtrlBase  {
  public:
-  void Config(const ObjJson &objJson) {};
+  void Config(const ObjJson &objJson, const std::string &defPath) {};
   void Run(const float &dt_s, float *cmd) {};
 
   ~CtrlNone() {};
@@ -55,7 +50,7 @@ class CtrlNone : public CtrlBase  {
 // Ctrl PID2 system
 class CtrlPid2 : public CtrlBase  {
  public:
-  void Config(const ObjJson &objJson);
+  void Config(const ObjJson &objJson, const std::string &defPath);
   void Run(const float &dt_s, float *cmd);
 
   ~CtrlPid2() {};
@@ -66,7 +61,7 @@ class CtrlPid2 : public CtrlBase  {
 // Ctrl PI+Damp system
 class CtrlPiDamp : public CtrlBase   {
  public:
-  void Config(const ObjJson &objJson) {};
+  void Config(const ObjJson &objJson, const std::string &defPath) {};
   void Run(const float &dt_s, float *cmd) {};
 
   ~CtrlPiDamp() {};
@@ -77,7 +72,7 @@ class CtrlPiDamp : public CtrlBase   {
 // Ctrl PI+Damp system
 class CtrlSS : public CtrlBase   {
  public:
-  void Config(const ObjJson &objJson) {};
+  void Config(const ObjJson &objJson, const std::string &defPath) {};
   void Run(const float &dt_s, float *cmd) {};
 
   ~CtrlSS() {};

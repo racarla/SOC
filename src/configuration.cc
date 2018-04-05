@@ -20,20 +20,12 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SO
 
 #include "configuration.hxx"
 
-void Configuration::LoadConfiguration(std::string FileName) {
+void Configuration::LoadConfiguration(std::string FileName,rapidjson::Document *Configuration) {
   // load config file
   std::ifstream ConfigFile(FileName);
   std::string ConfigBuffer((std::istreambuf_iterator<char>(ConfigFile)),std::istreambuf_iterator<char>());
   // parse JSON
   rapidjson::StringStream JsonConfig(ConfigBuffer.c_str());
-  AircraftConfiguration_.ParseStream(JsonConfig);
-  assert(AircraftConfiguration_.IsObject());
-  // find sensors
-  if (AircraftConfiguration_.HasMember("Sensors")) {
-    AircraftSensors_ = AircraftConfiguration_["Sensors"];
-  }
-}
-
-const rapidjson::Value& Configuration::GetSensorConfiguration() {
-  return AircraftSensors_;
+  Configuration->ParseStream(JsonConfig);
+  assert(Configuration->IsObject());
 }

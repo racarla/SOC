@@ -3,13 +3,22 @@ Simple control system tester
 
 See: LICENSE.md for Copyright and License Agreement
 
-g++-5 -std=c++11 -Wall -O3 -g -I../includes utilities.cxx ctrlFunc.cxx ctrlSys.cxx ctrlSysTest.cxx -o ctrlSysTest
+g++-7 -std=c++17 -Wall -O3 -g -I../includes configFunc.cxx ctrlFunc.cxx ctrlSys.cxx ctrlSysTest.cxx -o ctrlSysTest
 ./ctrlSysTest
 
 */
 
 #include <iostream>
+
+const uint8_t kMaxGuidCmd = 6;
+const uint8_t kMaxScasCmd = kMaxGuidCmd;
+const uint8_t kMaxCtrlEff = 20;
+
 #include "ctrlSys.hxx"
+
+typedef Eigen::Matrix<float, -1, 1, 0, kMaxGuidCmd, 1> VecGuid;
+typedef Eigen::Matrix<float, -1, 1, 0, kMaxScasCmd, 1> VecScas;
+typedef Eigen::Matrix<float, -1, 1, 0, kMaxCtrlEff, 1> VecEff;
 
 
 int main(void)  /* Program tester */

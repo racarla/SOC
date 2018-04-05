@@ -1,103 +1,99 @@
 #
 # MAKEFILE
-# 
-# See: LICENSE.md for Copyright and License Agreement
 #
-# History:
-# Chris Regan
-# 2017-11-12 - Chris Regan - Merged seperate makefiles into a single source
+# Brian R Taylor
+# brian.taylor@bolderflight.com
 #
+# Copyright (c) 2018 Bolder Flight Systems
+# Permission is hereby granted, free of charge, to any person obtaining a copy of this software
+# and associated documentation files (the "Software"), to deal in the Software without restriction,
+# including without limitation the rights to use, copy, modify, merge, publish, distribute,
+# sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+# The above copyright notice and this permission notice shall be included in all copies or
+# substantial portions of the Software.
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING
+# BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+# NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+# DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #
 
+# output targets
+TARGET_FLIGHT := flightcode
+TARGET_DATALOG := datalog-server
 # compiler
-CC_ARM := arm-linux-gnueabihf-g++-5 -O3
-CC := g++-5
-CFLAGS := -std=c++0x -Wall
+CXX := arm-linux-gnueabihf-g++-7
+# cxx flags
+override CXXFLAGS += -std=c++17 -O3 -Wno-psabi -I includes/
+# directory structure
+OBJDIR := obj
+BINDIR := bin
+SRCDIR := src
+# flight code objects
+OBJECTS_FLIGHT := \
+uNavINS.o \
+AirData.o \
+configuration.o \
+definition-tree.o \
+datalog.o \
+fmu.o \
+flightcode.o
+# datalog server objects
+OBJECTS_DATALOG := \
+definition-tree.o \
+datalog.o \
+datalog-server.o
+# add prefix to objects
+OBJS_FLIGHT := $(addprefix $(OBJDIR)/,$(OBJECTS_FLIGHT))
+OBJS_DATALOG := $(addprefix $(OBJDIR)/,$(OBJECTS_DATALOG))
 
-# src
-DIR_FLIGHT := soc-src
-DIR_CONFIG := fmu-cfg
-DIR_BIN2HDF := bin2hdf-src
+# rules
+all: flightcode datalog-server | $(OBJDIR)
 
-# includes
-IFLAGS := -Isoc-includes -I/usr/local/include -I/usr/include/hdf5/serial
+flightcode: $(addprefix $(BINDIR)/,$(TARGET_FLIGHT))
 
-# configuration
-LFLAGS_FLIGHT :=
-LFLAGS_CONFIG :=
-LFLAGS_BIN2HDF := -lz -lm -lhdf5_cpp -lhdf5_serial
+datalog-server: $(addprefix $(BINDIR)/,$(TARGET_DATALOG))
 
-# source code to be compiled
-SRC_FLIGHT :=\
-$(DIR_FLIGHT)/navigation.cxx \
-$(DIR_FLIGHT)/airdata.cxx \
-$(DIR_FLIGHT)/EKF_15state.cxx \
-$(DIR_FLIGHT)/nav_functions.cxx \
-$(DIR_FLIGHT)/datalogger.cxx \
-$(DIR_FLIGHT)/config.cxx \
-$(DIR_FLIGHT)/fmu.cxx \
-$(DIR_FLIGHT)/missionMgr.cxx \
-$(DIR_FLIGHT)/cntrlMgr.cxx \
-$(DIR_FLIGHT)/cntrlFunc.cxx \
-$(DIR_FLIGHT)/exciteMgr.cxx \
-$(DIR_FLIGHT)/exciteGenFunc.cxx \
-$(DIR_FLIGHT)/cntrlAllocFunc.cxx \
-$(DIR_FLIGHT)/main.cxx
-
-SRC_CAL :=\
-$(DIR_FLIGHT)/config.cxx \
-$(DIR_FLIGHT)/fmu.cxx \
-$(DIR_FLIGHT)/missionMgr.cxx \
-$(DIR_FLIGHT)/inclinometer.cxx \
-$(DIR_FLIGHT)/mainCal.cxx
-
-SRC_CONFIG :=\
-$(DIR_CONFIG)/config.cxx \
-$(DIR_CONFIG)/fmu.cxx \
-$(DIR_CONFIG)/main.cxx
-
-SRC_BIN2HDF :=\
-$(DIR_BIN2HDF)/hdf5class.cxx \
-$(DIR_BIN2HDF)/config.cxx \
-$(DIR_BIN2HDF)/main.cxx
-
-# Create lists of object code
-OBJ_FLIGHT := ${SRC_FLIGHT:%.cxx=%.o}
-OBJ_CAL := ${SRC_CAL:%.cxx=%.o}
-OBJ_CONFIG := ${SRC_CONFIG:%.cxx=%.o}
-OBJ_BIN2HDF := ${SRC_BIN2HDF:%.cxx=%.o}
-
-# Build rules
-all: flightcode calib config bin2hdf display
-
-#%.o: %.cxx
-#	$(CC_ARM) $(CFLAGS) $(IFLAGS) -c -o $@ $<
-
-flightcode: $(SRC_FLIGHT)
-	@ echo "Building flightcode ..."	
-	$(CC_ARM) $(CFLAGS) $(IFLAGS) -o $@ $? $(LFLAGS_FLIGHT)
-
-calib: $(SRC_CAL)
-	@ echo "Building calibration ..."	
-	$(CC_ARM) $(CFLAGS) $(IFLAGS) -o $@ $? $(LFLAGS_FLIGHT)
-
-config: $(SRC_CONFIG)
-	@ echo "Building config ..."	
-	$(CC_ARM) $(CFLAGS) $(IFLAGS) -o $@ $? $(LFLAGS_CONFIG)
-
-bin2hdf: $(SRC_BIN2HDF)
-	@ echo "Building bin2hdf ..."	
-	$(CC) $(CFLAGS) $(IFLAGS) -o $@ $? $(LFLAGS_BIN2HDF)
-
-clean:
-	rm -f $(OBJ_FLIGHT) $(OBJ_CAL) ${OBJ_CONFIG} ${OBJ_CONFIG}
-	rm -f flightcode calib config bin2hdf
-
-display: 
+$(addprefix $(BINDIR)/,$(TARGET_FLIGHT)): $(OBJS_FLIGHT) | $(BINDIR)
+	@ echo
+	@ echo "Building flight code..."
+	@ echo
+	$(CXX) $(CXXFLAGS) -o $(addprefix $(BINDIR)/,$(TARGET_FLIGHT)) $(OBJS_FLIGHT)
 	@ echo
 	@ echo "Successful build."
 	@ echo ""
-	@ echo "Bolder Flight Systems, Bolder by Design!"
-	@ echo "Copyright (c) 2017 Bolder Flight Systems"
+	@ echo "Bolder Flight Systems, by Design!"
+	@ echo "Copyright (c) 2018 Bolder Flight Systems"
 	@ echo "bolderflight.com"
-	@ echo "" 
+	@ echo ""
+
+$(addprefix $(BINDIR)/,$(TARGET_DATALOG)): $(OBJS_DATALOG) | $(BINDIR)
+	@ echo
+	@ echo "Building datalog server..."
+	@ echo
+	$(CXX) $(CXXFLAGS) -o $(addprefix $(BINDIR)/,$(TARGET_DATALOG)) $(OBJS_DATALOG)
+	@ echo
+	@ echo "Successful build."
+	@ echo ""
+	@ echo "Bolder Flight Systems, by Design!"
+	@ echo "Copyright (c) 2018 Bolder Flight Systems"
+	@ echo "bolderflight.com"
+	@ echo ""
+
+$(OBJS_FLIGHT): $(addprefix $(OBJDIR)/,%.o): $(addprefix $(SRCDIR)/,%.cc) | $(OBJDIR)
+	$(CXX) $(CXXFLAGS) -c $< -o $@
+
+$(addprefix $(OBJDIR)/,datalog-server.o): $(addprefix $(SRCDIR)/,datalog-server.cc) | $(OBJDIR)
+	$(CXX) $(CXXFLAGS) -c $< -o $@
+
+$(OBJDIR):
+	mkdir $(OBJDIR)
+
+$(BINDIR):
+	mkdir $(BINDIR)
+
+# clean targets and objects
+.PHONY: clean
+clean:
+	-rm $(addprefix $(BINDIR)/,$(TARGET_FLIGHT)) $(addprefix $(BINDIR)/,$(TARGET_DATALOG)) $(OBJS_FLIGHT) $(addprefix $(OBJDIR)/,datalog-server.o)

@@ -13,9 +13,6 @@ void CtrlSys::ConfigGroup(const ObjJson &objJson, SysGroupMap *sysGroupMap) {
   // Iterate through each of the CtrlSys entities, Create a Map of CtrlSys Classes
   assert(objJson.IsObject()); // objJson is an object, iterate through each member
 
-  // Create the signal path
-  std::string sigPath = 
-
   // Create Map of Classes for the Control Group
   Json2Stl_MapVecString(objJson, sysGroupMap);
 }
@@ -48,7 +45,7 @@ void CtrlSys::ConfigDefVec(const ObjJson &objJson, SysDefVec *sysDefVec) {
   assert(objJson.IsArray()); // objJson is an object, iterate through each member
   rapidjson::SizeType numElemJson = (uint8_t) objJson.Size();
   for (rapidjson::SizeType i = 0; i < numElemJson; i++) {
-    if (kVerboseConfig) std::cout << "Ctrl #: " << i;
+    if (kVerboseConfig) std::cout << "\tCtrl #: " << i;
     const ObjJson &objCurr = objJson[i];
 
     SysInstPtr sysInstPtr;
@@ -61,9 +58,15 @@ void CtrlSys::ConfigDefVec(const ObjJson &objJson, SysDefVec *sysDefVec) {
 // Configuration of a single instance of a controllers
 void CtrlSys::ConfigDefInst(const ObjJson &objJson, SysInstPtr *sysInstPtr) {
   // Get the sytem type from the JSON object
+  assert(objJson.HasMember("Desc"));
+  std::string descStr = objJson["Desc"].GetString();
+
   assert(objJson.HasMember("Type"));
   std::string typeStr = objJson["Type"].GetString();
-  if (kVerboseConfig) std::cout << "\tType: " << typeStr << std::endl; // Print the System Type
+
+  if (kVerboseConfig) {
+    std::cout << "  Desc: " << descStr << "  Type: " << typeStr << std::endl; // Print the System Type
+  }
 
   // Hash the Type string into enumeration members
   EnumType eType = kNone;
@@ -77,7 +80,7 @@ void CtrlSys::ConfigDefInst(const ObjJson &objJson, SysInstPtr *sysInstPtr) {
   } else if (typeStr == "SS") {
     eType = kSS;
   } else {
-    std::cout << "Unknown Type: " << typeStr << std::endl; // Print error message
+    std::cout << "\nUnknown Type: " << typeStr << std::endl; // Print error message
   }
 
   // Create a pointer to the proper class of waveform
@@ -97,11 +100,12 @@ void CtrlSys::ConfigDefInst(const ObjJson &objJson, SysInstPtr *sysInstPtr) {
   }
 
   // Call the Config method
-  (*sysInstPtr)->Config(objJson);
+  std::string defPath = descStr;
+  (*sysInstPtr)->Config(objJson, defPath);
 }
 
 
-void CtrlPid2::Config(const ObjJson &objJson) {
+void CtrlPid2::Config(const ObjJson &objJson, const std::string &defPath) {
     // Set all the Default Values
     float refScale = 1.0;
     float cmdMin = -1000.0;
@@ -131,12 +135,12 @@ void CtrlPid2::Config(const ObjJson &objJson) {
 
     // Print the Config
     if (kVerboseConfig) {
-      std::cout << "\trefScale: " << refScale << "\t";
-      std::cout << "Kp: " << Kp << "\t";
-      std::cout << "Ki: " << Ki << "\t";
-      std::cout << "Kd: " << Kd << "\t";
-      std::cout << "b: " << b << "\t";
-      std::cout << "c: " << c << "\t";
+      std::cout << "\t\trefScale: " << refScale << "  ";
+      std::cout << "Kp: " << Kp << "  ";
+      std::cout << "Ki: " << Ki << "  ";
+      std::cout << "Kd: " << Kd << "  ";
+      std::cout << "b: " << b << "  ";
+      std::cout << "c: " << c << "  ";
       std::cout << "cmdRng: [" << cmdMin << "," << cmdMax << "]" << std::endl;
     }
 
@@ -144,12 +148,27 @@ void CtrlPid2::Config(const ObjJson &objJson) {
     // Default values
     float refVal = 0.0;
     std::pair<std::string, std::string> refStr = {"None", "None"};
+    if (objJson.HasMember("RefSignal")) {
+      assert(objJson["RefSignal"].IsArray());
+      // Loop through elements of the Signal Json ArraySize, get the Strings
+      // VecString refVecString;
+      // Json2Stl_VecString(objJson, &refVecString);
+      // std::cout << refVecString << std::endl;
+      if (objJson["RefSignal"][0].IsString()) {
+        std::cout << defPath + objJson["RefSignal"][0].GetString() << std::endl;
+      } else if(objJson["RefSignal"][0].IsNumber()) {
+        std::cout << objJson["RefSignal"][0].GetFloat() << std::endl;
+      }
+    }
+
 
     float measVal = 0.0;
     std::pair<std::string, std::string> measStr = {"None", "None"};
 
     float outVal = 0.0;
     std::pair<std::string, std::string> outStr = {"None", "None"};
+    // DefinitionTreePtr->InitMember(defPath + "/" + std::to_string(i) + "/AccelX_mss",&SensorData_.Mpu9250[i].Accel_mss(0,0),"MPU-9250_" + std::to_string(i) + " X accelerometer, corrected for installation rotation, m/s/s",true,false);
+
 
 }
 

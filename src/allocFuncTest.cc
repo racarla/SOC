@@ -10,8 +10,8 @@ g++-5 -std=c++11 -Wall -O3 -g -I../includes allocFunc.cxx allocFuncTest.cxx -o a
 
 #include <cstdio>
 #include <ctime>
-
 #include <iostream>
+
 #include "allocFunc.hxx"
 
 

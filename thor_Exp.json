@@ -34,7 +34,7 @@
     "CtrlSys": {
       "Group": {
         "CtrlBaseline": ["GuidBaseline", "ScasBaseline"],
-        "CtrlResearch1": ["GuidSpeedHold", "ScasAttitude+SpeedHold"]
+        "CtrlResearch1": ["GuidSpeedHold", "ScasAttitude"]
       },
 
       "Define": {
@@ -48,19 +48,19 @@
 
         "ScasBaseline": [
           {"Desc": "Roll", "Type": "Manual",
-            "RefSignal": [], "OutSignal": [], "MeasSignal": 0,
+            "RefSignal": ["cmdPilotRoll_nd"], "OutSignal": ["cmdAllocRoll_rps"], "MeasSignal": 0,
             "refScale": 1.0472, "cmdRng": [-1.0472, 1.0472], "Kp": 1.0},
           {"Desc": "Pitch", "Type": "Manual",
-            "RefSignal": [], "OutSignal": [], "MeasSignal": 0,
+            "RefSignal": ["cmdPilotPitch_nd"], "OutSignal": ["cmdAllocPitch_rps"], "MeasSignal": 0,
             "refScale": 1.0472, "cmdRng": [-1.0472, 1.0472], "Kp": 1.0},
           {"Desc": "Yaw", "Type": "Manual",
-            "RefSignal": [], "OutSignal": [], "MeasSignal": 0,
+            "RefSignal": ["cmdPilotYaw_nd"], "OutSignal": ["cmdAllocYaw_rps"], "MeasSignal": 0,
             "refScale": 0.523599, "cmdRng": [-0.523599, 0.523599], "Kp": 1.0},
           {"Desc": "Lift", "Type": "Manual",
-            "RefSignal": [], "OutSignal": [], "MeasSignal": 0,
+            "RefSignal": ["cmdPilotFlap_nd"], "OutSignal": ["cmdAllocFlap_rps"], "MeasSignal": 0,
             "refScale": 0.436332, "cmdRng": [-0.436332, 0.436332], "Kp": 1.0},
           {"Desc": "Speed", "Type": "Manual",
-            "RefSignal": [], "OutSignal": [], "MeasSignal": 0,
+            "RefSignal": ["cmdPilotThrot_nd"], "OutSignal": [], "MeasSignal": 0,
             "refScale": 1.0, "cmdRng": [0.0, 1.0], "Kp": 1.0}
         ],
 
@@ -70,11 +70,11 @@
           {"Desc": "Yaw", "Type": "None"},
           {"Desc": "Lift", "Type": "None"},
           {"Desc": "Speed", "Type": "PID2",
-            "RefSignal": 17, "OutSignal": ["cmdGuidSpeed_mps"], "MeasSignal": ["/InProc/Airdata/vIasFilt_mps"],
+            "RefSignal": [17], "OutSignal": ["cmdGuidSpeed_mps"], "MeasSignal": ["/InProc/Airdata/vIasFilt_mps"],
             "refScale": 30.0, "cmdRng": [0.0, 1.0], "Kp": 0.150, "Ki": 0.040}
         ],
 
-        "ScasAttitude+SpeedHold": [
+        "ScasAttitude": [
           {"Desc": "Roll", "Type": "PI+Damp",
             "RefSignal": ["cmdPilotRoll_nd"], "OutSignal": ["cmdAllocRoll_rps"], "MeasSignal": ["/InProc/NavFilt/eulerRoll_rad"], "MeasDamp": ["/InProc/NavFilt/omegaRoll_rps"],
             "refScale": 1.0472, "cmdRng": [-1.0472, 1.0472], "Kp": 0.640, "Ki": 0.200, "Kd": 0.070},
