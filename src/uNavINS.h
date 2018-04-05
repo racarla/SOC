@@ -43,6 +43,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SO
 
 #ifndef UNAVINS_H
 #define UNAVINS_H
+
 #if defined(ARDUINO)
   #include "Arduino.h"
   #include "Eigen.h"
@@ -54,11 +55,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SO
   #include <Eigen/Core>
   #include <Eigen/Dense>
 
-  uint64_t micros() {
-      struct timeval tv;
-      gettimeofday(&tv,NULL);
-      return tv.tv_sec*(uint64_t)1000000+tv.tv_usec;
-  }
+  uint64_t micros();
 
   class elapsedMicros
   {
