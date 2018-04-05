@@ -60,8 +60,9 @@ int main(int argc, char* argv[]) {
   Config.LoadConfiguration(argv[1], &AircraftConfiguration);
   assert(AircraftConfiguration.HasMember("Sensors"));
   Fmu.UpdateConfiguration(AircraftConfiguration["Sensors"]);
-  assert(AircraftConfiguration.HasMember("Sensor-Processing"));
-  SenProc.UpdateConfiguration(AircraftConfiguration["Sensor-Processing"]);
+  if (AircraftConfiguration.HasMember("Sensor-Processing")) {
+    SenProc.UpdateConfiguration(AircraftConfiguration["Sensor-Processing"]);
+  }
 
   /* Register classes with GlobalData */
   std::cout << "Registering classes with global definition tree..." << std:: endl;
