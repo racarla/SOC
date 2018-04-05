@@ -32,6 +32,7 @@ BINDIR := bin
 SRCDIR := src
 # flight code objects
 OBJECTS_FLIGHT := \
+uNavINS.o \
 AirData.o \
 configuration.o \
 definition-tree.o \
