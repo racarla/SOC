@@ -23,6 +23,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SO
 #include "configuration.hxx"
 #include "datalog.hxx"
 #include "fmu.hxx"
+#include "sensor-processing.hxx"
 #include "rapidjson/document.h"
 #include "rapidjson/stringbuffer.h"
 #include "rapidjson/writer.h"
@@ -45,22 +46,27 @@ int main(int argc, char* argv[]) {
   Configuration Config;
   DefinitionTree GlobalData;
   FlightManagementUnit Fmu;
+  SensorProcessing SenProc;
   DatalogClient Datalog;
 
   /* initialize classes */
   std::cout << "Initializing software modules..." << std:: endl;
   std::cout << "\tInitializing FMU..." << std::endl;
   Fmu.Begin();
+  SenProc.Begin();
 
   /* configure classes */
   rapidjson::Document AircraftConfiguration;
   Config.LoadConfiguration(argv[1], &AircraftConfiguration);
   assert(AircraftConfiguration.HasMember("Sensors"));
   Fmu.UpdateConfiguration(AircraftConfiguration["Sensors"]);
+  assert(AircraftConfiguration.HasMember("Sensor-Processing"));
+  SenProc.UpdateConfiguration(AircraftConfiguration["Sensor-Processing"]);
 
   /* Register classes with GlobalData */
   std::cout << "Registering classes with global definition tree..." << std:: endl;
   Fmu.RegisterGlobalData(&GlobalData);
+  SenProc.RegisterGlobalData(&GlobalData);
   Datalog.RegisterGlobalData(GlobalData);
 
   while(1) {
