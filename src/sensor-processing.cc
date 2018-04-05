@@ -31,3 +31,11 @@ void SensorProcessing::UpdateConfiguration(const rapidjson::Value& SensorConfig)
 void SensorProcessing::RegisterGlobalData(DefinitionTree *DefinitionTreePtr) {
 
 }
+
+bool SensorProcessing::Initialized() {
+
+}
+
+void SensorProcessing::Run() {
+
+}

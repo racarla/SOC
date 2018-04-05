@@ -71,7 +71,11 @@ int main(int argc, char* argv[]) {
 
   while(1) {
     if (Fmu.ReceiveSensorData()) {
-      Datalog.LogBinaryData();
+      if (SenProc.Initialized()) {
+        SenProc.Run();
+
+        Datalog.LogBinaryData();
+      }
     }
   }
 

@@ -49,6 +49,8 @@ class SensorProcessing {
     void Begin();
     void UpdateConfiguration(const rapidjson::Value& SensorConfig);
     void RegisterGlobalData(DefinitionTree *DefinitionTreePtr);
+    bool Initialized();
+    void Run();
   private:
     Classes classes_;
     Data data_;
