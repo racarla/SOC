@@ -20,7 +20,7 @@ History:
 #include <Eigen/Core>
 
 #include "waveFunc.hxx"
-#include "utilities.hxx"
+#include "configFunc.hxx"
 
 #ifndef kVerboseConfig
 #define kVerboseConfig 1

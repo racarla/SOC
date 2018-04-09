@@ -2,7 +2,7 @@
 Simple wave system tester
 Create a map of wave systems, configure, run
 
-g++-5 -std=c++11 -Wall -O3 -g -I../includes waveFunc.cc configFunc.cc waveSys.cc waveSysTest.cc -o waveSysTest
+g++-5 -std=c++17 -Wall -O3 -g -I../includes waveFunc.cc configFunc.cc waveSys.cc waveSysTest.cc -o waveSysTest
 ./waveSysTest
 
 See: LICENSE.md for Copyright and License Agreement
