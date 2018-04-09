@@ -95,7 +95,7 @@
     "AllocSys": {
       "Baseline": [
         {"Desc": "Alloc_Simple", "Type": "Pseudo",
-          "RefSignal": ["/CtrlSys/Scas/cmdRoll_rps", "/CtrlSys/Scas/cmdRoll_rpsPitch", "/CtrlSys/Scas/cmdRoll_rpsYaw"],
+          "RefSignal": ["/CtrlSys/Scas/cmdRoll_rps", "/CtrlSys/Scas/cmdPitch_rps", "/CtrlSys/Scas/cmdYaw_rps"],
           "OutSignal": ["/CtrlSys/Eff/cmdElev_rad", "/CtrlSys/Eff/cmdRud_rad", "/CtrlSys/Eff/cmdAilR_rad", "/CtrlSys/Eff/cmdFlapR_rad", "/CtrlSys/Eff/cmdFlapL_rad", "/CtrlSys/Eff/cmdAilL_rad"],
           "cntrlEff": [
             [0.0000,  0.0000, -78.235,  0.0000,  0.0000,  78.235],

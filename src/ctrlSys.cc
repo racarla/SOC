@@ -68,67 +68,50 @@ void CtrlSys::ConfigDefInst(const ObjJson &objJson, SysInstPtr *sysInstPtr, Defi
     std::cout << "  Desc: " << descStr << "  Type: " << typeStr << std::endl; // Print the System Type
   }
 
-  // Hash the Type string into enumeration members
+  // Create a pointer to the proper class of controller
   EnumType eType = kNone;
 
   if (typeStr == "None") {
     eType = kNone;
+    *sysInstPtr = std::make_shared<CtrlNone>();
   } else if (typeStr == "Const") {
     eType = kConst;
+    *sysInstPtr = std::make_shared<CtrlConst>();
   } else if (typeStr == "Sum") {
     eType = kSum;
+    *sysInstPtr = std::make_shared<CtrlSum>();
   } else if (typeStr == "Gain") {
     eType = kGain;
+    *sysInstPtr = std::make_shared<CtrlGain>();
   } else if ((typeStr == "PID2")) {
     eType = kPid2;
+    *sysInstPtr = std::make_shared<CtrlPid2>();
   } else if (typeStr == "SS") {
     eType = kSS;
+    *sysInstPtr = std::make_shared<CtrlSS>();
   } else {
     std::cout << "\nUnknown Type: " << typeStr << std::endl; // Print error message
   }
 
-  // Create a pointer to the proper class of controller
-  switch (eType){
-    case kNone:
-      *sysInstPtr = std::make_shared<CtrlNone>();
-      break;
-    case kConst:
-      *sysInstPtr = std::make_shared<CtrlConst>();
-      break;
-    case kSum:
-      *sysInstPtr = std::make_shared<CtrlSum>();
-      break;
-    case kGain:
-      *sysInstPtr = std::make_shared<CtrlGain>();
-      break;
-    case kPid2:
-      *sysInstPtr = std::make_shared<CtrlPid2>();
-      break;
-    case kSS:
-      *sysInstPtr = std::make_shared<CtrlSS>();
-      break;
-  }
-
   // Call the Config method, this will make local copies of the controller specific parameters
   std::string defPath = descStr;
-  (*sysInstPtr)->Config(objJson);
+  (*sysInstPtr)->Config(objJson, signalTreePtr);
 
   // Parse the Signal descriptions
-
-  float *targetPtr; // FIXIT need to point to SOMETHING!
-
-  std::string defSignal = "RefSignal";
-  ConfigSignal(objJson, defSignal, targetPtr, signalTreePtr);
-
-  defSignal = "MeasSignal";
-  ConfigSignal(objJson, defSignal, targetPtr, signalTreePtr);
-
-  defSignal = "OutSignal";
-  ConfigSignal(objJson, defSignal, targetPtr, signalTreePtr);
+  // float *targetPtr; // FIXIT need to point to SOMETHING! Make a Vector of Pointers
+  //
+  // std::string defSignal = "RefSignal";
+  // ConfigSignal(objJson, defSignal, targetPtr, signalTreePtr);
+  //
+  // defSignal = "MeasSignal";
+  // ConfigSignal(objJson, defSignal, targetPtr, signalTreePtr);
+  //
+  // defSignal = "OutSignal";
+  // ConfigSignal(objJson, defSignal, targetPtr, signalTreePtr);
 }
 
 // FIXIT!! replace "RefSignal" with defSignal
-void CtrlSys::ConfigSignal(const ObjJson &objJson, const std::string &defSignal, float *targetPtr, DefinitionTree *signalTreePtr) {
+void CtrlSys::ConfigSignal(const ObjJson &objJson, const std::string &defSignal, VecSignalPtr *targetPtr, DefinitionTree *signalTreePtr) {
   if (objJson.HasMember(defSignal.c_str())) {
     assert(objJson[defSignal.c_str()].IsArray());
 
@@ -137,7 +120,7 @@ void CtrlSys::ConfigSignal(const ObjJson &objJson, const std::string &defSignal,
     Json2Stl_VecString(objJson[defSignal.c_str()], &vecString);
 
     for (uint8_t i = 0; i < vecString.size(); i++) {
-      signalTreePtr->InitMember(vecString[i], targetPtr, "NaN", true, false);
+      signalTreePtr->InitMember(vecString[i], targetPtr[i], "NaN", true, false);
     }
 
     if (kVerboseConfig) {
@@ -152,26 +135,31 @@ void CtrlSys::ConfigSignal(const ObjJson &objJson, const std::string &defSignal,
 
 
 // Controller Type Const
-void CtrlConst::Config(const ObjJson &objJson) {
-    // Set all the Default Values
-    float val = 0.0;
+void CtrlConst::Config(const ObjJson &objJson, DefinitionTree *signalTreePtr) {
+  // Set all the Default Values
+  float val = 0.0;
 
-    // Load Values defined in Json
-    if(objJson.HasMember("Const")) val = objJson["Const"].GetFloat();
+  // Load Values defined in Json
+  assert(objJson.HasMember("Const"));
+  val = objJson["Const"].GetFloat();
 
-    // Configure the Controller
-    val_ = val;
+  // Configure the Controller
+  val_ = val;
 
-    // Print the Config
-    if (kVerboseConfig) {
-      std::cout << "\t\tConst: " << val << std::endl;
-    }
+  // Print the Config
+  if (kVerboseConfig) {
+    std::cout << "\t\tConst: " << val << std::endl;
+  }
+
+  // Parse the Signal descriptions
+  std::string defSignal = "OutSignal";
+  CtrlSys::ConfigSignal(objJson, defSignal, vecOutSignalPtr_, signalTreePtr);
 }
 
 // FIXIT
 void CtrlConst::Run(DefinitionTree *signalTreePtr) {
   // put into definition tree
-  
+
 }
 
 // Controller Type Sum
@@ -246,15 +234,15 @@ void CtrlPid2::Config(const ObjJson &objJson) {
 }
 
 // FIXIT
-void CtrlPid2::Run(DefinitionTree *signalTreePtr) {
+void CtrlPid2::Run(DefinitionTree *signalTreePtr, CtrlMode &ctrlMode) {
 
   // pull values from sigStruct
-  // float ref = 1.0;
-  // float meas = 0.0;
-  // *cmd = 0.0;
-  //
-  // ctrlFuncPid2_.mode_ = kCtrlEngage;
-  // ctrlFuncPid2_.Run(ref, meas, dt_s, cmd);
+  float ref = 1.0;
+  float meas = 0.0;
+  *cmd = 0.0;
+
+  ctrlFuncPid2_.mode_ = ctrlMode;
+  ctrlFuncPid2_.Run(ref, meas, dt_s, cmd);
 
   // put cmd back into definition tree
 }

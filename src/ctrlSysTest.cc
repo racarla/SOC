@@ -67,23 +67,23 @@ int main(void)  /* Program tester */
 
   std::string groupSelect = "Baseline";
 
-  for (tCurr_s = 0.0; tCurr_s < 2; tCurr_s += 0.2) {
-
-    std::cout << tCurr_s << "\t";
-
-    uint8_t numSet = ctrlGroupMap[groupSelect].size();
-    for (uint8_t iSet = 0; iSet < numSet; iSet++) {
-
-      std::string ctrlSelect = ctrlGroupMap[groupSelect][iSet];
-
-      uint8_t numSelect = ctrlDefMap[ctrlSelect].size();
-
-      // Run each of the controllers defined in the set, in defined sequence
-      for (uint8_t vecSelect = 0; vecSelect < numSelect; vecSelect++) {
-        ctrlDefMap[ctrlSelect][vecSelect]->Run(&signalTree);
-        std::cout << cmd << "\t";
-      }
-    }
-    std::cout << std::endl;
-  }
+  // for (tCurr_s = 0.0; tCurr_s < 2; tCurr_s += 0.2) {
+  //
+  //   std::cout << tCurr_s << "\t";
+  //
+  //   uint8_t numSet = ctrlGroupMap[groupSelect].size();
+  //   for (uint8_t iSet = 0; iSet < numSet; iSet++) {
+  //
+  //     std::string ctrlSelect = ctrlGroupMap[groupSelect][iSet];
+  //
+  //     uint8_t numSelect = ctrlDefMap[ctrlSelect].size();
+  //
+  //     // Run each of the controllers defined in the set, in defined sequence
+  //     for (uint8_t vecSelect = 0; vecSelect < numSelect; vecSelect++) {
+  //       ctrlDefMap[ctrlSelect][vecSelect]->Run(&signalTree);
+  //       std::cout << cmd << "\t";
+  //     }
+  //   }
+  //   std::cout << std::endl;
+  // }
 }

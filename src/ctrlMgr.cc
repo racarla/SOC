@@ -14,27 +14,9 @@ typedef rapidjson::Value ObjJson;
 
 void CtrlMgr::Config(const ObjJson &objJson) {
 
-  // Create and Configure the Vehicle Definitions, convert them into a Map of Map of floats.
-  assert(objJson.HasMember("VehDef")); // Check that VehDef exists
-  const ObjJson &objVehDef = objJson["VehDef"]; // Create Signals Object
-  // FIXIT - Convert the Json Object to the map container
-
-  // Create and Configure the Signal Definitions, convert to a Map of Map floats.
-  assert(objJson.HasMember("Signals")); // Check that Signals exists
-  MapVecString mapSignals;
-  Json2Stl_MapVecString(objJson["Signals"], &mapSignals); // Convert the Json Object to a map of vectors of strings
-
-  // CREATE AND CONFIGURE INPUT PROCESSING
-    // CREATE AND CONFIGURE NAVIGATION ESTIMATION FILTERS
-
-
-  // CREATE AND CONFIGURE AIRDATA
-  // CREATE AND CONFIGURE GUIDANCE SYSTEMS
-
   // CREATE AND CONFIGURE SCAS SYSTEMS
-
-  assert(objJson.HasMember("ScasSys")); // Check that SCAS systems exists
-  const ObjJson &objScas = objJson["ScasSys"]; // Create SCAS systems Object
+  assert(objJson.HasMember("CtrlSys")); // Check that Ctrl systems exists
+  const ObjJson &objCtrl = objJson["CtrlSys"]; // Create Ctrl systems Object
 
   // CREATE AND CONFIGURE CONTROL ALLOCATION SYSTEMS
 
