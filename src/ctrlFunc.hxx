@@ -22,28 +22,6 @@ class CtrlFuncNone {
   void Run(float *cmd) {*cmd = 0.0;};
 };
 
-// Define CtrlFuncPiDamp Class
-class CtrlFuncPiDamp {
- public:
-  CtrlMode mode_;
-  float iErrState_;
-
-  CtrlFuncPiDamp() {};
-  ~CtrlFuncPiDamp() {};
-  void Config(const float &Kp, const float &Ki, const float &Kd, const float &b, const float &refScale, const float &cmdMin, const float &cmdMax);
-  void Run(const float &ref, const float &meas, const float &dMeas, const float &dt_s, float *cmd);
-
- private:
-  float Kp_, Ki_, Kd_;
-  float b_;
-  float refScale_;
-  float cmdMin_, cmdMax_;
-
-  void InitState(const float &cmd, const float &pErr, const float &dErrState, float *iErrState);
-  void UpdState(const float &iErr, const float &dt_s, float *iErrState);
-  void CalcCmd(const float &pErr, const float &dErrState, float *cmd);
-};
-
 // Define CtrlFuncPid2 Class
 class CtrlFuncPid2 {
  public:
@@ -53,7 +31,7 @@ class CtrlFuncPid2 {
 
   CtrlFuncPid2() {};
   ~CtrlFuncPid2() {};
-  void Config(const float &Kp, const float &Ki, const float &Kd, const float &b, const float &c, const float &refScale, const float &cmdMin, const float &cmdMax);
+  void Config(const float &Kp, const float &Ki, const float &Kd, const float &b, const float &c, const float &cmdMin, const float &cmdMax);
   void Run(const float &ref, const float &meas, const float &dt_s, float *cmd);
 
  private:

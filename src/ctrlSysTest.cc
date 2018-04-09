@@ -3,7 +3,7 @@ Simple control system tester
 
 See: LICENSE.md for Copyright and License Agreement
 
-g++-7 -std=c++17 -Wall -O3 -g -I../includes configFunc.cxx ctrlFunc.cxx ctrlSys.cxx ctrlSysTest.cxx -o ctrlSysTest
+g++-7 -std=c++17 -Wall -O3 -g -I../includes DefinitionTree.cc configFunc.cc ctrlFunc.cc ctrlSys.cc ctrlSysTest.cc -o ctrlSysTest
 ./ctrlSysTest
 
 */
@@ -20,6 +20,8 @@ typedef Eigen::Matrix<float, -1, 1, 0, kMaxGuidCmd, 1> VecGuid;
 typedef Eigen::Matrix<float, -1, 1, 0, kMaxScasCmd, 1> VecScas;
 typedef Eigen::Matrix<float, -1, 1, 0, kMaxCtrlEff, 1> VecEff;
 
+#include "configuration.hxx"
+DefinitionTree signalTree;
 
 int main(void)  /* Program tester */
 {
@@ -44,7 +46,7 @@ int main(void)  /* Program tester */
 
   // Create a Map of Ctrl Classes
   CtrlSys::SysDefMap ctrlDefMap;
-  CtrlSys::ConfigDef(objCtrlDef, &ctrlDefMap);
+  CtrlSys::ConfigDef(objCtrlDef, &ctrlDefMap, &signalTree);
   std::cout << "Control Definitions Complete!!\tDefined: " << ctrlDefMap.size() << std::endl;
 
   // Create the Control Groups
@@ -78,7 +80,7 @@ int main(void)  /* Program tester */
 
       // Run each of the controllers defined in the set, in defined sequence
       for (uint8_t vecSelect = 0; vecSelect < numSelect; vecSelect++) {
-        ctrlDefMap[ctrlSelect][vecSelect]->Run(tCurr_s, &cmd);
+        ctrlDefMap[ctrlSelect][vecSelect]->Run(&signalTree);
         std::cout << cmd << "\t";
       }
     }

@@ -27,14 +27,19 @@ void DefinitionTree::DefineMember(std::string Name,struct VariableDefinition &Va
 
 /* Initializes new empty definition tree member given a name */
 void DefinitionTree::InitMember(std::string Name) {
-  struct VariableDefinition TempDef;
-  Data_[Name] = TempDef;
+  if(Data_.find(Name) == Data_.end()) { // Key Not Found, create a new entry
+    struct VariableDefinition TempDef;
+    Data_[Name] = TempDef;
+  }
 }
 
 /* Defines new definition tree member given a name, value, description, datalog, and telemetry */
 void DefinitionTree::InitMember(std::string Name,std::variant<uint64_t*,uint32_t*,uint16_t*,uint8_t*,int64_t*,int32_t*,int16_t*,int8_t*,float*, double*> Value,std::string Description,bool Datalog,bool Telemetry) {
-  struct VariableDefinition TempDef;
-  Data_[Name] = TempDef;
+  if(Data_.find(Name) == Data_.end()) { // Key Not Found, create a new entry
+    struct VariableDefinition TempDef;
+    Data_[Name] = TempDef;
+  }
+
   Data_[Name].Value = Value;
   Data_[Name].Description = Description;
   Data_[Name].Datalog = Datalog;

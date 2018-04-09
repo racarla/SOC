@@ -8,107 +8,8 @@ See: LICENSE.md for Copyright and License Agreement
 
 #include "ctrlFunc.hxx"
 
-// PI+Damper Controller, Set Parameters for the tunable controller
-void CtrlFuncPiDamp::Config(const float &Kp, const float &Ki, const float &Kd, const float &b, const float &refScale, const float &cmdMin, const float &cmdMax)
-{
-  mode_ = kCtrlStandby; // Initialize in Standby
-
-  Kp_ = Kp;
-  Ki_ = Ki;
-  Kd_ = Kd;
-
-  b_ = b;
-
-  refScale_ = refScale;
-  cmdMin_ = cmdMin;
-  cmdMax_ = cmdMax;
-
-  iErrState_ = 0.0; // Initialize Integrator State
-}
-
-void CtrlFuncPiDamp::Run(const float &ref, const float &meas, const float &dMeas, const float &dt_s, float *cmd)
-{
-  float refScaled = refScale_ * ref; // Scale the reference Signal
-
-  float pErr = (b_*refScaled) - meas; // Error for Proportional
-  float iErr = refScaled - meas; // Error for Integrator
-
-  float dErrState = 0 - dMeas; // Error for Derivative
-
-  *cmd = 0.0;
-
-  switch(mode_) {
-    case kCtrlReset: // Zero the State and Command
-      iErrState_ = 0.0;
-      pErr = 0.0;
-      *cmd = 0.0;
-
-      mode_ = kCtrlStandby;
-      break;
-
-    case kCtrlStandby: // Do Nothing, State and Command are unchanged
-      break;
-
-    case kCtrlHold: // Run Commands
-      CalcCmd(pErr, dErrState, cmd); // returns cmd
-      break;
-
-    case kCtrlInit: // Initialize State then Run Commands
-      InitState(0.0, iErr, dErrState, &iErrState_);
-      CalcCmd(pErr, dErrState, cmd); // returns cmd
-      break;
-
-    case kCtrlEngage: // Update the State then Run Commands
-      UpdState(iErr, dt_s, &iErrState_); // Update the state
-      CalcCmd(pErr, dErrState, cmd); // returns cmd
-      break;
-  }
-}
-
-// Initialize for near-zero transient
-void CtrlFuncPiDamp::InitState(const float &cmd, const float &pErr, const float &dErrState, float *iErrState)
-{
-  if (Ki_ != 0.0) { // Protect for Ki == 0
-    *iErrState = (cmd - (Kp_ * pErr + Kd_ * dErrState)) / Ki_; // Run the required state
-  } else {
-    *iErrState = 0.0; // Run the required state
-  }
-}
-
-// Initialize for near-zero transient
-void CtrlFuncPiDamp::UpdState(const float &iErr, const float &dt_s, float *iErrState)
-{
-  // Update the state
-  if (Ki_ != 0.0) { // Protect for unlimited windup when Ki == 0
-    *iErrState += (dt_s * iErr);
-  } else {
-    *iErrState = 0.0;
-  }
-}
-
-// Run the Command
-void CtrlFuncPiDamp::CalcCmd(const float &pErr, const float &dErrState, float *cmd)
-{
-  float pCmd = Kp_ * pErr;
-  float iCmd = Ki_ * iErrState_;
-  float dCmd = Kd_ * dErrState;
-
-  *cmd = pCmd + iCmd + dCmd;
-
-  // saturate cmd, set iErr to limit that produces saturated cmd
-  if (*cmd <= cmdMin_) {
-    *cmd = cmdMin_;
-    InitState(*cmd, pErr, dErrState, &iErrState_); // Re-compute the integrator state
-  } else if (*cmd >= cmdMax_) {
-    *cmd = cmdMax_;
-    InitState(*cmd, pErr, dErrState, &iErrState_); // Re-compute the integrator state
-  }
-}
-
-
-
 // PID2 Controller, Set Parameters for the tunable PID2 controller
-void CtrlFuncPid2::Config(const float &Kp, const float &Ki, const float &Kd, const float &b, const float &c, const float &refScale, const float &cmdMin, const float &cmdMax)
+void CtrlFuncPid2::Config(const float &Kp, const float &Ki, const float &Kd, const float &b, const float &c, const float &cmdMin, const float &cmdMax)
 {
   // Parameters match the PID2 system in MATLAB
 
@@ -121,7 +22,6 @@ void CtrlFuncPid2::Config(const float &Kp, const float &Ki, const float &Kd, con
   b_ = b;
   c_ = c;
 
-  refScale_ = refScale;
   cmdMin_ = cmdMin;
   cmdMax_ = cmdMax;
 
@@ -131,11 +31,9 @@ void CtrlFuncPid2::Config(const float &Kp, const float &Ki, const float &Kd, con
 
 void CtrlFuncPid2::Run(const float &ref, const float &meas, const float &dt_s, float *cmd)
 {
-  float refScaled = refScale_ * ref; // Scale the reference Signal
-
-  float pErr = (b_*refScaled) - meas; // Error for Proportional
-  float iErr = refScaled - meas; // Error for Integrator
-  float dErr = (c_*refScaled) - meas; // Error for Derivative
+  float pErr = (b_*ref) - meas; // Error for Proportional
+  float iErr = ref - meas; // Error for Integrator
+  float dErr = (c_*ref) - meas; // Error for Derivative
 
   // Derivative of Error
   float dErrState = 0.0;
