@@ -55,28 +55,25 @@ int main(int argc, char* argv[]) {
   Fmu.Begin();
   SenProc.Begin();
 
-  /* configure classes */
+  /* configure classes and register with global defs */
   rapidjson::Document AircraftConfiguration;
   Config.LoadConfiguration(argv[1], &AircraftConfiguration);
-  assert(AircraftConfiguration.HasMember("Sensors"));
-  Fmu.UpdateConfiguration(AircraftConfiguration["Sensors"]);
-  if (AircraftConfiguration.HasMember("Sensor-Processing")) {
-    SenProc.UpdateConfiguration(AircraftConfiguration["Sensor-Processing"]);
-  }
-
-  /* Register classes with GlobalData */
-  std::cout << "Registering classes with global definition tree..." << std:: endl;
+  Fmu.UpdateConfiguration(AircraftConfiguration);
   Fmu.RegisterGlobalData(&GlobalData);
-  SenProc.RegisterGlobalData(&GlobalData);
+  // if (AircraftConfiguration.HasMember("Sensor-Processing")) {
+  //   SenProc.UpdateConfiguration(AircraftConfiguration["Sensor-Processing"]);
+  // }
+  // SenProc.RegisterGlobalData(&GlobalData);
   Datalog.RegisterGlobalData(GlobalData);
 
+  /* main loop */
   while(1) {
     if (Fmu.ReceiveSensorData()) {
-      if (SenProc.Initialized()) {
-        SenProc.Run();
+      // if (SenProc.Initialized()) {
+      //   SenProc.Run();
 
         Datalog.LogBinaryData();
-      }
+      // }
     }
   }
 

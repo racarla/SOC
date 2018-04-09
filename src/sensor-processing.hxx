@@ -21,6 +21,8 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SO
 #ifndef SENSOR_PROCESSING_HXX_
 #define SENSOR_PROCESSING_HXX_
 
+#include "AirData.h"
+#include "uNavINS.h"
 #include "hardware-defs.hxx"
 #include "definition-tree.hxx"
 #include "rapidjson/document.h"
@@ -38,22 +40,56 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SO
 #include <cstring>
 #include <Eigen/Dense>
 
-class SensorProcessing {
+class BaselineAirData {
   public:
-    struct Classes {
-
+    void UpdateConfiguration(const rapidjson::Value& BaselineAirDataConfig);
+    void RegisterGlobalData(DefinitionTree *DefinitionTreePtr);
+    void Run();
+  private:
+    struct Config {
+      std::vector<std::string> StaticPressureSourceName;
+      std::vector<std::string> DifferentialPressureSourceName;
+      std::vector<std::string> TemperatureSourceName;
+      std::vector<std::string> MslAltSourceName;
+      std::vector<float*> StaticPressureSourcePtr;
+      std::vector<float*> DifferentialPressureSourcePtr;
+      std::vector<float> DifferentialPressureBiases;
+      std::vector<float*> TemperatureSourcePtr;
+      std::vector<float*> MslAltSourcePtr;
+      float InitialTemperature_C;
+      float InitialPressureAlt_m;
+      float InitialMSLAlt_m;
     };
     struct Data {
-
+      float StaticPressure_Pa;
+      float DifferentialPressure_Pa;
+      float Temperature_C;
+      float Density_kgm3;
+      float IAS_ms;
+      float EAS_ms;
+      float TAS_ms;
+      float PressureAltitude_m;
+      float AGL_m;
+      float MSL_m;
+      float DensityAltitude_m;
     };
+    AirData *airdata_;
+    Config config_;
+    Data data_;
+};
+
+class SensorProcessing {
+  public:
     void Begin();
     void UpdateConfiguration(const rapidjson::Value& SensorConfig);
     void RegisterGlobalData(DefinitionTree *DefinitionTreePtr);
     bool Initialized();
     void Run();
   private:
+    struct Classes {
+      std::vector<BaselineAirData> Baselineairdata;
+    };
     Classes classes_;
-    Data data_;
 };
 
 #endif

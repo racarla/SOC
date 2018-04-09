@@ -51,9 +51,9 @@ class FlightManagementUnit {
       RunMode
     };
     void Begin();
+    void UpdateConfiguration(const rapidjson::Value& Config);
     void RegisterGlobalData(DefinitionTree *DefinitionTreePtr);
     bool ReceiveSensorData();
-    void UpdateConfiguration(const rapidjson::Value& SensorConfig);
   private:
     struct Mpu9250SensorData {
       Eigen::Matrix<float,3,1>Accel_mss;        // x,y,z accelerometers, m/s/s
@@ -65,12 +65,6 @@ class FlightManagementUnit {
       float Pressure_Pa;                        // Pressure, Pa
       float Temperature_C;                      // Temperature, C
       float Humidity_RH;                        // Relative humidity
-    };
-    struct VoltageSensorsData {
-      float InputVoltage_V;
-      float RegulatedVoltage_V;
-      float PwmServoVoltage_V;
-      float SbusServoVoltage_V;
     };
     struct uBloxSensorData {
       bool Fix;                                 // True for 3D fix only
@@ -98,17 +92,20 @@ class FlightManagementUnit {
     struct SbusSensorData {
       float Channels[16];
       bool FailSafe;
-      uint16_t LostFrames;
+      uint64_t LostFrames;
     };
     struct AnalogSensorData {
       float Voltage_V;
       float CalibratedValue;
     };
     struct SensorData {
-      uint64_t Time_us;
-      Mpu9250SensorData InternalMpu9250;
-      Bme280SensorData InternalBme280;
-      VoltageSensorsData InternalVoltage;
+      std::vector<uint64_t> Time_us;
+      std::vector<Mpu9250SensorData> InternalMpu9250;
+      std::vector<Bme280SensorData> InternalBme280;
+      std::vector<float> InputVoltage_V;
+      std::vector<float> RegulatedVoltage_V;
+      std::vector<float> PwmVoltage_V;
+      std::vector<float> SbusVoltage_V;
       std::vector<Mpu9250SensorData> Mpu9250;
       std::vector<Bme280SensorData> Bme280;
       std::vector<uBloxSensorData> uBlox;
@@ -116,6 +113,22 @@ class FlightManagementUnit {
       std::vector<Ams5915SensorData> Ams5915;
       std::vector<SbusSensorData> Sbus;
       std::vector<AnalogSensorData> Analog;
+    };
+    struct SensorNames {
+      std::vector<std::string> Time_us;
+      std::vector<std::string> InternalMpu9250;
+      std::vector<std::string> InternalBme280;
+      std::vector<std::string> InputVoltage_V;
+      std::vector<std::string> RegulatedVoltage_V;
+      std::vector<std::string> PwmVoltage_V;
+      std::vector<std::string> SbusVoltage_V;
+      std::vector<std::string> Mpu9250;
+      std::vector<std::string> Bme280;
+      std::vector<std::string> uBlox;
+      std::vector<std::string> Swift;
+      std::vector<std::string> Ams5915;
+      std::vector<std::string> Sbus;
+      std::vector<std::string> Analog;
     };
     const std::string Port_ = FmuPort;
     const speed_t Baud_ = FmuBaud;
@@ -130,7 +143,7 @@ class FlightManagementUnit {
     uint16_t Length_ = 0;
     uint8_t Checksum_[2];
     struct SensorData SensorData_;
-    size_t SerializedDataMetadataSize = 7;
+    struct SensorNames SensorNames_;
     void SendMessage(Message message,std::vector<uint8_t> &Payload);
     bool ReceiveMessage(Message *message,std::vector<uint8_t> *Payload);
     void WritePort(uint8_t* Buffer,size_t BufferSize);

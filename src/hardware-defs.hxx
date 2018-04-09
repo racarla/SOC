@@ -31,7 +31,7 @@ const std::string SoftwareVersion = "0.2.0";
 
 // FMU port, baud, and maximum buffer size
 const char FmuPort[] = "/dev/ttyO4";
-const speed_t FmuBaud = B921600;
+const speed_t FmuBaud = B1500000;
 const size_t kUartBufferMaxSize = 4096;
 
 #endif
