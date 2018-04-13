@@ -241,7 +241,7 @@ void FlightManagementUnit::UpdateConfiguration(const rapidjson::Value& Config) {
     assert(Sensors.IsArray());
     for (size_t i=0; i < Sensors.Size(); i++) {
       const rapidjson::Value& Sensor = Sensors[i];
-      if (Sensor.HasMember("Type")&&Sensor.HasMember("Output-Name")) {
+      if (Sensor.HasMember("Type")) {
         Payload.clear();
         rapidjson::StringBuffer StringBuff;
         rapidjson::Writer<rapidjson::StringBuffer> Writer(StringBuff);
@@ -294,9 +294,44 @@ void FlightManagementUnit::UpdateConfiguration(const rapidjson::Value& Config) {
         if (Sensor["Type"] == "Analog") {
           SensorNames_.Analog.push_back(Sensor["Output-Name"].GetString());
         }
-      } else {
-        throw std::runtime_error("Flight Management Unit sensor configuration type or output name not specified.");
-      }
+        if (Sensor["Type"] == "Node") {
+          const rapidjson::Value& Node = Sensor;
+          if (Node.HasMember("Sensors")) {
+            const rapidjson::Value& NodeSensors = Node["Sensors"];
+            assert(NodeSensors.IsArray());
+            for (size_t j=0; j < NodeSensors.Size(); j++) {
+              const rapidjson::Value& NodeSensor = NodeSensors[j];
+              if (NodeSensor["Type"] == "PwmVoltage") {
+                SensorNames_.PwmVoltage_V.push_back(NodeSensor["Output-Name"].GetString());
+              }
+              if (NodeSensor["Type"] == "SbusVoltage") {
+                SensorNames_.SbusVoltage_V.push_back(NodeSensor["Output-Name"].GetString());
+              }
+              if (NodeSensor["Type"] == "Mpu9250") {
+                SensorNames_.Mpu9250.push_back(NodeSensor["Output-Name"].GetString());
+              }
+              if (NodeSensor["Type"] == "Bme280") {
+                SensorNames_.Bme280.push_back(NodeSensor["Output-Name"].GetString());
+              }
+              if (NodeSensor["Type"] == "uBlox") {
+                SensorNames_.uBlox.push_back(NodeSensor["Output-Name"].GetString());
+              }
+              if (NodeSensor["Type"] == "Swift") {
+                SensorNames_.Swift.push_back(NodeSensor["Output-Name"].GetString());
+              }
+              if (NodeSensor["Type"] == "Ams5915") {
+                SensorNames_.Ams5915.push_back(NodeSensor["Output-Name"].GetString());
+              }
+              if (NodeSensor["Type"] == "Sbus") {
+                SensorNames_.Sbus.push_back(NodeSensor["Output-Name"].GetString());
+              }
+              if (NodeSensor["Type"] == "Analog") {
+                SensorNames_.Analog.push_back(NodeSensor["Output-Name"].GetString());
+              }
+            }
+          }
+        }
+      } 
     }
   }
   // parse and send sensor processing configuration messages
