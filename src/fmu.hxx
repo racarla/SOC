@@ -55,13 +55,26 @@ class FlightManagementUnit {
     void RegisterGlobalData(DefinitionTree *DefinitionTreePtr);
     bool ReceiveSensorData();
   private:
+    struct InternalMpu9250SensorData {
+      Eigen::Matrix<float,3,1>Accel_mss;        // x,y,z accelerometers, m/s/s
+      Eigen::Matrix<float,3,1>Gyro_rads;        // x,y,z gyros, rad/s
+      Eigen::Matrix<float,3,1>Mag_uT;           // x,y,z magnetometers, uT
+      float Temperature_C;                      // Temperature, C
+    };
+    struct InternalBme280SensorData {
+      float Pressure_Pa;                        // Pressure, Pa
+      float Temperature_C;                      // Temperature, C
+      float Humidity_RH;                        // Relative humidity
+    };
     struct Mpu9250SensorData {
+      int status;
       Eigen::Matrix<float,3,1>Accel_mss;        // x,y,z accelerometers, m/s/s
       Eigen::Matrix<float,3,1>Gyro_rads;        // x,y,z gyros, rad/s
       Eigen::Matrix<float,3,1>Mag_uT;           // x,y,z magnetometers, uT
       float Temperature_C;                      // Temperature, C
     };
     struct Bme280SensorData {
+      int status;
       float Pressure_Pa;                        // Pressure, Pa
       float Temperature_C;                      // Temperature, C
       float Humidity_RH;                        // Relative humidity
@@ -82,6 +95,7 @@ class FlightManagementUnit {
       double pDOP;                              // Position DOP
     };
     struct Ams5915SensorData {
+      int status;
       float Pressure_Pa;                        // Pressure, Pa
       float Temperature_C;                      // Temperature, C
     };
@@ -100,8 +114,8 @@ class FlightManagementUnit {
     };
     struct SensorData {
       std::vector<uint64_t> Time_us;
-      std::vector<Mpu9250SensorData> InternalMpu9250;
-      std::vector<Bme280SensorData> InternalBme280;
+      std::vector<InternalMpu9250SensorData> InternalMpu9250;
+      std::vector<InternalBme280SensorData> InternalBme280;
       std::vector<float> InputVoltage_V;
       std::vector<float> RegulatedVoltage_V;
       std::vector<float> PwmVoltage_V;
