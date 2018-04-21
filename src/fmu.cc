@@ -307,9 +307,13 @@ bool FlightManagementUnit::ReceiveSensorData() {
   if (ReceiveMessage(&message,&Payload)) {
     if (message == SensorData) {
       // meta data
-      uint8_t AcquireInternalData,NumberMpu9250Sensor,NumberBme280Sensor,NumberuBloxSensor,NumberSwiftSensor,NumberAms5915Sensor,NumberSbusSensor,NumberAnalogSensor;
+      uint8_t AcquireInternalData,NumberPwmVoltageSensor,NumberSbusVoltageSensor,NumberMpu9250Sensor,NumberBme280Sensor,NumberuBloxSensor,NumberSwiftSensor,NumberAms5915Sensor,NumberSbusSensor,NumberAnalogSensor;
       memcpy(&AcquireInternalData,Payload.data()+PayloadLocation,sizeof(AcquireInternalData));
       PayloadLocation += sizeof(AcquireInternalData);
+      memcpy(&NumberPwmVoltageSensor,Payload.data()+PayloadLocation,sizeof(NumberPwmVoltageSensor));
+      PayloadLocation += sizeof(NumberPwmVoltageSensor);
+      memcpy(&NumberSbusVoltageSensor,Payload.data()+PayloadLocation,sizeof(NumberSbusVoltageSensor));
+      PayloadLocation += sizeof(NumberSbusVoltageSensor);
       memcpy(&NumberMpu9250Sensor,Payload.data()+PayloadLocation,sizeof(NumberMpu9250Sensor));
       PayloadLocation += sizeof(NumberMpu9250Sensor);
       memcpy(&NumberBme280Sensor,Payload.data()+PayloadLocation,sizeof(NumberBme280Sensor));
@@ -340,12 +344,8 @@ bool FlightManagementUnit::ReceiveSensorData() {
       if (AcquireInternalData & 0x10) {
         SensorData_.RegulatedVoltage_V.resize(1);
       }
-      if (AcquireInternalData & 0x20) {
-        SensorData_.PwmVoltage_V.resize(1);
-      }
-      if (AcquireInternalData & 0x40) {
-        SensorData_.SbusVoltage_V.resize(1);
-      }
+      SensorData_.PwmVoltage_V.resize(NumberPwmVoltageSensor);
+      SensorData_.SbusVoltage_V.resize(NumberSbusVoltageSensor);
       SensorData_.Mpu9250.resize(NumberMpu9250Sensor);
       SensorData_.Bme280.resize(NumberBme280Sensor);
       SensorData_.uBlox.resize(NumberuBloxSensor);
