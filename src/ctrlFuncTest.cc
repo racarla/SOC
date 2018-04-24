@@ -3,7 +3,7 @@ Simple control system tester
 
 See: LICENSE.md for Copyright and License Agreement
 
-g++-5 -std=c++11 -Wall -O3 -g -I../includes ctrlFunc.cxx ctrlFuncTest.cxx -o ctrlFuncTest
+g++-5 -std=c++11 -Wall -O3 -g -I../includes ctrlFunc.cc ctrlFuncTest.cc -o ctrlFuncTest
 ./ctrlFuncTest
 
 */
@@ -27,17 +27,13 @@ int main(void)  /* Program tester */
   float Kp = 0.1;
   float Ki = 1.0;
   float Kd = 0.0;
+  float Tf = 0.0;
   float b = 1.0;
   float c = 1.0;
-  float refScale = 1.0;
   float cmdRng[2] = {-1, 1};
 
-
-  // CtrlFuncPiDamp ctrl;
-  // ctrl.Config(Kp, Ki, Kd, b, refScale, cmdRng[0], cmdRng[1]);
-
   CtrlFuncPid2 ctrl;
-  ctrl.Config(Kp, Ki, Kd, b, c, refScale, cmdRng[0], cmdRng[1]);
+  ctrl.Config(Kp, Ki, Kd, Tf, b, c, cmdRng[0], cmdRng[1]);
 
   float ref = 1.0;
   float meas = 0.0;
@@ -46,7 +42,7 @@ int main(void)  /* Program tester */
 
   int numIter = (int) (tEnd_s / dt_s); // Number of Iterations
 
-  std::cout << "time" << "\t" << "mode" << "\t" << "ref"  << "\t" << "meas"  << "\t" << "err"  << "\t" << "cmd"   << "\t" << "intErr" << std::endl;
+  std::cout << "time" << "\t" << "mode" << "\t" << "ref"  << "\t" << "meas"  << "\t" << "err"  << "\t" << "cmd"  << std::endl;
   for(int iIter = 0 ; iIter < numIter ; iIter++){
     tCurr_s = (float) iIter * dt_s;
 
@@ -73,10 +69,8 @@ int main(void)  /* Program tester */
     // ctrl.Run(ref, meas, dMeas, dt_s, &cmd);
     ctrl.Run(ref, meas, dt_s, &cmd);
 
-
     int runMode = ctrl.mode_;
-    float intErr = ctrl.iErrState_;
 
-    std::cout << tCurr_s << "\t" << runMode << "\t" << ref <<"\t" << meas << "\t" << (ref-meas) << "\t" << cmd << "\t" << intErr << std::endl;
+    std::cout << tCurr_s << "\t" << runMode << "\t" << ref <<"\t" << meas << "\t" << (ref-meas) << "\t" << cmd << std::endl;
   }
 }

@@ -10,15 +10,25 @@ See: LICENSE.md for Copyright and License Agreement
 
 
 // PID2 Controller, Set Parameters for the tunable PID2 controller
-void CtrlFuncPid2::Config(const float &Kp, const float &Ki, const float &Kd, const float &b, const float &c, const float &cmdMin, const float &cmdMax)
-{
-  // Parameters match the PID2 system in MATLAB
+// Parameters match the PID2 system in MATLAB
 
+// u = Kp*pErr + Ki*iErr + Kd*dErr
+// pErrState = pErr = (b*r - y)
+// iErrState = 1/s * (r-y) = 1/s * iErr
+// dErrState = (s/(Tf*s + 1))*(c*r - y) = (1/(Tf + 1/s))*dErr
+
+// Discretized:
+// iErrState += (dt_s * iErr);
+// dErrState = 1 / (Tf + (dt_s / (dErr - dErrPrev));
+void CtrlFuncPid2::Config(const float &Kp, const float &Ki, const float &Kd, const float &Tf, const float &b, const float &c, const float &cmdMin, const float &cmdMax)
+{
   mode_ = kCtrlStandby; // Initialize in Standby
 
   Kp_ = Kp;
   Ki_ = Ki;
   Kd_ = Kd;
+
+  Tf_ = Tf;
 
   b_ = b;
   c_ = c;
@@ -39,7 +49,7 @@ void CtrlFuncPid2::Run(const float &ref, const float &meas, const float &dt_s, f
   // Derivative of Error
   float dErrState = 0.0;
   if (dt_s > 0.0 ) {
-    dErrState = (dErr - dErrPrev_) / dt_s;
+    dErrState = 1 / (Tf_ + dt_s / (dErr - dErrPrev_));
   }
 
   *cmd = 0.0;

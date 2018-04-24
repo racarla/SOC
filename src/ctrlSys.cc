@@ -206,6 +206,7 @@ void CtrlPid2::Config(const ObjJson &objJson, DefinitionTree *signalTreePtr) {
     float Kp = 0.0;
     float Ki = 0.0;
     float Kd = 0.0;
+    float Tf = 0.0;
     float b = 1.0;
     float c = 1.0;
 
@@ -213,6 +214,7 @@ void CtrlPid2::Config(const ObjJson &objJson, DefinitionTree *signalTreePtr) {
     if(objJson.HasMember("Kp")) Kp = objJson["Kp"].GetFloat();
     if(objJson.HasMember("Ki")) Ki = objJson["Ki"].GetFloat();
     if(objJson.HasMember("Kd")) Kd = objJson["Kd"].GetFloat();
+    if(objJson.HasMember("Tf")) Kd = objJson["Tf"].GetFloat();
     if(objJson.HasMember("b")) b = objJson["Ki"].GetFloat();
     if(objJson.HasMember("c")) c = objJson["Kd"].GetFloat();
 
@@ -223,13 +225,14 @@ void CtrlPid2::Config(const ObjJson &objJson, DefinitionTree *signalTreePtr) {
     }
 
     // Configure the Controller
-    ctrlFuncPid2_.Config(Kp, Ki, Kd, b, c, cmdMin, cmdMax);
+    ctrlFuncPid2_.Config(Kp, Ki, Kd, Tf, b, c, cmdMin, cmdMax);
 
     // Print the Config
     if (kVerboseConfig) {
       std::cout << "\t\tKp: " << Kp << "  ";
       std::cout << "Ki: " << Ki << "  ";
       std::cout << "Kd: " << Kd << "  ";
+      std::cout << "Tf: " << Tf << "  ";
       std::cout << "b: " << b << "  ";
       std::cout << "c: " << c << "  ";
       std::cout << "cmdRng: [" << cmdMin << "," << cmdMax << "]" << std::endl;
