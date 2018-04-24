@@ -26,18 +26,20 @@ class CtrlFuncNone {
 class CtrlFuncPid2 {
  public:
   CtrlMode mode_;
-  float iErrState_;
-  float dErrPrev_;
 
   CtrlFuncPid2() {};
   ~CtrlFuncPid2() {};
-  void Config(const float &Kp, const float &Ki, const float &Kd, const float &b, const float &c, const float &cmdMin, const float &cmdMax);
+  void Config(const float &Kp, const float &Ki, const float &Kd, const float &Tf, const float &b, const float &c, const float &cmdMin, const float &cmdMax);
   void Run(const float &ref, const float &meas, const float &dt_s, float *cmd);
 
  private:
   float Kp_, Ki_, Kd_;
+  float Tf_;
   float b_, c_;
   float cmdMin_, cmdMax_;
+
+  float iErrState_;
+  float dErrPrev_;
 
   void InitState(const float &cmd, const float &pErr, const float &dErrState, float *iErrState);
   void UpdState(const float &iErr, const float &dt_s, float *iErrState);
