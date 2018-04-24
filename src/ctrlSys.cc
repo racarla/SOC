@@ -98,20 +98,20 @@ void CtrlSys::ConfigDefInst(const ObjJson &objJson, SysInstPtr *sysInstPtr, Defi
   (*sysInstPtr)->Config(objJson, signalTreePtr);
 
   // Parse the Signal descriptions
-  // float *targetPtr; // FIXIT need to point to SOMETHING! Make a Vector of Pointers
+  // float *vecSignalTarget; // FIXIT need to point to SOMETHING! Make a Vector of Pointers
   //
   // std::string defSignal = "RefSignal";
-  // ConfigSignal(objJson, defSignal, targetPtr, signalTreePtr);
+  // ConfigSignal(objJson, defSignal, vecSignalTarget, signalTreePtr);
   //
   // defSignal = "MeasSignal";
-  // ConfigSignal(objJson, defSignal, targetPtr, signalTreePtr);
+  // ConfigSignal(objJson, defSignal, vecSignalTarget, signalTreePtr);
   //
   // defSignal = "OutSignal";
-  // ConfigSignal(objJson, defSignal, targetPtr, signalTreePtr);
+  // ConfigSignal(objJson, defSignal, vecSignalTarget, signalTreePtr);
 }
 
 // FIXIT!! replace "RefSignal" with defSignal
-void CtrlSys::ConfigSignal(const ObjJson &objJson, const std::string &defSignal, VecSignalPtr *targetPtr, DefinitionTree *signalTreePtr) {
+void CtrlSys::ConfigSignal(const ObjJson &objJson, const std::string &defSignal, VecSignal *vecSignalTarget, DefinitionTree *signalTreePtr) {
   if (objJson.HasMember(defSignal.c_str())) {
     assert(objJson[defSignal.c_str()].IsArray());
 
@@ -120,7 +120,7 @@ void CtrlSys::ConfigSignal(const ObjJson &objJson, const std::string &defSignal,
     Json2Stl_VecString(objJson[defSignal.c_str()], &vecString);
 
     for (uint8_t i = 0; i < vecString.size(); i++) {
-      signalTreePtr->InitMember(vecString[i], targetPtr[i], "NaN", true, false);
+      // signalTreePtr->InitMember(vecString[i], &vecSignalTarget[i], "NaN", true, false);
     }
 
     if (kVerboseConfig) {
@@ -153,28 +153,28 @@ void CtrlConst::Config(const ObjJson &objJson, DefinitionTree *signalTreePtr) {
 
   // Parse the Signal descriptions
   std::string defSignal = "OutSignal";
-  CtrlSys::ConfigSignal(objJson, defSignal, vecOutSignalPtr_, signalTreePtr);
+  // CtrlSys::ConfigSignal(objJson, defSignal, vecOutSignal_, signalTreePtr);
 }
 
 // FIXIT
-void CtrlConst::Run(DefinitionTree *signalTreePtr) {
+void CtrlConst::Run() {
   // put into definition tree
 
 }
 
 // Controller Type Sum
-void CtrlSum::Config(const ObjJson &objJson) {
+void CtrlSum::Config(const ObjJson &objJson, DefinitionTree *signalTreePtr) {
 
 }
 
 // FIXIT
-void CtrlSum::Run(DefinitionTree *signalTreePtr) {
+void CtrlSum::Run() {
   // put into definition tree
 
 }
 
 // Controller Type Gain
-void CtrlGain::Config(const ObjJson &objJson) {
+void CtrlGain::Config(const ObjJson &objJson, DefinitionTree *signalTreePtr) {
     // Set all the Default Values
     float val = 1.0;
 
@@ -188,15 +188,18 @@ void CtrlGain::Config(const ObjJson &objJson) {
     if (kVerboseConfig) {
       std::cout << "\t\tGain: " << val << std::endl;
     }
+
+    // Register signals
+
 }
 
 // FIXIT
-void CtrlGain::Run(DefinitionTree *signalTreePtr) {
+void CtrlGain::Run() {
   // put into definition tree
 
 }
 
-void CtrlPid2::Config(const ObjJson &objJson) {
+void CtrlPid2::Config(const ObjJson &objJson, DefinitionTree *signalTreePtr) {
     // Set all the Default Values
     float cmdMin = -1000.0;
     float cmdMax = 1000.0;
@@ -234,15 +237,15 @@ void CtrlPid2::Config(const ObjJson &objJson) {
 }
 
 // FIXIT
-void CtrlPid2::Run(DefinitionTree *signalTreePtr, CtrlMode &ctrlMode) {
+void CtrlPid2::Run(CtrlMode &ctrlMode) {
 
   // pull values from sigStruct
-  float ref = 1.0;
-  float meas = 0.0;
-  *cmd = 0.0;
-
-  ctrlFuncPid2_.mode_ = ctrlMode;
-  ctrlFuncPid2_.Run(ref, meas, dt_s, cmd);
+  // float ref = 1.0;
+  // float meas = 0.0;
+  // *cmd = 0.0;
+  //
+  // ctrlFuncPid2_.mode_ = ctrlMode;
+  // ctrlFuncPid2_.Run(ref, meas, dt_s, cmd);
 
   // put cmd back into definition tree
 }

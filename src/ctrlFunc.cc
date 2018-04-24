@@ -8,6 +8,7 @@ See: LICENSE.md for Copyright and License Agreement
 
 #include "ctrlFunc.hxx"
 
+
 // PID2 Controller, Set Parameters for the tunable PID2 controller
 void CtrlFuncPid2::Config(const float &Kp, const float &Ki, const float &Kd, const float &b, const float &c, const float &cmdMin, const float &cmdMax)
 {

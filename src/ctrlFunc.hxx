@@ -37,7 +37,6 @@ class CtrlFuncPid2 {
  private:
   float Kp_, Ki_, Kd_;
   float b_, c_;
-  float refScale_;
   float cmdMin_, cmdMax_;
 
   void InitState(const float &cmd, const float &pErr, const float &dErrState, float *iErrState);

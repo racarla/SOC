@@ -7,8 +7,7 @@ History:
 2017-11-19 - Chris Regan - Created
 */
 
-#ifndef CNTRLMGR_HXX_
-#define CNTRLMGR_HXX_
+#pragma once
 
 #include "Eigen/Core"
 
@@ -93,6 +92,3 @@ class CntrlMgr {
 
   CntrlAllocDef cntrlAllocDef_;
 };
-
-
-#endif // CNTRLMGR_HXX_

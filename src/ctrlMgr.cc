@@ -14,7 +14,7 @@ typedef rapidjson::Value ObjJson;
 
 void CtrlMgr::Config(const ObjJson &objJson) {
 
-  // CREATE AND CONFIGURE SCAS SYSTEMS
+  // CREATE AND CONFIGURE CtrlSys SYSTEMS
   assert(objJson.HasMember("CtrlSys")); // Check that Ctrl systems exists
   const ObjJson &objCtrl = objJson["CtrlSys"]; // Create Ctrl systems Object
 

@@ -3,7 +3,7 @@ Simple control system tester
 
 See: LICENSE.md for Copyright and License Agreement
 
-g++-7 -std=c++17 -Wall -O3 -g -I../includes DefinitionTree.cc configFunc.cc ctrlFunc.cc ctrlSys.cc ctrlSysTest.cc -o ctrlSysTest
+g++-7 -std=c++17 -Wall -O3 -g -I../includes definition-tree.cc configFunc.cc ctrlFunc.cc ctrlSys.cc ctrlSysTest.cc -o ctrlSysTest
 ./ctrlSysTest
 
 */

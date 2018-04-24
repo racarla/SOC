@@ -19,74 +19,74 @@
       "Define": {
         "Baseline": [
           {"Desc": "PilotRoll", "Type": "Gain",
-            "RefSignal": ["/InProc/Pilot/cmdRoll_nd"], "OutSignal": ["/CtrlSys/Scas/cmdRoll_rps"],
+            "RefSignal": "/InProc/Pilot/cmdRoll_nd", "OutSignal": "/CtrlSys/Scas/cmdRoll_rps",
             "Gain": 1.0472},
 
           {"Desc": "PilotPitch", "Type": "Gain",
-            "RefSignal": ["/InProc/Pilot/cmdPitch_nd"], "OutSignal": ["/CtrlSys/Scas/cmdPitch_rps"],
+            "RefSignal": "/InProc/Pilot/cmdPitch_nd", "OutSignal": "/CtrlSys/Scas/cmdPitch_rps",
             "Gain": 1.0472},
 
           {"Desc": "PilotYaw", "Type": "Gain",
-            "RefSignal": ["/InProc/Pilot/cmdYaw_nd"], "OutSignal": ["/CtrlSys/Scas/cmdYaw_rps"],
+            "RefSignal": "/InProc/Pilot/cmdYaw_nd", "OutSignal": "/CtrlSys/Scas/cmdYaw_rps",
             "Gain": 0.523599},
 
           {"Desc": "PilotFlap", "Type": "Gain",
-            "RefSignal": ["/InProc/Pilot/cmdFlap_nd"], "OutSignal": ["/CtrlSys/Scas/cmdLift"],
+            "RefSignal": "/InProc/Pilot/cmdFlap_nd", "OutSignal": "/CtrlSys/Scas/cmdLift",
             "Gain": 0.436332},
 
           {"Desc": "PilotThrot", "Type": "Gain",
-            "RefSignal": ["/InProc/Pilot/cmdThrot_nd"], "OutSignal": ["/CtrlSys/Scas/cmdSpeed"],
+            "RefSignal": "/InProc/Pilot/cmdThrot_nd", "OutSignal": "/CtrlSys/Scas/cmdSpeed",
             "Gain": 1.0}
         ],
 
         "PilotAttitude": [
           {"Desc": "Roll", "Type": "Gain",
-            "RefSignal": ["/InProc/Pilot/cmdRoll_nd"], "OutSignal": ["/CtrlSys/Guid/cmdBank_rad"],
+            "RefSignal": "/InProc/Pilot/cmdRoll_nd", "OutSignal": "/CtrlSys/Guid/cmdBank_rad",
             "Gain": 1.0472},
           {"Desc": "Pitch", "Type": "Gain",
-            "RefSignal": ["/InProc/Pilot/cmdPitch_nd"], "OutSignal": ["/CtrlSys/Guid/cmdAttitude_rad"],
+            "RefSignal": "/InProc/Pilot/cmdPitch_nd", "OutSignal": "/CtrlSys/Guid/cmdAttitude_rad",
             "Gain": 1.0472}
           ],
 
         "SpeedSet": [
-          {"Desc": "Speed", "Type": "Const", "OutSignal": ["/CtrlSys/Guid/cmdSpeed"],
+          {"Desc": "Speed", "Type": "Const", "OutSignal": "/CtrlSys/Guid/cmdSpeed",
             "Const": 17}
           ],
 
         "ScasAttitude": [
           {"Desc": "Roll", "Type": "PID2",
-            "RefSignal": ["/CtrlSys/Guid/cmdBank_rad"], "OutSignal": ["/CtrlSys/Scas/cmdRoll_rps"], "MeasSignal": ["/InProc/eulerRoll_rad"],
+            "RefSignal": "/CtrlSys/Guid/cmdBank_rad", "OutSignal": "/CtrlSys/Scas/cmdRoll_rps", "MeasSignal": "/InProc/eulerRoll_rad",
             "cmdRng": [-1.0472, 1.0472], "Kp": 0.640, "Ki": 0.200},
           {"Desc": "Damp_Roll", "Type": "PID2",
-            "RefSignal": ["/CtrlSys/Scas/cmdRoll_rps"], "OutSignal": ["/CtrlSys/Scas/cmdRoll_rps"], "MeasSignal": ["/InProc/omegaRoll_rps"],
+            "RefSignal": "/CtrlSys/Scas/cmdRoll_rps", "OutSignal": "/CtrlSys/Scas/cmdRoll_rps", "MeasSignal": "/InProc/omegaRoll_rps",
             "Kp": 0.070},
 
           {"Desc": "Pitch", "Type": "PID2",
-            "RefSignal": ["/CtrlSys/Guid/cmdAttitude_rad"], "OutSignal": ["/CtrlSys/Scas/cmdPitch_rps"], "MeasSignal": ["/InProc/eulerPitch_rad"],
+            "RefSignal": "/CtrlSys/Guid/cmdAttitude_rad", "OutSignal": "/CtrlSys/Scas/cmdPitch_rps", "MeasSignal": "/InProc/eulerPitch_rad",
             "cmdRng": [-1.0472, 1.0472], "Kp": 0.900, "Ki": 0.300},
           {"Desc": "Damp_Pitch", "Type": "PID2",
-            "RefSignal": ["/CtrlSys/Scas/cmdPitch_rps"], "OutSignal": ["/CtrlSys/Scas/cmdPitch_rps"], "MeasSignal": ["/InProc/omegaPitch_rps"],
+            "RefSignal": "/CtrlSys/Scas/cmdPitch_rps", "OutSignal": "/CtrlSys/Scas/cmdPitch_rps", "MeasSignal": "/InProc/omegaPitch_rps",
             "Kp": 0.080}
           ],
 
         "YawDamper": [
           {"Desc": "Yaw", "Type": "Gain",
-            "RefSignal": ["/InProc/Pilot/cmdYaw_nd"], "OutSignal": ["/CtrlSys/Scas/cmdYaw_rps"],
+            "RefSignal": "/InProc/Pilot/cmdYaw_nd", "OutSignal": "/CtrlSys/Scas/cmdYaw_rps",
             "Gain": 0.523599},
           {"Desc": "Damp_Yaw", "Type": "PID2",
-            "RefSignal": ["/CtrlSys/Scas/cmdYaw_rps"], "OutSignal": ["/CtrlSys/Scas/cmdYaw_rps"], "MeasSignal": ["/InProc/omegaYaw_rps"],
+            "RefSignal": "/CtrlSys/Scas/cmdYaw_rps", "OutSignal": "/CtrlSys/Scas/cmdYaw_rps", "MeasSignal": "/InProc/omegaYaw_rps",
             "Kp": 0.080}
           ],
 
         "ManualFlaps": [
           {"Desc": "ManualFlaps", "Type": "Gain",
-            "RefSignal": ["Pilot/cmdFlap_nd"], "OutSignal": ["/CtrlSys/Scas/cmdLift"],
+            "RefSignal": "Pilot/cmdFlap_nd", "OutSignal": "/CtrlSys/Scas/cmdLift",
             "Gain": 0.436332}
           ],
 
         "SpeedHold": [
           {"Desc": "SpeedHold", "Type": "PID2",
-            "RefSignal": ["/CtrlSys/Guid/cmdSpeed"], "OutSignal": ["/CtrlSys/Scas/cmdSpeed"], "MeasSignal": ["/InProc/vIasFilt_mps"],
+            "RefSignal": "/CtrlSys/Guid/cmdSpeed", "OutSignal": "/CtrlSys/Scas/cmdSpeed", "MeasSignal": "/InProc/vIasFilt_mps",
             "cmdRng": [0.0, 1.0], "Kp": 4.500, "Ki": 1.200}
           ]
       }
@@ -107,12 +107,12 @@
           "wtObjDiag": [1.0, 1.0, 1.0],
           "wtEffDiag": [1.0, 1.0, 1.0, 1.0, 1.0, 1.0]},
         {"Desc": "Alloc_FlapR", "Type": "Sum",
-          "RefSignal": ["/CtrlSys/Scas/cmdLift", "/CtrlSys/Eff/cmdFlapR_rad"], "OutSignal": ["/CtrlSys/Eff/cmdFlapR_rad"]},
+          "RefSignal": ["/CtrlSys/Scas/cmdLift", "/CtrlSys/Eff/cmdFlapR_rad"], "OutSignal": "/CtrlSys/Eff/cmdFlapR_rad"},
         {"Desc": "Alloc_FlapL", "Type": "Sum",
-          "RefSignal": ["/CtrlSys/Scas/cmdLift", "/CtrlSys/Eff/cmdFlapL_rad"], "OutSignal": ["/CtrlSys/Eff/cmdFlapL_rad"]},
+          "RefSignal": ["/CtrlSys/Scas/cmdLift", "/CtrlSys/Eff/cmdFlapL_rad"], "OutSignal": "/CtrlSys/Eff/cmdFlapL_rad"},
 
         {"Desc": "Alloc_Throt", "Type": "Gain",
-          "RefSignal": ["/CtrlSys/Scas/cmdSpeed"], "OutSignal": ["/CtrlSys/Eff/cmdThrot_nd"],
+          "RefSignal": "/CtrlSys/Scas/cmdSpeed", "OutSignal": "/CtrlSys/Eff/cmdThrot_nd",
           "Gain": 1.0}
       ],
 
@@ -130,12 +130,12 @@
           "wtObjDiag": [1.0, 1.0, 1.0],
           "wtEffDiag": [1.0, 1.0, 1.0, 1.0, 1.0, 1.0]},
         {"Desc": "Alloc_FlapR", "Type": "Sum",
-          "RefSignal": ["/CtrlSys/Scas/cmdLift", "/CtrlSys/Eff/cmdFlapR_rad"], "OutSignal": ["/CtrlSys/Eff/cmdFlapR_rad"]},
+          "RefSignal": ["/CtrlSys/Scas/cmdLift", "/CtrlSys/Eff/cmdFlapR_rad"], "OutSignal": "/CtrlSys/Eff/cmdFlapR_rad"},
         {"Desc": "Alloc_FlapL", "Type": "Sum",
-          "RefSignal": ["/CtrlSys/Scas/cmdLift", "/CtrlSys/Eff/cmdFlapL_rad"], "OutSignal": ["/CtrlSys/Eff/cmdFlapL_rad"]},
+          "RefSignal": ["/CtrlSys/Scas/cmdLift", "/CtrlSys/Eff/cmdFlapL_rad"], "OutSignal": "/CtrlSys/Eff/cmdFlapL_rad"},
 
         {"Desc": "Alloc_Throt", "Type": "Gain",
-          "RefSignal": ["/CtrlSys/Scas/cmdSpeed"], "OutSignal": ["/CtrlSys/Eff/cmdThrot_nd"],
+          "RefSignal": "/CtrlSys/Scas/cmdSpeed", "OutSignal": "/CtrlSys/Eff/cmdThrot_nd",
           "Gain": 1.0}
       ]
     }

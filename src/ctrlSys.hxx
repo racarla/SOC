@@ -4,8 +4,7 @@ Classes and Functions for Control Systems
 See: LICENSE.md for Copyright and License Agreement
 */
 
-#ifndef CTRLSYS_H
-#define CTRLSYS_H
+#pragma once
 
 #include <stdint.h>
 #include <map>
@@ -23,7 +22,7 @@ See: LICENSE.md for Copyright and License Agreement
 #endif
 
 typedef rapidjson::Value ObjJson;
-typedef std::vector<float *> VecSignalPtr;
+typedef std::vector<float> VecSignal;
 
 // Base Class for all Ctrl systems
 class CtrlBase {
@@ -53,7 +52,7 @@ class CtrlConst : public CtrlBase  {
  private:
   float val_;
 
-  VecSignalPtr vecOutSignalPtr_; // Pointers to OutSignal
+  VecSignal vecOutSignal_; // Pointers to OutSignal
 };
 
 // Ctrl Sum system, Just add two signals
@@ -64,8 +63,8 @@ class CtrlSum : public CtrlBase  {
 
   ~CtrlSum() {};
  private:
-  VecSignalPtr vecRefSignalPtr_; // Pointers to RefSignal
-  VecSignalPtr vecOutSignalPtr_; // Pointers to OutSignal
+  VecSignal vecRefSignal_; // Pointers to RefSignal
+  VecSignal vecOutSignal_; // Pointers to OutSignal
 };
 
 // Ctrl Gain system
@@ -78,38 +77,38 @@ class CtrlGain : public CtrlBase  {
  private:
   float val_;
 
-  VecSignalPtr vecRefSignalPtr_; // Pointers to RefSignal
-  VecSignalPtr vecOutSignalPtr_; // Pointers to OutSignal
+  VecSignal vecRefSignal_; // Pointers to RefSignal
+  VecSignal vecOutSignal_; // Pointers to OutSignal
 };
 
 // Ctrl PID2 system
 class CtrlPid2 : public CtrlBase   {
  public:
   void Config(const ObjJson &objJson, DefinitionTree *signalTreePtr);
-  void Run();
+  void Run(CtrlMode &ctrlMode);
 
   ~CtrlPid2() {};
  private:
   CtrlFuncPid2 ctrlFuncPid2_;
 
-  VecSignalPtr vecRefSignalPtr_; // Pointers to RefSignal
-  VecSignalPtr vecMeasSignalPtr_; // Pointers to MeasSignal
-  VecSignalPtr vecOutSignalPtr_; // Pointers to OutSignal
+  VecSignal vecRefSignal_; // Pointers to RefSignal
+  VecSignal vecMeasSignal_; // Pointers to MeasSignal
+  VecSignal vecOutSignal_; // Pointers to OutSignal
 };
 
 // Ctrl State Space system
 class CtrlSS : public CtrlBase   {
  public:
-  void Config(const ObjJson &objJson, DefinitionTree *signalTreePtr);
-  void Run();
+  void Config(const ObjJson &objJson, DefinitionTree *signalTreePtr) {};
+  void Run(CtrlMode &ctrlMode) {};
 
   ~CtrlSS() {};
  private:
-  // CtrlFuncSS ctrlFuncSS;
+  // CtrlFuncSS ctrlFuncSS_;
 
-  VecSignalPtr vecRefSignalPtr_; // Pointers to RefSignal
-  VecSignalPtr vecMeasSignalPtr_; // Pointers to MeasSignal
-  VecSignalPtr vecOutSignalPtr_; // Pointers to OutSignal
+  VecSignal vecRefSignal_; // Pointers to RefSignal
+  VecSignal vecMeasSignal_; // Pointers to MeasSignal
+  VecSignal vecOutSignal_; // Pointers to OutSignal
 };
 
 // Factory Class for Ctrl systems
@@ -122,7 +121,7 @@ class CtrlSys {
   static void ConfigDef(const ObjJson &objJson, SysDefMap *sysDefMap, DefinitionTree *signalTree); // Configuration of the whole Controller Definition Set
   static void ConfigDefVec(const ObjJson &objJson, SysDefVec *SysDefVec, DefinitionTree *signalTree); // Configure vector of controllers, ie. ScasBaseline
   static void ConfigDefInst(const ObjJson &objJson, SysInstPtr *SysInstPtr, DefinitionTree *signalTree); // Configure a single instance of a controller, ie. a single PID2 instance
-  static void ConfigSignal(const ObjJson &objJson, const std::string &defSignal, VecSignalPtr *targetPtr, DefinitionTree *signalTree);
+  static void ConfigSignal(const ObjJson &objJson, const std::string &defSignal, VecSignal *vecSignal, DefinitionTree *signalTree);
 
   typedef std::vector<std::string> SysGroupVec; // Vector of strings descriptors
   typedef std::map <std::string, SysGroupVec> SysGroupMap; // Map of Vectors
@@ -135,6 +134,3 @@ class CtrlSys {
  private:
   enum EnumType {kNone = 0, kConst = 1, kSum = 2, kGain = 3, kPid2 = 11, kSS = 41}; // Enumerations of the WaveSystem types
 };
-
-
-#endif // CTRLSYS_H
