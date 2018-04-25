@@ -34,6 +34,8 @@ SRCDIR := src
 OBJECTS_FLIGHT := \
 uNavINS.o \
 AirData.o \
+mission.o \
+control.o \
 sensor-processing.o \
 configuration.o \
 definition-tree.o \

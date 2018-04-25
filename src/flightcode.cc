@@ -24,6 +24,8 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SO
 #include "datalog.hxx"
 #include "fmu.hxx"
 #include "sensor-processing.hxx"
+#include "control.hxx"
+#include "mission.hxx"
 #include "rapidjson/document.h"
 #include "rapidjson/stringbuffer.h"
 #include "rapidjson/writer.h"
@@ -47,33 +49,49 @@ int main(int argc, char* argv[]) {
   DefinitionTree GlobalData;
   FlightManagementUnit Fmu;
   SensorProcessing SenProc;
+  ControlLaws Control;
+  MissionManager Mission;
   DatalogClient Datalog;
 
   /* initialize classes */
   std::cout << "Initializing software modules..." << std:: endl;
   std::cout << "\tInitializing FMU..." << std::endl;
   Fmu.Begin();
-  SenProc.Begin();
 
   /* configure classes and register with global defs */
   rapidjson::Document AircraftConfiguration;
   Config.LoadConfiguration(argv[1], &AircraftConfiguration);
-  Fmu.UpdateConfiguration(AircraftConfiguration);
-  Fmu.RegisterGlobalData(&GlobalData);
-  // if (AircraftConfiguration.HasMember("Sensor-Processing")) {
-  //   SenProc.UpdateConfiguration(AircraftConfiguration["Sensor-Processing"]);
-  // }
-  // SenProc.RegisterGlobalData(&GlobalData);
+  Fmu.Configure(AircraftConfiguration,&GlobalData);
+  if (AircraftConfiguration.HasMember("Sensor-Processing")) {
+    SenProc.Configure(AircraftConfiguration["Sensor-Processing"],&GlobalData);
+  }
+  if (AircraftConfiguration.HasMember("Control")) {
+    Control.Configure(AircraftConfiguration["Control"],&GlobalData);
+  }
+  if (AircraftConfiguration.HasMember("Mission")) {
+    Mission.Configure(AircraftConfiguration["Mission"],&GlobalData);
+  }
   Datalog.RegisterGlobalData(GlobalData);
 
   /* main loop */
   while(1) {
     if (Fmu.ReceiveSensorData()) {
-      // if (SenProc.Initialized()) {
-      //   SenProc.Run();
-
-        Datalog.LogBinaryData();
-      // }
+      if (SenProc.Initialized()) {
+        SenProc.Run();
+        // run mission
+        // mission get excitation arm and engage
+        // excitation set arm and engage
+        // mission get control arm and engage
+        // select control arm and engage
+        // mission get allocator arm and engage
+        // select allocator arm and engage
+        // for each control level in group
+        //    run excitation
+        //    run control
+        // run allocator
+      }
+      // run telemetry
+      Datalog.LogBinaryData();
     }
   }
 
