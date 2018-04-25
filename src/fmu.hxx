@@ -51,8 +51,7 @@ class FlightManagementUnit {
       RunMode
     };
     void Begin();
-    void UpdateConfiguration(const rapidjson::Value& Config);
-    void RegisterGlobalData(DefinitionTree *DefinitionTreePtr);
+    void Configure(const rapidjson::Value& Config, DefinitionTree *DefinitionTreePtr);
     bool ReceiveSensorData();
   private:
     struct InternalMpu9250SensorData {

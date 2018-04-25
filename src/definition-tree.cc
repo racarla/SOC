@@ -42,7 +42,7 @@ void DefinitionTree::InitMember(std::string Name,std::variant<uint64_t*,uint32_t
 }
 
 /* Sets value for an existing definition tree member */
-void DefinitionTree::SetValue(std::string Name,std::variant<uint64_t*,uint32_t*,uint16_t*,uint8_t*,int64_t*,int32_t*,int16_t*,int8_t*,float*, double*> Value) {
+void DefinitionTree::SetValuePtr(std::string Name,std::variant<uint64_t*,uint32_t*,uint16_t*,uint8_t*,int64_t*,int32_t*,int16_t*,int8_t*,float*, double*> Value) {
   Data_[Name].Value = Value;
 }
 

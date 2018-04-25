@@ -37,55 +37,55 @@ void DatalogClient::RegisterGlobalData(DefinitionTree &DefinitionTreeRef) {
   for (auto const & elem: Keys) {
     if (DefinitionTreeRef.GetDatalog(elem)) {
       // store keys, description, and value pointers
-      if (DefinitionTreeRef.GetValue<uint64_t>(elem)) {
+      if (DefinitionTreeRef.GetValuePtr<uint64_t*>(elem)) {
         SaveAsUint64Keys_.push_back(elem);
         SaveAsUint64Description_.push_back(DefinitionTreeRef.GetDescription(elem));
-        SaveAsUint64Values_.push_back(DefinitionTreeRef.GetValue<uint64_t>(elem));
+        SaveAsUint64Values_.push_back(DefinitionTreeRef.GetValuePtr<uint64_t*>(elem));
       }
-      if (DefinitionTreeRef.GetValue<uint32_t>(elem)) {
+      if (DefinitionTreeRef.GetValuePtr<uint32_t*>(elem)) {
         SaveAsUint32Keys_.push_back(elem);
         SaveAsUint32Description_.push_back(DefinitionTreeRef.GetDescription(elem));
-        SaveAsUint32Values_.push_back(DefinitionTreeRef.GetValue<uint32_t>(elem));
+        SaveAsUint32Values_.push_back(DefinitionTreeRef.GetValuePtr<uint32_t*>(elem));
       }
-      if (DefinitionTreeRef.GetValue<uint16_t>(elem)) {
+      if (DefinitionTreeRef.GetValuePtr<uint16_t*>(elem)) {
         SaveAsUint16Keys_.push_back(elem);
         SaveAsUint16Description_.push_back(DefinitionTreeRef.GetDescription(elem));
-        SaveAsUint16Values_.push_back(DefinitionTreeRef.GetValue<uint16_t>(elem));
+        SaveAsUint16Values_.push_back(DefinitionTreeRef.GetValuePtr<uint16_t*>(elem));
       }
-      if (DefinitionTreeRef.GetValue<uint8_t>(elem)) {
+      if (DefinitionTreeRef.GetValuePtr<uint8_t*>(elem)) {
         SaveAsUint8Keys_.push_back(elem);
         SaveAsUint8Description_.push_back(DefinitionTreeRef.GetDescription(elem));
-        SaveAsUint8Values_.push_back(DefinitionTreeRef.GetValue<uint8_t>(elem));
+        SaveAsUint8Values_.push_back(DefinitionTreeRef.GetValuePtr<uint8_t*>(elem));
       }
-      if (DefinitionTreeRef.GetValue<int64_t>(elem)) {
+      if (DefinitionTreeRef.GetValuePtr<int64_t*>(elem)) {
         SaveAsInt64Keys_.push_back(elem);
         SaveAsInt64Description_.push_back(DefinitionTreeRef.GetDescription(elem));
-        SaveAsInt64Values_.push_back(DefinitionTreeRef.GetValue<int64_t>(elem));
+        SaveAsInt64Values_.push_back(DefinitionTreeRef.GetValuePtr<int64_t*>(elem));
       }
-      if (DefinitionTreeRef.GetValue<int32_t>(elem)) {
+      if (DefinitionTreeRef.GetValuePtr<int32_t*>(elem)) {
         SaveAsInt32Keys_.push_back(elem);
         SaveAsInt32Description_.push_back(DefinitionTreeRef.GetDescription(elem));
-        SaveAsInt32Values_.push_back(DefinitionTreeRef.GetValue<int32_t>(elem));
+        SaveAsInt32Values_.push_back(DefinitionTreeRef.GetValuePtr<int32_t*>(elem));
       }
-      if (DefinitionTreeRef.GetValue<int16_t>(elem)) {
+      if (DefinitionTreeRef.GetValuePtr<int16_t*>(elem)) {
         SaveAsInt16Keys_.push_back(elem);
         SaveAsInt16Description_.push_back(DefinitionTreeRef.GetDescription(elem));
-        SaveAsInt16Values_.push_back(DefinitionTreeRef.GetValue<int16_t>(elem));
+        SaveAsInt16Values_.push_back(DefinitionTreeRef.GetValuePtr<int16_t*>(elem));
       }
-      if (DefinitionTreeRef.GetValue<int8_t>(elem)) {
+      if (DefinitionTreeRef.GetValuePtr<int8_t*>(elem)) {
         SaveAsInt8Keys_.push_back(elem);
         SaveAsInt8Description_.push_back(DefinitionTreeRef.GetDescription(elem));
-        SaveAsInt8Values_.push_back(DefinitionTreeRef.GetValue<int8_t>(elem));
+        SaveAsInt8Values_.push_back(DefinitionTreeRef.GetValuePtr<int8_t*>(elem));
       }
-      if (DefinitionTreeRef.GetValue<float>(elem)) {
+      if (DefinitionTreeRef.GetValuePtr<float*>(elem)) {
         SaveAsFloatKeys_.push_back(elem);
         SaveAsFloatDescription_.push_back(DefinitionTreeRef.GetDescription(elem));
-        SaveAsFloatValues_.push_back(DefinitionTreeRef.GetValue<float>(elem));
+        SaveAsFloatValues_.push_back(DefinitionTreeRef.GetValuePtr<float*>(elem));
       }
-      if (DefinitionTreeRef.GetValue<double>(elem)) {
+      if (DefinitionTreeRef.GetValuePtr<double*>(elem)) {
         SaveAsDoubleKeys_.push_back(elem);
         SaveAsDoubleDescription_.push_back(DefinitionTreeRef.GetDescription(elem));
-        SaveAsDoubleValues_.push_back(DefinitionTreeRef.GetValue<double>(elem));
+        SaveAsDoubleValues_.push_back(DefinitionTreeRef.GetValuePtr<double*>(elem));
       }
     }
   }

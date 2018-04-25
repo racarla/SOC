@@ -40,8 +40,8 @@ void FlightManagementUnit::Begin() {
   std::cout <<  "done!" << std::endl;
 }
 
-/* Updates FMU configuration given a JSON value */
-void FlightManagementUnit::UpdateConfiguration(const rapidjson::Value& Config) {
+/* Updates FMU configuration given a JSON value and registers data with global defs */
+void FlightManagementUnit::Configure(const rapidjson::Value& Config, DefinitionTree *DefinitionTreePtr) {
   std::vector<uint8_t> Payload;
   // switch FMU to configuration mode
   Payload.push_back((uint8_t)Mode::ConfigMode);
@@ -147,28 +147,28 @@ void FlightManagementUnit::UpdateConfiguration(const rapidjson::Value& Config) {
       }
     }
   }
-  // parse and send sensor processing configuration messages
-  if (Config.HasMember("Sensor-Processing")) {
-    const rapidjson::Value& SenProcs = Config["Sensor-Processing"];
-    assert(SenProcs.IsArray());
-    for (size_t i=0; i < SenProcs.Size(); i++) {
-      const rapidjson::Value& SenProc = SenProcs[i];
-      if (SenProc.HasMember("Type")) {
-        Payload.clear();
-        rapidjson::StringBuffer StringBuff;
-        rapidjson::Writer<rapidjson::StringBuffer> Writer(StringBuff);
-        SenProc.Accept(Writer);
-        std::string OutputString = StringBuff.GetString();
-        std::string ConfigString = std::string("{\"Sensor-Processing\":[") + OutputString + std::string("]}");
-        for (size_t j=0; j < ConfigString.size(); j++) {
-          Payload.push_back((uint8_t)ConfigString[j]);
-        }
-        SendMessage(Message::ConfigMesg,Payload);
-      } else {
-        throw std::runtime_error("Sensor processing configuration type not specified.");
-      }
-    }
-  }
+  // // parse and send sensor processing configuration messages
+  // if (Config.HasMember("Sensor-Processing")) {
+  //   const rapidjson::Value& SenProcs = Config["Sensor-Processing"];
+  //   assert(SenProcs.IsArray());
+  //   for (size_t i=0; i < SenProcs.Size(); i++) {
+  //     const rapidjson::Value& SenProc = SenProcs[i];
+  //     if (SenProc.HasMember("Type")) {
+  //       Payload.clear();
+  //       rapidjson::StringBuffer StringBuff;
+  //       rapidjson::Writer<rapidjson::StringBuffer> Writer(StringBuff);
+  //       SenProc.Accept(Writer);
+  //       std::string OutputString = StringBuff.GetString();
+  //       std::string ConfigString = std::string("{\"Sensor-Processing\":[") + OutputString + std::string("]}");
+  //       for (size_t j=0; j < ConfigString.size(); j++) {
+  //         Payload.push_back((uint8_t)ConfigString[j]);
+  //       }
+  //       SendMessage(Message::ConfigMesg,Payload);
+  //     } else {
+  //       throw std::runtime_error("Sensor processing configuration type not specified.");
+  //     }
+  //   }
+  // }
   // switch FMU to run mode
   Payload.clear();
   Payload.push_back((uint8_t)Mode::RunMode);
@@ -195,10 +195,7 @@ void FlightManagementUnit::UpdateConfiguration(const rapidjson::Value& Config) {
   std::cout << "\t\t\t\tAms5915:" << SensorData_.Ams5915.size() << std::endl;
   std::cout << "\t\t\t\tSbus:" << SensorData_.Sbus.size() << std::endl;
   std::cout << "\t\t\t\tAnalog:" << SensorData_.Analog.size() << std::endl;
-}
 
-/* Registers data with global defs */
-void FlightManagementUnit::RegisterGlobalData(DefinitionTree *DefinitionTreePtr) {
   std::cout << "\t\tRegistering FMU data with global definition tree..." << std::flush;
   for (size_t i=0; i < SensorData_.Time_us.size(); i++) {
     DefinitionTreePtr->InitMember(SensorNames_.Time_us[i],&SensorData_.Time_us[i],"Flight management unit time, us",true,false);
@@ -296,7 +293,7 @@ void FlightManagementUnit::RegisterGlobalData(DefinitionTree *DefinitionTreePtr)
     DefinitionTreePtr->InitMember(SensorNames_.Analog[i] + "/Voltage_V",&SensorData_.Analog[i].Voltage_V,"Analog_" + std::to_string(i) + " measured voltage, V",true,false);
     DefinitionTreePtr->InitMember(SensorNames_.Analog[i] + "/CalibratedValue",&SensorData_.Analog[i].CalibratedValue,"Analog_" + std::to_string(i) + " calibrated value",true,false);
   }
-  std::cout <<  "done!" << std::endl << std::flush;
+  std::cout <<  "done!" << std::endl;
 }
 
 /* Receive sensor data from FMU */

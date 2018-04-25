@@ -38,13 +38,13 @@ class DefinitionTree {
     void DefineMember(std::string Name,struct VariableDefinition &VariableDefinitionRef);
     void InitMember(std::string Name);
     void InitMember(std::string Name,std::variant<uint64_t*,uint32_t*,uint16_t*,uint8_t*,int64_t*,int32_t*,int16_t*,int8_t*,float*, double*> Value,std::string Description,bool Datalog,bool Telemetry);
-    void SetValue(std::string Name,std::variant<uint64_t*,uint32_t*,uint16_t*,uint8_t*,int64_t*,int32_t*,int16_t*,int8_t*,float*, double*> Value);
+    void SetValuePtr(std::string Name,std::variant<uint64_t*,uint32_t*,uint16_t*,uint8_t*,int64_t*,int32_t*,int16_t*,int8_t*,float*, double*> Value);
     void SetDescription(std::string Name,std::string Description);
     void SetDatalog(std::string Name,bool Datalog);
     void SetTelemetry(std::string Name,bool Telemetry);
-    /* Gets value for a definition tree member */
-    template <typename T> T* GetValue(std::string Name) {
-      if(auto val = std::get_if<T*>(&Data_[Name].Value)) {
+    /* Gets pointer to value for a definition tree member */
+    template <typename T> T GetValuePtr(std::string Name) {
+      if(auto val = std::get_if<T>(&Data_[Name].Value)) {
         return *val;
       } else {
         return NULL;

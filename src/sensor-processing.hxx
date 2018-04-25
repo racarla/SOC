@@ -40,17 +40,24 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SO
 #include <cstring>
 #include <Eigen/Dense>
 
-class BaselineAirData {
+class SensorProcessingFunctionClass {
   public:
-    void UpdateConfiguration(const rapidjson::Value& BaselineAirDataConfig);
-    void RegisterGlobalData(DefinitionTree *DefinitionTreePtr);
+    void Configure(const rapidjson::Value& Config,DefinitionTree *DefinitionTreePtr);
+    bool Initialized();
+    void Run();
+};
+
+class IirFilterClass: public SensorProcessingFunctionClass {
+
+};
+
+class BaselineAirDataClass: public SensorProcessingFunctionClass {
+  public:
+    void Configure(const rapidjson::Value& Config,DefinitionTree *DefinitionTreePtr);
+    bool Initialized();
     void Run();
   private:
     struct Config {
-      std::vector<std::string> StaticPressureSourceName;
-      std::vector<std::string> DifferentialPressureSourceName;
-      std::vector<std::string> TemperatureSourceName;
-      std::vector<std::string> MslAltSourceName;
       std::vector<float*> StaticPressureSourcePtr;
       std::vector<float*> DifferentialPressureSourcePtr;
       std::vector<float> DifferentialPressureBiases;
@@ -80,16 +87,12 @@ class BaselineAirData {
 
 class SensorProcessing {
   public:
-    void Begin();
-    void UpdateConfiguration(const rapidjson::Value& SensorConfig);
-    void RegisterGlobalData(DefinitionTree *DefinitionTreePtr);
+    void Configure(const rapidjson::Value& Config, DefinitionTree *DefinitionTreePtr);
     bool Initialized();
     void Run();
   private:
-    struct Classes {
-      std::vector<BaselineAirData> Baselineairdata;
-    };
-    Classes classes_;
+    std::vector<SensorProcessingFunctionClass> BaselineSensorProcessing;
+    std::map<std::string,std::vector<SensorProcessingFunctionClass>> ResearchSensorProcessingGroups;
 };
 
 #endif
