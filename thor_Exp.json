@@ -12,12 +12,12 @@
 
     "CtrlSys": {
       "Group": {
-        "CtrlBaseline": ["Baseline"],
-        "CtrlResearch1": ["PilotAttitude", "SpeedSet", "ScasAttitude", "YawDamper", "ManualFlaps", "SpeedHold"]
+        "Baseline": ["Manual"],
+        "Attitude_SpeedHold": ["PilotAttitude", "SpeedSet", "ManualFlaps", "ScasAttitude", "YawDamper", "SpeedHold"]
       },
 
       "Define": {
-        "Baseline": [
+        "Manual": [
           {"Desc": "PilotRoll", "Type": "Gain",
             "RefSignal": "/InProc/Pilot/cmdRoll_nd", "OutSignal": "/CtrlSys/Scas/cmdRoll_rps",
             "Gain": 1.0472},
@@ -45,7 +45,10 @@
             "Gain": 1.0472},
           {"Desc": "Pitch", "Type": "Gain",
             "RefSignal": "/InProc/Pilot/cmdPitch_nd", "OutSignal": "/CtrlSys/Guid/cmdAttitude_rad",
-            "Gain": 1.0472}
+            "Gain": 1.0472},
+          {"Desc": "Yaw", "Type": "Gain",
+            "RefSignal": "/InProc/Pilot/cmdYaw_nd", "OutSignal": "/CtrlSys/Guid/cmdYaw_rad",
+            "Gain": 0.523599}
           ],
 
         "SpeedSet": [
@@ -58,7 +61,7 @@
             "RefSignal": "/CtrlSys/Guid/cmdBank_rad", "OutSignal": "/CtrlSys/Scas/cmdRoll_rps", "MeasSignal": "/InProc/eulerRoll_rad",
             "cmdRng": [-1.0472, 1.0472], "Kp": 0.640, "Ki": 0.200},
           {"Desc": "Damp_Roll", "Type": "PID2",
-            "RefSignal": "/CtrlSys/Scas/cmdRoll_rps", "OutSignal": "/CtrlSys/Scas/cmdRoll_rps", "MeasSignal": "/InProc/omegaRoll_rps",
+            "RefSignal": "/CtrlSys/Scas/cmdRoll_rps", "OutSignal": "/CtrlSys/Scas/cmdRoll_rps",
             "Kp": 0.070},
 
           {"Desc": "Pitch", "Type": "PID2",
@@ -70,12 +73,12 @@
           ],
 
         "YawDamper": [
-          {"Desc": "Yaw", "Type": "Gain",
-            "RefSignal": "/InProc/Pilot/cmdYaw_nd", "OutSignal": "/CtrlSys/Scas/cmdYaw_rps",
-            "Gain": 0.523599},
-          {"Desc": "Damp_Yaw", "Type": "PID2",
-            "RefSignal": "/CtrlSys/Scas/cmdYaw_rps", "OutSignal": "/CtrlSys/Scas/cmdYaw_rps", "MeasSignal": "/InProc/omegaYaw_rps",
-            "Kp": 0.080}
+          {"Desc": "Damp_Yaw", "Type": "Damp",
+            "RefSignal": "/InProc/omegaYaw_rps", "OutSignal": "/CtrlSys/Scas/cmdYaw_rps",
+            "coefNum": [0.065, -0.065], "coefDenom": [1.0, -0.9608]},
+
+          {"Desc": "ManualYawMix", "Type": "Sum",
+            "RefSignal": ["/CtrlSys/Guid/cmdYaw_rad", "/CtrlSys/Scas/cmdYaw_rps"], "OutSignal": "/CtrlSys/Scas/cmdYaw_rps"}
           ],
 
         "ManualFlaps": [

@@ -96,6 +96,20 @@ class CtrlPid2 : public CtrlBase   {
   VecSignal vecOutSignal_; // Pointers to OutSignal
 };
 
+// Ctrl Damper system
+class CtrlDamp : public CtrlBase   {
+ public:
+  void Config(const ObjJson &objJson, DefinitionTree *signalTreePtr);
+  void Run(CtrlMode &ctrlMode);
+
+  ~CtrlDamp() {};
+ private:
+  CtrlFuncDamp ctrlFuncDamp_;
+
+  VecSignal vecRefSignal_; // Pointers to RefSignal
+  VecSignal vecOutSignal_; // Pointers to OutSignal
+};
+
 // Ctrl State Space system
 class CtrlSS : public CtrlBase   {
  public:
@@ -132,5 +146,5 @@ class CtrlSys {
   static void Run(DefinitionTree &signalTree, CtrlMode &ctrlMode);
 
  private:
-  enum EnumType {kNone = 0, kConst = 1, kSum = 2, kGain = 3, kPid2 = 11, kSS = 41}; // Enumerations of the WaveSystem types
+  enum EnumType {kNone = 0, kConst = 1, kSum = 2, kGain = 3, kPid2 = 11, kDamp = 12, kSS = 41}; // Enumerations of the WaveSystem types
 };

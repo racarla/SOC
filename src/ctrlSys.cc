@@ -86,6 +86,9 @@ void CtrlSys::ConfigDefInst(const ObjJson &objJson, SysInstPtr *sysInstPtr, Defi
   } else if ((typeStr == "PID2")) {
     eType = kPid2;
     *sysInstPtr = std::make_shared<CtrlPid2>();
+  } else if ((typeStr == "Damp")) {
+    eType = kDamp;
+    *sysInstPtr = std::make_shared<CtrlDamp>();
   } else if (typeStr == "SS") {
     eType = kSS;
     *sysInstPtr = std::make_shared<CtrlSS>();
@@ -242,13 +245,67 @@ void CtrlPid2::Config(const ObjJson &objJson, DefinitionTree *signalTreePtr) {
 // FIXIT
 void CtrlPid2::Run(CtrlMode &ctrlMode) {
 
-  // pull values from sigStruct
+  // pull values from definition-tree
   // float ref = 1.0;
   // float meas = 0.0;
   // *cmd = 0.0;
   //
   // ctrlFuncPid2_.mode_ = ctrlMode;
   // ctrlFuncPid2_.Run(ref, meas, dt_s, cmd);
+
+  // put cmd back into definition tree
+}
+
+void CtrlDamp::Config(const ObjJson &objJson, DefinitionTree *signalTreePtr) {
+    // Set all the Default Values
+    float cmdMin = -1000.0;
+    float cmdMax = 1000.0;
+    float b0 = 1.0;
+    float b1 = 0.0;
+    float a0 = 1.0;
+    float a1 = 0.0;
+
+    // Load Values defined in Json
+    if(objJson.HasMember("coefNum")) {
+      assert(objJson["coefNum"].IsArray());
+      b0 = objJson["coefNum"][0].GetFloat();
+      b1 = objJson["coefNum"][1].GetFloat();
+    }
+
+    if(objJson.HasMember("coefDenom")) {
+      assert(objJson["coefDenom"].IsArray());
+      a0 = objJson["coefDenom"][0].GetFloat();
+      a1 = objJson["coefDenom"][1].GetFloat();
+    }
+
+    if(objJson.HasMember("cmdRng")) {
+      assert(objJson["cmdRng"].IsArray());
+      cmdMin = objJson["cmdRng"][0].GetFloat();
+      cmdMax = objJson["cmdRng"][1].GetFloat();
+    }
+
+    // Configure the Controller
+    ctrlFuncDamp_.Config(b0, b1, a0, a1, cmdMin, cmdMax);
+
+    // Print the Config
+    if (kVerboseConfig) {
+      std::cout << "\t\tb0: " << b0 << "  ";
+      std::cout << "b1: " << b1 << "  ";
+      std::cout << "a0: " << a0 << "  ";
+      std::cout << "a1: " << a1 << "  ";
+      std::cout << "cmdRng: [" << cmdMin << "," << cmdMax << "]" << std::endl;
+    }
+}
+
+// FIXIT
+void CtrlDamp::Run(CtrlMode &ctrlMode) {
+
+  // pull values from definition-tree
+  // float ref = 1.0;
+  // *cmd = 0.0;
+  //
+  // ctrlFuncDamp_.mode_ = ctrlMode;
+  // ctrlFuncDamp_.Run(ref, dt_s, cmd);
 
   // put cmd back into definition tree
 }
