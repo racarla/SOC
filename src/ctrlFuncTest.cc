@@ -14,31 +14,39 @@ g++-5 -std=c++11 -Wall -O3 -g -I../includes ctrlFunc.cc ctrlFuncTest.cc -o ctrlF
 
 int main(void)  /* Program tester */
 {
+
+  // float Kp = 0.1;
+  // float Ki = 1.0;
+  // float Kd = 0.0;
+  // float Tf = 0.0;
+  // float b = 1.0;
+  // float c = 1.0;
+  float cmdRng[2] = {-1, 1};
+
+  // CtrlFuncPid2 ctrl;
+  // ctrl.Config(Kp, Ki, Kd, Tf, b, c, cmdRng[0], cmdRng[1]);
+
+  float a0 = 1;
+  float a1 = -0.9608;
+  float b0 = 0.065;
+  float b1 = -b0;
+
+  CtrlFuncDamp ctrl;
+  ctrl.Config(b0, b1, a0, a1, cmdRng[0], cmdRng[1]);
+
+
   float tStart_s = 0.0;
   float tInit_s = 1.0;
   float tEngage_s = 2.0;
   float tHold_s = 4.0;
   float tReset_s = 5.0;
   float tEnd_s = 6.0;
-  float dt_s = 1.0/10.0;
+  float dt_s = 1.0/50.0;
   float tCurr_s;
-
-
-  float Kp = 0.1;
-  float Ki = 1.0;
-  float Kd = 0.0;
-  float Tf = 0.0;
-  float b = 1.0;
-  float c = 1.0;
-  float cmdRng[2] = {-1, 1};
-
-  CtrlFuncPid2 ctrl;
-  ctrl.Config(Kp, Ki, Kd, Tf, b, c, cmdRng[0], cmdRng[1]);
 
   float ref = 1.0;
   float meas = 0.0;
   float measStep = 0.1 * dt_s;
-  float dMeas = 0.0;
 
   int numIter = (int) (tEnd_s / dt_s); // Number of Iterations
 
@@ -62,15 +70,24 @@ int main(void)  /* Program tester */
       ctrl.mode_ = kCtrlReset;
     }
 
-    meas += measStep;
+    if (tCurr_s > 3.0) {
+      meas = 2.0;
+    } else if (tCurr_s > 1.5) {
+      meas = 1.0;
+    } else {
+      meas = 0.0;
+    }
+
+    // meas += measStep;
 
     float cmd = 0.0;
 
-    // ctrl.Run(ref, meas, dMeas, dt_s, &cmd);
-    ctrl.Run(ref, meas, dt_s, &cmd);
+    // ctrl.Run(ref, meas, dt_s, &cmd);
+    ctrl.Run(meas, dt_s, &cmd);
 
     int runMode = ctrl.mode_;
 
-    std::cout << tCurr_s << "\t" << runMode << "\t" << ref <<"\t" << meas << "\t" << (ref-meas) << "\t" << cmd << std::endl;
+    std::cout << tCurr_s << "\t" << runMode << "\t" << meas << "\t" << cmd << std::endl;
+    // std::cout << tCurr_s << "\t" << runMode << "\t" << ref << "\t" << meas << "\t" << (ref-meas) << "\t" << cmd << std::endl;
   }
 }

@@ -46,6 +46,28 @@ class CtrlFuncPid2 {
   void CalcCmd(const float &pErr, const float &dErrState, float *cmd);
 };
 
+// Define CtrlFuncDamp Class
+class CtrlFuncDamp {
+ public:
+  CtrlMode mode_;
+
+  CtrlFuncDamp() {};
+  ~CtrlFuncDamp() {};
+  void Config(const float &b0, const float &b1, const float &a0, const float &a1, const float &cmdMin, const float &cmdMax);
+  void Run(const float &ref, const float &dt_s, float *cmd);
+
+ private:
+  float b0_, b1_;
+  float a0_, a1_;
+  float cmdMin_, cmdMax_;
+
+  float refPrev_;
+  float cmdPrev_;
+
+  void InitState(const float &ref, const float &cmd);
+  void CalcCmd(const float &ref, float *cmd);
+};
+
 // Define CtrlFuncSS Class
 class CtrlFuncSS {
  public:

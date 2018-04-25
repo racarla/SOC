@@ -125,3 +125,82 @@ void CtrlFuncPid2::CalcCmd(const float &pErr, const float &dErrState, float *cmd
     InitState(*cmd, pErr, dErrState, &iErrState_); // Re-compute the integrator state
   }
 }
+
+// Damper Controller
+// FIXIT - Copied syntax from Goldy1, should make continuous form with simple Euler derivative assumption for discrete
+void CtrlFuncDamp::Config(const float &b0, const float &b1, const float &a0, const float &a1, const float &cmdMin, const float &cmdMax)
+{
+  mode_ = kCtrlReset; // Initialize in Reset, which dumps to Standby
+
+  b0_ = b0;
+  b1_ = b1;
+  a0_ = a0;
+  a1_ = a1;
+
+  cmdMin_ = cmdMin;
+  cmdMax_ = cmdMax;
+
+  refPrev_ = 0.0; // Set previous reference to zero
+  cmdPrev_ = 0.0; // Set previous cmd to zero
+}
+
+void CtrlFuncDamp::Run(const float &ref, const float &dt_s, float *cmd)
+{
+
+  *cmd = 0.0;
+
+  switch(mode_) {
+    case kCtrlReset: // Zero the State and Command
+      refPrev_ = 0.0;
+      cmdPrev_ = 0.0;
+      *cmd = 0.0;
+
+      mode_ = kCtrlStandby;
+      break;
+
+    case kCtrlStandby: // Do Nothing, State and Command are unchanged
+      break;
+
+    case kCtrlHold: // Run Commands
+      CalcCmd(ref, cmd); // returns cmd
+      refPrev_ = ref;
+      break;
+
+    case kCtrlInit: // Run Commands
+      InitState(ref, *cmd); // sets cmdPrev_
+      CalcCmd(ref, cmd); // returns cmd
+      refPrev_ = ref;
+      break;
+
+    case kCtrlEngage: // Update the State then Run Commands
+      CalcCmd(ref, cmd); // returns cmd  // Update the states
+      refPrev_ = ref;
+      cmdPrev_ = *cmd;
+      break;
+  }
+}
+
+// Initialize for near-zero transient
+void CtrlFuncDamp::InitState(const float &ref, const float &cmd)
+{
+  if (a1_ != 0.0) {
+    cmdPrev_ = 1/a1_ * (b0_ * ref + b1_ * refPrev_ - a0_ * cmd);
+  }
+}
+
+// Run the Command
+void CtrlFuncDamp::CalcCmd(const float &ref, float *cmd)
+{
+  if (a0_ != 0.0) {
+    *cmd = 1/a0_ * (b0_ * ref + b1_ * refPrev_ - a1_ * cmdPrev_);
+  }
+
+  // saturate cmd, maintain state at theshold
+  if (*cmd <= cmdMin_) {
+    *cmd = cmdMin_;
+    InitState(ref, *cmd);
+  } else if (*cmd >= cmdMax_) {
+    *cmd = cmdMax_;
+    InitState(ref, *cmd);
+  }
+}
