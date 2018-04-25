@@ -203,7 +203,7 @@ void CtrlPid2::Config(const ObjJson &objJson, DefinitionTree *signalTreePtr) {
     // Set all the Default Values
     float cmdMin = -1000.0;
     float cmdMax = 1000.0;
-    float Kp = 0.0;
+    float Kp = 1.0;
     float Ki = 0.0;
     float Kd = 0.0;
     float Tf = 0.0;
