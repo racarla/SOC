@@ -72,7 +72,7 @@ void ControlLaws::Configure(const rapidjson::Value& Config, DefinitionTree *Defi
               Temp.Configure(Component,PathName,DefinitionTreePtr);
               BaselineControlGroup_[i].push_back(Temp);
             }
-            if (Component["Type"] == "Contant") {
+            if (Component["Type"] == "Constant") {
               ControlConstantClass Temp;
               Temp.Configure(Component,PathName,DefinitionTreePtr);
               BaselineControlGroup_[i].push_back(Temp);
@@ -134,7 +134,7 @@ void ControlLaws::Configure(const rapidjson::Value& Config, DefinitionTree *Defi
                   Temp.Configure(Component,PathName,DefinitionTreePtr);
                   ResearchControlGroups_[ResearchConfig[i]["Group-Name"].GetString()][j].push_back(Temp);
                 }
-                if (Component["Type"] == "Contant") {
+                if (Component["Type"] == "Constant") {
                   ControlConstantClass Temp;
                   Temp.Configure(Component,PathName,DefinitionTreePtr);
                   ResearchControlGroups_[ResearchConfig[i]["Group-Name"].GetString()][j].push_back(Temp);
