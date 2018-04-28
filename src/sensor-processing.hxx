@@ -42,9 +42,13 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SO
 
 class SensorProcessingFunctionClass {
   public:
+    enum Mode {
+      kArm,
+      kEngage
+    };
     void Configure(const rapidjson::Value& Config,std::string RootPath,DefinitionTree *DefinitionTreePtr);
     bool Initialized();
-    void Run();
+    void Run(Mode mode);
 };
 
 class IirFilterClass: public SensorProcessingFunctionClass {
@@ -55,7 +59,7 @@ class BaselineAirDataClass: public SensorProcessingFunctionClass {
   public:
     void Configure(const rapidjson::Value& Config,std::string RootPath,DefinitionTree *DefinitionTreePtr);
     bool Initialized();
-    void Run();
+    void Run(Mode mode);
   private:
     struct Config {
       std::vector<float*> StaticPressureSourcePtr;
@@ -81,7 +85,7 @@ class BaselineAirDataClass: public SensorProcessingFunctionClass {
       float AGL_m;
       float MSL_m;
       float DensityAltitude_m;
-      uint8_t Engaged;
+      uint8_t Mode;
     };
     AirData *airdata_;
     Config config_;

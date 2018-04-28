@@ -23,7 +23,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SO
 /* base function class methods */
 void SensorProcessingFunctionClass::Configure(const rapidjson::Value& Config,std::string RootPath_,DefinitionTree *DefinitionTreePtr) {}
 bool SensorProcessingFunctionClass::Initialized() {}
-void SensorProcessingFunctionClass::Run() {}
+void SensorProcessingFunctionClass::Run(Mode mode) {}
 
 /* configure baseline airdata from JSON and global data definition tree */
 void BaselineAirDataClass::Configure(const rapidjson::Value& Config,std::string RootPath_,DefinitionTree *DefinitionTreePtr) {
@@ -92,6 +92,8 @@ void BaselineAirDataClass::Configure(const rapidjson::Value& Config,std::string 
       }
     }
   }
+  // pointer to log run mode data
+  DefinitionTreePtr->InitMember(OutputName+"/Mode",&data_.Mode,"Run mode",true,false);
   // if at least one static pressure source, register: pressure altitude and AGL altitude
   if (config_.StaticPressureSourcePtr.size() > 0) {
     DefinitionTreePtr->InitMember(OutputName+"/Pressure/Static_Pa",&data_.StaticPressure_Pa,"Static pressure, Pa",true,false);
@@ -179,7 +181,8 @@ bool BaselineAirDataClass::Initialized() {
 }
 
 /* compute air data values */
-void BaselineAirDataClass::Run() {
+void BaselineAirDataClass::Run(Mode mode) {
+  data_.Mode = (uint8_t) mode;
   // if we have at least one static pressure source
   if (config_.StaticPressureSourcePtr.size() > 0) {
     // average all static pressure sources
@@ -421,18 +424,17 @@ void SensorProcessing::SetEngagedSensorProcessing(std::string EngagedSensorProce
 
 /* computes sensor processing data */
 void SensorProcessing::Run() {
-  // running baseline sensor processing
-  for (size_t i=0; i < BaselineSensorProcessing_.size(); i++) {
-    BaselineSensorProcessing_[i].Run();
-  }
-  // running research sensor processing
-  for (size_t i=0; i < ResearchGroupKeys_.size(); i++) {
-    for (size_t j=0; j < ResearchSensorProcessingGroups_[ResearchGroupKeys_[i]].size(); j++) {
-      ResearchSensorProcessingGroups_[ResearchGroupKeys_[i]][j].Run();
-    }
-  }
-  // select output
   if (EngagedGroup_ == "Baseline") {
+    // running baseline sensor processing
+    for (size_t i=0; i < BaselineSensorProcessing_.size(); i++) {
+      BaselineSensorProcessing_[i].Run(SensorProcessingFunctionClass::kEngage);
+    }
+    // running research sensor processing
+    for (size_t i=0; i < ResearchGroupKeys_.size(); i++) {
+      for (size_t j=0; j < ResearchSensorProcessingGroups_[ResearchGroupKeys_[i]].size(); j++) {
+        ResearchSensorProcessingGroups_[ResearchGroupKeys_[i]][j].Run(SensorProcessingFunctionClass::kArm);
+      }
+    }
     for (size_t i=0; i < OutputData_.size(); i++) {
       if (std::get_if<uint64_t*>(&BaselineDataPtr_[i])) {
         OutputData_[i] = **(std::get_if<uint64_t*>(&BaselineDataPtr_[i]));
@@ -466,6 +468,22 @@ void SensorProcessing::Run() {
       }
     }
   } else {
+    // running baseline sensor processing
+    for (size_t i=0; i < BaselineSensorProcessing_.size(); i++) {
+      BaselineSensorProcessing_[i].Run(SensorProcessingFunctionClass::kArm);
+    }
+    // running research sensor processing
+    for (size_t i=0; i < ResearchGroupKeys_.size(); i++) {
+      if (ResearchGroupKeys_[i] == EngagedGroup_) {
+        for (size_t j=0; j < ResearchSensorProcessingGroups_[ResearchGroupKeys_[i]].size(); j++) {
+          ResearchSensorProcessingGroups_[ResearchGroupKeys_[i]][j].Run(SensorProcessingFunctionClass::kEngage);
+        }
+      } else {
+        for (size_t j=0; j < ResearchSensorProcessingGroups_[ResearchGroupKeys_[i]].size(); j++) {
+          ResearchSensorProcessingGroups_[ResearchGroupKeys_[i]][j].Run(SensorProcessingFunctionClass::kArm);
+        }
+      }
+    }
     std::vector<std::variant<uint64_t*,uint32_t*,uint16_t*,uint8_t*,int64_t*,int32_t*,int16_t*,int8_t*,float*,double*>> ResearchPtr;
     ResearchPtr = ResearchDataPtr_[EngagedGroup_];
     for (size_t i=0; i < OutputData_.size(); i++) {
