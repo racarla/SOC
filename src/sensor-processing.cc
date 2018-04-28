@@ -21,17 +21,17 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SO
 #include "sensor-processing.hxx"
 
 /* base function class methods */
-void SensorProcessingFunctionClass::Configure(const rapidjson::Value& Config,std::string RootPath_,DefinitionTree *DefinitionTreePtr) {}
+void SensorProcessingFunctionClass::Configure(const rapidjson::Value& Config,std::string RootPath,DefinitionTree *DefinitionTreePtr) {}
 bool SensorProcessingFunctionClass::Initialized() {}
 void SensorProcessingFunctionClass::Run(Mode mode) {}
 
 /* configure baseline airdata from JSON and global data definition tree */
-void BaselineAirDataClass::Configure(const rapidjson::Value& Config,std::string RootPath_,DefinitionTree *DefinitionTreePtr) {
+void BaselineAirDataClass::Configure(const rapidjson::Value& Config,std::string RootPath,DefinitionTree *DefinitionTreePtr) {
   std::string OutputName;
   if (Config.HasMember("Output-Name")) {
-    OutputName = RootPath_ + "/" + Config["Output-Name"].GetString();
+    OutputName = RootPath + "/" + Config["Output-Name"].GetString();
   } else {
-    throw std::runtime_error(std::string("ERROR")+RootPath_+std::string(": Output-Name not specified in configuration."));
+    throw std::runtime_error(std::string("ERROR")+RootPath+std::string(": Output-Name not specified in configuration."));
   }
   // get static pressure configuration
   if (Config.HasMember("Static-Pressure")) {

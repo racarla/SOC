@@ -31,9 +31,30 @@ bool ControlEmptyClass::Initialized() {}
 void ControlEmptyClass::Run(Mode mode) {}
 
 /* control constant class methods */
-void ControlConstantClass::Configure(const rapidjson::Value& Config,std::string RootPath,DefinitionTree *DefinitionTreePtr) {}
-bool ControlConstantClass::Initialized() {}
-void ControlConstantClass::Run(Mode mode) {}
+void ControlConstantClass::Configure(const rapidjson::Value& Config,std::string RootPath,DefinitionTree *DefinitionTreePtr) {
+  std::string OutputName;
+  if (Config.HasMember("Output-Name")) {
+    OutputName = RootPath + "/" + Config["Output-Name"].GetString();
+  } else {
+    throw std::runtime_error(std::string("ERROR")+RootPath+std::string(": Output-Name not specified in configuration."));
+  }
+  if (Config.HasMember("Constant")) {
+    config_.Constant = Config["Constant"].GetFloat();
+  } else {
+    throw std::runtime_error(std::string("ERROR")+OutputName+std::string(": Constant value not specified in configuration."));
+  }
+  // pointer to log run mode data
+  DefinitionTreePtr->InitMember(OutputName+"/Mode",&data_.Mode,"Run mode",true,false);
+  // pointer to log command data
+  DefinitionTreePtr->InitMember(OutputName+"/Command",&data_.Command,"Control law output",true,false);
+}
+bool ControlConstantClass::Initialized() {
+  return true;
+}
+void ControlConstantClass::Run(Mode mode) {
+  data_.Mode = (uint8_t) mode;
+  data_.Command = config_.Constant;
+}
 
 /* control gain class methods */
 void ControlGainClass::Configure(const rapidjson::Value& Config,std::string RootPath,DefinitionTree *DefinitionTreePtr) {}

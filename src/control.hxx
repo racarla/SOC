@@ -78,6 +78,16 @@ class ControlConstantClass: public ControlFunctionClass {
     void Configure(const rapidjson::Value& Config,std::string RootPath,DefinitionTree *DefinitionTreePtr);
     bool Initialized();
     void Run(Mode mode);
+  private:
+    struct Config {
+      float Constant;
+    };
+    struct Data {
+      uint8_t Mode;
+      float Command;
+    };
+    Config config_;
+    Data data_;
 };
 
 class ControlGainClass: public ControlFunctionClass {
@@ -92,6 +102,12 @@ class ControlGainClass: public ControlFunctionClass {
     void Configure(const rapidjson::Value& Config,std::string RootPath,DefinitionTree *DefinitionTreePtr);
     bool Initialized();
     void Run(Mode mode);
+  private:
+    struct Config {
+      float *Reference;
+      float Gain;
+    };
+    Config config_;
 };
 
 class ControlPIDClass: public ControlFunctionClass {
