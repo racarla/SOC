@@ -20,9 +20,31 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SO
 
 #include "mission.hxx"
 
+/* configures the mission manager given a JSON value and registers data with global defs */
 void MissionManager::Configure(const rapidjson::Value& Config, DefinitionTree *DefinitionTreePtr) {
+  // get the engage switch configuration
+  if (Config.HasMember("Engage-Switch")) {
+    const rapidjson::Value& EngageSwitch = Config["Engage-Switch"];
+    if (EngageSwitch.HasMember("Source")) {
+      if (DefinitionTreePtr->GetValuePtr<float*>(EngageSwitch["Source"].GetString())) {
+        config_.EngageSwitch.SourcePtr = DefinitionTreePtr->GetValuePtr<float*>(EngageSwitch["Source"].GetString());
+      } else {
+        throw std::runtime_error(std::string("ERROR")+RootPath_+std::string(": Engage switch source not found in global data."));
+      }
+    } else {
+      throw std::runtime_error(std::string("ERROR")+RootPath_+std::string(": Engage switch configuration does not define a source."));
+    }
+    if (EngageSwitch.HasMember("Threshold")) {
+      config_.EngageSwitch.Threshold = EngageSwitch["Threshold"].GetFloat();
+    }
+    if (EngageSwitch.HasMember("Gain")) {
+      config_.EngageSwitch.Gain = EngageSwitch["Gain"].GetFloat();
+    }
+  }
+  // build a map of the test point data
   if (Config.HasMember("Test-Points")) {
     const rapidjson::Value& TestPoints = Config["Test-Points"];
+    NumberOfTestPoints_ = TestPoints.Size();
     for (size_t i=0; i < TestPoints.Size(); i++) {
       const rapidjson::Value& TestPoint = TestPoints[i];
       if (TestPoint.HasMember("Test-ID")&&TestPoint.HasMember("Sensor-Processing")&&TestPoint.HasMember("Control")) {
@@ -30,7 +52,66 @@ void MissionManager::Configure(const rapidjson::Value& Config, DefinitionTree *D
         Temp.SensorProcessing = TestPoint["Sensor-Processing"].GetString();
         Temp.Control = TestPoint["Control"].GetString();
         TestPoints_[TestPoint["Test-ID"].GetString()] = Temp;
+      } else {
+        throw std::runtime_error(std::string("ERROR")+RootPath_+std::string(": Test-ID, Sensor-Processing, or Control not included in test point definition."));
       }
     }
   }
+}
+
+/* initializes the mission manager */
+bool MissionManager::Initialized() {
+  if (InitializedLatch_) {
+    return true;
+  } else {
+    TestPointIndex_ = 0;
+    InitializedLatch_ = true;
+    return true;
+  }
+}
+
+/* runs the mission manager */
+void MissionManager::Run() {
+  // determine if the research control law is engaged
+  // check the engage switch state and use a persistence counter to filter
+  // out noise
+  if (*config_.EngageSwitch.SourcePtr*config_.EngageSwitch.Gain > config_.EngageSwitch.Threshold) {
+    PersistenceCounter_++;
+  } else {
+    PersistenceCounter_ = 0;
+  }
+  // run research control law
+  if (PersistenceCounter_ > PersistenceThreshold_) {
+    if (!TestPointIndexLatch_) {
+      EngagedSensorProcessing_ = TestPoints_[std::to_string(TestPointIndex_)].SensorProcessing;
+      EnagagedController_ = TestPoints_[std::to_string(TestPointIndex_)].Control;
+      TestPointIndexLatch_ = true;
+      TestPointIndex_++;
+      if (TestPointIndex_>=NumberOfTestPoints_) {
+        TestPointIndex_ = 0;
+      }
+    }
+  // else engage baseline
+  } else {
+    EngagedSensorProcessing_ = "Baseline";
+    EnagagedController_ = "Baseline";
+    TestPointIndexLatch_ = false;
+  }
+  // arm the next control law
+  ArmedController_ = TestPoints_[std::to_string(TestPointIndex_)].Control;
+}
+
+/* returns the string of the sensor processing group that is engaged */
+std::string MissionManager::GetEnagagedSensorProcessing() {
+  return EngagedSensorProcessing_;
+}
+
+/* returns the string of the control group that is engaged */
+std::string MissionManager::GetEnagagedController() {
+  return EnagagedController_;
+}
+
+/* returns the string of the control group that is armed */
+std::string MissionManager::GetArmedController() {
+  return ArmedController_;
 }

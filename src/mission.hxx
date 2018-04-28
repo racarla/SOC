@@ -45,8 +45,30 @@ class MissionManager {
       std::string Control;
     };
     void Configure(const rapidjson::Value& Config, DefinitionTree *DefinitionTreePtr);
+    bool Initialized();
     void Run();
+    std::string GetEnagagedSensorProcessing();
+    std::string GetEnagagedController();
+    std::string GetArmedController();
   private:
+    struct Configuration {
+      struct {
+        float *SourcePtr;
+        float Threshold = 0.5;
+        float Gain = 1.0;
+      } EngageSwitch;
+    };
+    Configuration config_;
+    std::string RootPath_ = "/Mission-Manager";
+    bool InitializedLatch_ = false;
+    size_t PersistenceCounter_ = 0;
+    const size_t PersistenceThreshold_ = 5;
+    size_t NumberOfTestPoints_;
+    size_t TestPointIndex_;
+    bool TestPointIndexLatch_ = false;
+    std::string EngagedSensorProcessing_;
+    std::string EnagagedController_;
+    std::string ArmedController_;
     std::map<std::string,TestPointDefinition> TestPoints_;
 };
 

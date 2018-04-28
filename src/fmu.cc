@@ -24,7 +24,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SO
 void FlightManagementUnit::Begin() {
   std::cout << "\t\tOpening UART port with FMU..." << std::flush;
   if ((FmuFileDesc_=open(Port_.c_str(),O_RDWR|O_NOCTTY|O_NONBLOCK))<0) {
-    throw std::runtime_error("UART failed to open.");
+    throw std::runtime_error(std::string("ERROR")+RootPath+std::string(": UART failed to open."));
   }
   struct termios Options;
   tcgetattr(FmuFileDesc_,&Options);
@@ -44,8 +44,8 @@ void FlightManagementUnit::Begin() {
 void FlightManagementUnit::Configure(const rapidjson::Value& Config, DefinitionTree *DefinitionTreePtr) {
   std::vector<uint8_t> Payload;
   // switch FMU to configuration mode
-  Payload.push_back((uint8_t)Mode::ConfigMode);
-  SendMessage(Message::ModeCommand,Payload);
+  Payload.push_back((uint8_t)Mode::kConfigMode);
+  SendMessage(Message::kModeCommand,Payload);
   // clear the serial buffer
   while ((read(FmuFileDesc_,&RxByte_,sizeof(RxByte_)))>0) {}
   // parse and send sensor configuration messages
@@ -64,48 +64,49 @@ void FlightManagementUnit::Configure(const rapidjson::Value& Config, DefinitionT
         for (size_t j=0; j < ConfigString.size(); j++) {
           Payload.push_back((uint8_t)ConfigString[j]);
         }
-        SendMessage(Message::ConfigMesg,Payload);
+        SendMessage(Message::kConfigMesg,Payload);
+        // create list of sensor output names
         if (Sensor["Type"] == "Time") {
-          SensorNames_.Time_us.push_back(Sensor["Output-Name"].GetString());
+          SensorNames_.Time_us.push_back(RootPath + "/" + Sensor["Output-Name"].GetString());
         }
         if (Sensor["Type"] == "InternalMpu9250") {
-          SensorNames_.InternalMpu9250.push_back(Sensor["Output-Name"].GetString());
+          SensorNames_.InternalMpu9250.push_back(RootPath + "/" + Sensor["Output-Name"].GetString());
         }
         if (Sensor["Type"] == "InternalBme280") {
-          SensorNames_.InternalBme280.push_back(Sensor["Output-Name"].GetString());
+          SensorNames_.InternalBme280.push_back(RootPath + "/" + Sensor["Output-Name"].GetString());
         }
         if (Sensor["Type"] == "InputVoltage") {
-          SensorNames_.InputVoltage_V.push_back(Sensor["Output-Name"].GetString());
+          SensorNames_.InputVoltage_V.push_back(RootPath + "/" + Sensor["Output-Name"].GetString());
         }
         if (Sensor["Type"] == "RegulatedVoltage") {
-          SensorNames_.RegulatedVoltage_V.push_back(Sensor["Output-Name"].GetString());
+          SensorNames_.RegulatedVoltage_V.push_back(RootPath + "/" + Sensor["Output-Name"].GetString());
         }
         if (Sensor["Type"] == "PwmVoltage") {
-          SensorNames_.PwmVoltage_V.push_back(Sensor["Output-Name"].GetString());
+          SensorNames_.PwmVoltage_V.push_back(RootPath + "/" + Sensor["Output-Name"].GetString());
         }
         if (Sensor["Type"] == "SbusVoltage") {
-          SensorNames_.SbusVoltage_V.push_back(Sensor["Output-Name"].GetString());
+          SensorNames_.SbusVoltage_V.push_back(RootPath + "/" + Sensor["Output-Name"].GetString());
         }
         if (Sensor["Type"] == "Mpu9250") {
-          SensorNames_.Mpu9250.push_back(Sensor["Output-Name"].GetString());
+          SensorNames_.Mpu9250.push_back(RootPath + "/" + Sensor["Output-Name"].GetString());
         }
         if (Sensor["Type"] == "Bme280") {
-          SensorNames_.Bme280.push_back(Sensor["Output-Name"].GetString());
+          SensorNames_.Bme280.push_back(RootPath + "/" + Sensor["Output-Name"].GetString());
         }
         if (Sensor["Type"] == "uBlox") {
-          SensorNames_.uBlox.push_back(Sensor["Output-Name"].GetString());
+          SensorNames_.uBlox.push_back(RootPath + "/" + Sensor["Output-Name"].GetString());
         }
         if (Sensor["Type"] == "Swift") {
-          SensorNames_.Swift.push_back(Sensor["Output-Name"].GetString());
+          SensorNames_.Swift.push_back(RootPath + "/" + Sensor["Output-Name"].GetString());
         }
         if (Sensor["Type"] == "Ams5915") {
-          SensorNames_.Ams5915.push_back(Sensor["Output-Name"].GetString());
+          SensorNames_.Ams5915.push_back(RootPath + "/" + Sensor["Output-Name"].GetString());
         }
         if (Sensor["Type"] == "Sbus") {
-          SensorNames_.Sbus.push_back(Sensor["Output-Name"].GetString());
+          SensorNames_.Sbus.push_back(RootPath + "/" + Sensor["Output-Name"].GetString());
         }
         if (Sensor["Type"] == "Analog") {
-          SensorNames_.Analog.push_back(Sensor["Output-Name"].GetString());
+          SensorNames_.Analog.push_back(RootPath + "/" + Sensor["Output-Name"].GetString());
         }
         if (Sensor["Type"] == "Node") {
           const rapidjson::Value& Node = Sensor;
@@ -114,66 +115,50 @@ void FlightManagementUnit::Configure(const rapidjson::Value& Config, DefinitionT
             assert(NodeSensors.IsArray());
             for (size_t j=0; j < NodeSensors.Size(); j++) {
               const rapidjson::Value& NodeSensor = NodeSensors[j];
-              if (NodeSensor["Type"] == "PwmVoltage") {
-                SensorNames_.PwmVoltage_V.push_back(NodeSensor["Output-Name"].GetString());
-              }
-              if (NodeSensor["Type"] == "SbusVoltage") {
-                SensorNames_.SbusVoltage_V.push_back(NodeSensor["Output-Name"].GetString());
-              }
-              if (NodeSensor["Type"] == "Mpu9250") {
-                SensorNames_.Mpu9250.push_back(NodeSensor["Output-Name"].GetString());
-              }
-              if (NodeSensor["Type"] == "Bme280") {
-                SensorNames_.Bme280.push_back(NodeSensor["Output-Name"].GetString());
-              }
-              if (NodeSensor["Type"] == "uBlox") {
-                SensorNames_.uBlox.push_back(NodeSensor["Output-Name"].GetString());
-              }
-              if (NodeSensor["Type"] == "Swift") {
-                SensorNames_.Swift.push_back(NodeSensor["Output-Name"].GetString());
-              }
-              if (NodeSensor["Type"] == "Ams5915") {
-                SensorNames_.Ams5915.push_back(NodeSensor["Output-Name"].GetString());
-              }
-              if (NodeSensor["Type"] == "Sbus") {
-                SensorNames_.Sbus.push_back(NodeSensor["Output-Name"].GetString());
-              }
-              if (NodeSensor["Type"] == "Analog") {
-                SensorNames_.Analog.push_back(NodeSensor["Output-Name"].GetString());
+              if (NodeSensor.HasMember("Type")) {
+                if (NodeSensor["Type"] == "PwmVoltage") {
+                  SensorNames_.PwmVoltage_V.push_back(RootPath + "/" + NodeSensor["Output-Name"].GetString());
+                }
+                if (NodeSensor["Type"] == "SbusVoltage") {
+                  SensorNames_.SbusVoltage_V.push_back(RootPath + "/" + NodeSensor["Output-Name"].GetString());
+                }
+                if (NodeSensor["Type"] == "Mpu9250") {
+                  SensorNames_.Mpu9250.push_back(RootPath + "/" + NodeSensor["Output-Name"].GetString());
+                }
+                if (NodeSensor["Type"] == "Bme280") {
+                  SensorNames_.Bme280.push_back(RootPath + "/" + NodeSensor["Output-Name"].GetString());
+                }
+                if (NodeSensor["Type"] == "uBlox") {
+                  SensorNames_.uBlox.push_back(RootPath + "/" + NodeSensor["Output-Name"].GetString());
+                }
+                if (NodeSensor["Type"] == "Swift") {
+                  SensorNames_.Swift.push_back(RootPath + "/" + NodeSensor["Output-Name"].GetString());
+                }
+                if (NodeSensor["Type"] == "Ams5915") {
+                  SensorNames_.Ams5915.push_back(RootPath + "/" + NodeSensor["Output-Name"].GetString());
+                }
+                if (NodeSensor["Type"] == "Sbus") {
+                  SensorNames_.Sbus.push_back(RootPath + "/" + NodeSensor["Output-Name"].GetString());
+                }
+                if (NodeSensor["Type"] == "Analog") {
+                  SensorNames_.Analog.push_back(RootPath + "/" + NodeSensor["Output-Name"].GetString());
+                }
+              } else {
+                throw std::runtime_error(std::string("ERROR")+RootPath+std::string(": Node sensor type not specified."));
               }
             }
           }
         }
+      } else {
+        throw std::runtime_error(std::string("ERROR")+RootPath+std::string(": Sensor type not specified."));
       }
     }
   }
-  // // parse and send sensor processing configuration messages
-  // if (Config.HasMember("Sensor-Processing")) {
-  //   const rapidjson::Value& SenProcs = Config["Sensor-Processing"];
-  //   assert(SenProcs.IsArray());
-  //   for (size_t i=0; i < SenProcs.Size(); i++) {
-  //     const rapidjson::Value& SenProc = SenProcs[i];
-  //     if (SenProc.HasMember("Type")) {
-  //       Payload.clear();
-  //       rapidjson::StringBuffer StringBuff;
-  //       rapidjson::Writer<rapidjson::StringBuffer> Writer(StringBuff);
-  //       SenProc.Accept(Writer);
-  //       std::string OutputString = StringBuff.GetString();
-  //       std::string ConfigString = std::string("{\"Sensor-Processing\":[") + OutputString + std::string("]}");
-  //       for (size_t j=0; j < ConfigString.size(); j++) {
-  //         Payload.push_back((uint8_t)ConfigString[j]);
-  //       }
-  //       SendMessage(Message::ConfigMesg,Payload);
-  //     } else {
-  //       throw std::runtime_error("Sensor processing configuration type not specified.");
-  //     }
-  //   }
-  // }
   // switch FMU to run mode
   Payload.clear();
-  Payload.push_back((uint8_t)Mode::RunMode);
-  SendMessage(Message::ModeCommand,Payload);
-  // get the updated configuration
+  Payload.push_back((uint8_t)Mode::kRunMode);
+  SendMessage(Message::kModeCommand,Payload);
+  // get the updated configuration from the sensor meta data
   std::cout << "\t\tGetting FMU configuration..." << std::flush;
   while(1) {
     if (ReceiveSensorData()) {break;}
@@ -195,7 +180,7 @@ void FlightManagementUnit::Configure(const rapidjson::Value& Config, DefinitionT
   std::cout << "\t\t\t\tAms5915:" << SensorData_.Ams5915.size() << std::endl;
   std::cout << "\t\t\t\tSbus:" << SensorData_.Sbus.size() << std::endl;
   std::cout << "\t\t\t\tAnalog:" << SensorData_.Analog.size() << std::endl;
-
+  // register sensor data with global definition tree
   std::cout << "\t\tRegistering FMU data with global definition tree..." << std::flush;
   for (size_t i=0; i < SensorData_.Time_us.size(); i++) {
     DefinitionTreePtr->InitMember(SensorNames_.Time_us[i],&SensorData_.Time_us[i],"Flight management unit time, us",true,false);
@@ -302,7 +287,7 @@ bool FlightManagementUnit::ReceiveSensorData() {
   std::vector<uint8_t> Payload;
   size_t PayloadLocation = 0;
   if (ReceiveMessage(&message,&Payload)) {
-    if (message == SensorData) {
+    if (message == kSensorData) {
       // meta data
       uint8_t AcquireInternalData,NumberPwmVoltageSensor,NumberSbusVoltageSensor,NumberMpu9250Sensor,NumberBme280Sensor,NumberuBloxSensor,NumberSwiftSensor,NumberAms5915Sensor,NumberSbusSensor,NumberAnalogSensor;
       memcpy(&AcquireInternalData,Payload.data()+PayloadLocation,sizeof(AcquireInternalData));
@@ -492,7 +477,7 @@ bool FlightManagementUnit::ReceiveMessage(Message *message,std::vector<uint8_t> 
 void FlightManagementUnit::WritePort(uint8_t* Buffer,size_t BufferSize) {
   int count;
   if ((count=write(FmuFileDesc_,Buffer,BufferSize))<0) {
-    throw std::runtime_error("UART failed to write.");
+    throw std::runtime_error(std::string("ERROR")+RootPath+std::string(": UART failed to write."));
   }
 }
 

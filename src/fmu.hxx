@@ -41,17 +41,17 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SO
 class FlightManagementUnit {
   public:
     enum Message {
-      ModeCommand,
-      ConfigMesg,
-      SensorData,
-      EffectorCommand
+      kModeCommand,
+      kConfigMesg,
+      kSensorData,
+      kEffectorCommand
     };
     enum Mode {
-      ConfigMode,
-      RunMode
+      kConfigMode,
+      kRunMode
     };
     void Begin();
-    void Configure(const rapidjson::Value& Config, DefinitionTree *DefinitionTreePtr);
+    void Configure(const rapidjson::Value& Config,DefinitionTree *DefinitionTreePtr);
     bool ReceiveSensorData();
   private:
     struct InternalMpu9250SensorData {
@@ -155,8 +155,9 @@ class FlightManagementUnit {
     uint8_t LengthBuffer_[2];
     uint16_t Length_ = 0;
     uint8_t Checksum_[2];
-    struct SensorData SensorData_;
-    struct SensorNames SensorNames_;
+    SensorData SensorData_;
+    SensorNames SensorNames_;
+    std::string RootPath = "/Sensors";
     void SendMessage(Message message,std::vector<uint8_t> &Payload);
     bool ReceiveMessage(Message *message,std::vector<uint8_t> *Payload);
     void WritePort(uint8_t* Buffer,size_t BufferSize);

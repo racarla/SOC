@@ -32,7 +32,7 @@ BINDIR := bin
 SRCDIR := src
 # flight code objects
 OBJECTS_FLIGHT := \
-uNavINS.o \
+utils.o \
 AirData.o \
 mission.o \
 control.o \

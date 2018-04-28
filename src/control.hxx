@@ -39,17 +39,123 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SO
 #include <Eigen/Dense>
 
 class ControlFunctionClass {
+  public:
+    enum Mode {
+      kReset,
+      kInitialize,
+      kStandby,
+      kHold,
+      kEngage
+    };
+    void Configure(const rapidjson::Value& Config,std::string RootPath,DefinitionTree *DefinitionTreePtr);
+    bool Initialized();
+    void Run(Mode mode);
+};
 
+class ControlEmptyClass: public ControlFunctionClass {
+  public:
+    enum Mode {
+      kReset,
+      kInitialize,
+      kStandby,
+      kHold,
+      kEngage
+    };
+    void Configure(const rapidjson::Value& Config,std::string RootPath,DefinitionTree *DefinitionTreePtr);
+    bool Initialized();
+    void Run(Mode mode);
+};
+
+class ControlConstantClass: public ControlFunctionClass {
+  public:
+    enum Mode {
+      kReset,
+      kInitialize,
+      kStandby,
+      kHold,
+      kEngage
+    };
+    void Configure(const rapidjson::Value& Config,std::string RootPath,DefinitionTree *DefinitionTreePtr);
+    bool Initialized();
+    void Run(Mode mode);
+};
+
+class ControlGainClass: public ControlFunctionClass {
+  public:
+    enum Mode {
+      kReset,
+      kInitialize,
+      kStandby,
+      kHold,
+      kEngage
+    };
+    void Configure(const rapidjson::Value& Config,std::string RootPath,DefinitionTree *DefinitionTreePtr);
+    bool Initialized();
+    void Run(Mode mode);
+};
+
+class ControlPIDClass: public ControlFunctionClass {
+  public:
+    enum Mode {
+      kReset,
+      kInitialize,
+      kStandby,
+      kHold,
+      kEngage
+    };
+    void Configure(const rapidjson::Value& Config,std::string RootPath,DefinitionTree *DefinitionTreePtr);
+    bool Initialized();
+    void Run(Mode mode);
+};
+
+class ControlPID2Class: public ControlFunctionClass {
+  public:
+    enum Mode {
+      kReset,
+      kInitialize,
+      kStandby,
+      kHold,
+      kEngage
+    };
+    void Configure(const rapidjson::Value& Config,std::string RootPath,DefinitionTree *DefinitionTreePtr);
+    bool Initialized();
+    void Run(Mode mode);
+};
+
+class ControlStateSpaceClass: public ControlFunctionClass {
+  public:
+    enum Mode {
+      kReset,
+      kInitialize,
+      kStandby,
+      kHold,
+      kEngage
+    };
+    void Configure(const rapidjson::Value& Config,std::string RootPath,DefinitionTree *DefinitionTreePtr);
+    bool Initialized();
+    void Run(Mode mode);
 };
 
 class ControlLaws {
   public:
     void Configure(const rapidjson::Value& Config, DefinitionTree *DefinitionTreePtr);
     bool Initialized();
-    void Run();
+    void SetEngagedController(std::string ControlGroupName);
+    void SetArmedController(std::string ControlGroupName);
+    size_t ActiveControlLevels();
+    void Run(size_t ControlLevel);
   private:
-    // std::vector<SensorProcessingFunctionClass> BaselineSensorProcessing;
-    // std::map<std::string,std::vector<SensorProcessingFunctionClass>> ResearchSensorProcessingGroups;
+    std::string RootPath_ = "/Control";
+    bool InitializedLatch_ = false;
+    std::string EngagedGroup_;
+    std::string ArmedGroup_;
+    std::vector<std::string> ResearchGroupKeys_;
+    std::map<std::string,std::string> OutputKeys_;
+    std::vector<std::vector<ControlFunctionClass>> BaselineControlGroup_;
+    std::map<std::string,std::vector<std::vector<ControlFunctionClass>>> ResearchControlGroups_;
+    std::vector<std::variant<uint64_t,uint32_t,uint16_t,uint8_t,int64_t,int32_t,int16_t,int8_t,float, double>> OutputData_;
+    std::vector<std::variant<uint64_t*,uint32_t*,uint16_t*,uint8_t*,int64_t*,int32_t*,int16_t*,int8_t*,float*,double*>> BaselineDataPtr_;
+    std::map<std::string,std::vector<std::variant<uint64_t*,uint32_t*,uint16_t*,uint8_t*,int64_t*,int32_t*,int16_t*,int8_t*,float*,double*>>> ResearchDataPtr_;
 };
 
 #endif

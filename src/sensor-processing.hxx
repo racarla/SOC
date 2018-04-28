@@ -22,7 +22,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SO
 #define SENSOR_PROCESSING_HXX_
 
 #include "AirData.h"
-#include "uNavINS.h"
+#include "utils.hxx"
 #include "hardware-defs.hxx"
 #include "definition-tree.hxx"
 #include "rapidjson/document.h"
@@ -42,7 +42,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SO
 
 class SensorProcessingFunctionClass {
   public:
-    void Configure(const rapidjson::Value& Config,DefinitionTree *DefinitionTreePtr);
+    void Configure(const rapidjson::Value& Config,std::string RootPath,DefinitionTree *DefinitionTreePtr);
     bool Initialized();
     void Run();
 };
@@ -53,7 +53,7 @@ class IirFilterClass: public SensorProcessingFunctionClass {
 
 class BaselineAirDataClass: public SensorProcessingFunctionClass {
   public:
-    void Configure(const rapidjson::Value& Config,DefinitionTree *DefinitionTreePtr);
+    void Configure(const rapidjson::Value& Config,std::string RootPath,DefinitionTree *DefinitionTreePtr);
     bool Initialized();
     void Run();
   private:
@@ -63,6 +63,8 @@ class BaselineAirDataClass: public SensorProcessingFunctionClass {
       std::vector<float> DifferentialPressureBiases;
       std::vector<float*> TemperatureSourcePtr;
       std::vector<float*> MslAltSourcePtr;
+      std::vector<uint8_t*> MslAltFixPtr;
+      float InitializationTime_s;
       float InitialTemperature_C;
       float InitialPressureAlt_m;
       float InitialMSLAlt_m;
@@ -79,20 +81,31 @@ class BaselineAirDataClass: public SensorProcessingFunctionClass {
       float AGL_m;
       float MSL_m;
       float DensityAltitude_m;
+      uint8_t Engaged;
     };
     AirData *airdata_;
     Config config_;
     Data data_;
+    bool InitializedLatch_ = false;
 };
 
 class SensorProcessing {
   public:
-    void Configure(const rapidjson::Value& Config, DefinitionTree *DefinitionTreePtr);
+    void Configure(const rapidjson::Value& Config,DefinitionTree *DefinitionTreePtr);
     bool Initialized();
+    void SetEngagedSensorProcessing(std::string EngagedSensorProcessing);
     void Run();
   private:
-    std::vector<SensorProcessingFunctionClass> BaselineSensorProcessing;
-    std::map<std::string,std::vector<SensorProcessingFunctionClass>> ResearchSensorProcessingGroups;
+    std::string RootPath_ = "/Sensor-Processing";
+    bool InitializedLatch_ = false;
+    std::string EngagedGroup_;
+    std::vector<SensorProcessingFunctionClass> BaselineSensorProcessing_;
+    std::map<std::string,std::vector<SensorProcessingFunctionClass>> ResearchSensorProcessingGroups_;
+    std::vector<std::string> ResearchGroupKeys_;
+    std::map<std::string,std::string> OutputKeys_;
+    std::vector<std::variant<uint64_t,uint32_t,uint16_t,uint8_t,int64_t,int32_t,int16_t,int8_t,float, double>> OutputData_;
+    std::vector<std::variant<uint64_t*,uint32_t*,uint16_t*,uint8_t*,int64_t*,int32_t*,int16_t*,int8_t*,float*,double*>> BaselineDataPtr_;
+    std::map<std::string,std::vector<std::variant<uint64_t*,uint32_t*,uint16_t*,uint8_t*,int64_t*,int32_t*,int16_t*,int8_t*,float*,double*>>> ResearchDataPtr_;
 };
 
 #endif

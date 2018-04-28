@@ -41,6 +41,7 @@ int main(int argc, char* argv[]) {
       return -1;
   }
 
+  /* displaying software version information */
   std::cout << "Bolder Flight Systems" << std::endl;
   std::cout << "Flight Software Version " << SoftwareVersion << std::endl << std::endl;
 
@@ -54,43 +55,45 @@ int main(int argc, char* argv[]) {
   DatalogClient Datalog;
 
   /* initialize classes */
-  std::cout << "Initializing software modules..." << std:: endl;
+  std::cout << "Initializing software modules..." << std::endl;
   std::cout << "\tInitializing FMU..." << std::endl;
-  Fmu.Begin();
+  // Fmu.Begin();
 
   /* configure classes and register with global defs */
+  std::cout << "Configuring aircraft..." << std::endl;
   rapidjson::Document AircraftConfiguration;
   Config.LoadConfiguration(argv[1], &AircraftConfiguration);
-  Fmu.Configure(AircraftConfiguration,&GlobalData);
+  // Fmu.Configure(AircraftConfiguration,&GlobalData);
   if (AircraftConfiguration.HasMember("Sensor-Processing")) {
     SenProc.Configure(AircraftConfiguration["Sensor-Processing"],&GlobalData);
   }
   if (AircraftConfiguration.HasMember("Control")) {
     Control.Configure(AircraftConfiguration["Control"],&GlobalData);
   }
-  if (AircraftConfiguration.HasMember("Mission")) {
-    Mission.Configure(AircraftConfiguration["Mission"],&GlobalData);
+  if (AircraftConfiguration.HasMember("Mission-Manager")) {
+    Mission.Configure(AircraftConfiguration["Mission-Manager"],&GlobalData);
   }
   Datalog.RegisterGlobalData(GlobalData);
 
   /* main loop */
   while(1) {
     if (Fmu.ReceiveSensorData()) {
-      if (SenProc.Initialized()) {
-        SenProc.Run();
+      if (SenProc.Initialized()&&Control.Initialized()&&Mission.Initialized()) {
         // run mission
-        // mission get excitation arm and engage
-        // excitation set arm and engage
-        // mission get control arm and engage
-        // select control arm and engage
-        // mission get allocator arm and engage
-        // select allocator arm and engage
-        // for each control level in group
-        //    run excitation
-        //    run control
-        // run allocator
+        Mission.Run();
+        // get and set engaged sensor processing
+        SenProc.SetEngagedSensorProcessing(Mission.GetEnagagedSensorProcessing());
+        // get and set engaged and armed controllers
+        Control.SetEngagedController(Mission.GetEnagagedController());
+        Control.SetArmedController(Mission.GetArmedController());
+        // run sensor processing
+        SenProc.Run();
+        for (size_t i=0; i < Control.ActiveControlLevels(); i++) {
+          // run control
+          Control.Run(i);
+        }
       }
-      // run telemetry
+      // run datalog
       Datalog.LogBinaryData();
     }
   }
