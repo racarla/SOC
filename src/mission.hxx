@@ -64,10 +64,10 @@ class MissionManager {
     size_t PersistenceCounter_ = 0;
     const size_t PersistenceThreshold_ = 5;
     size_t NumberOfTestPoints_;
-    size_t TestPointIndex_;
+    size_t TestPointIndex_ = 0;
     bool TestPointIndexLatch_ = false;
-    std::string EngagedSensorProcessing_;
-    std::string EnagagedController_;
+    std::string EngagedSensorProcessing_ = "Baseline";
+    std::string EnagagedController_ = "Baseline";
     std::string ArmedController_;
     std::map<std::string,TestPointDefinition> TestPoints_;
 };

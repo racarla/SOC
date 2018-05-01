@@ -57,20 +57,16 @@ int main(int argc, char* argv[]) {
   /* initialize classes */
   std::cout << "Initializing software modules..." << std::endl;
   std::cout << "\tInitializing FMU..." << std::endl;
-  // Fmu.Begin();
+  Fmu.Begin();
 
   /* configure classes and register with global defs */
   std::cout << "Configuring aircraft..." << std::endl;
   rapidjson::Document AircraftConfiguration;
   Config.LoadConfiguration(argv[1], &AircraftConfiguration);
-  // Fmu.Configure(AircraftConfiguration,&GlobalData);
-  if (AircraftConfiguration.HasMember("Sensor-Processing")) {
+  Fmu.Configure(AircraftConfiguration,&GlobalData);
+  if (AircraftConfiguration.HasMember("Sensor-Processing")&&AircraftConfiguration.HasMember("Control")&&AircraftConfiguration.HasMember("Mission-Manager")) {
     SenProc.Configure(AircraftConfiguration["Sensor-Processing"],&GlobalData);
-  }
-  if (AircraftConfiguration.HasMember("Control")) {
     Control.Configure(AircraftConfiguration["Control"],&GlobalData);
-  }
-  if (AircraftConfiguration.HasMember("Mission-Manager")) {
     Mission.Configure(AircraftConfiguration["Mission-Manager"],&GlobalData);
   }
   Datalog.RegisterGlobalData(GlobalData);
@@ -92,11 +88,10 @@ int main(int argc, char* argv[]) {
           // run control
           Control.Run(i);
         }
+        // run datalog
+        Datalog.LogBinaryData();
       }
-      // run datalog
-      Datalog.LogBinaryData();
     }
   }
-
 	return 0;
 }

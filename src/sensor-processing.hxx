@@ -39,6 +39,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SO
 #include <vector>
 #include <cstring>
 #include <Eigen/Dense>
+#include <memory>
 
 class SensorProcessingFunctionClass {
   public:
@@ -46,9 +47,9 @@ class SensorProcessingFunctionClass {
       kArm,
       kEngage
     };
-    void Configure(const rapidjson::Value& Config,std::string RootPath,DefinitionTree *DefinitionTreePtr);
-    bool Initialized();
-    void Run(Mode mode);
+    virtual void Configure(const rapidjson::Value& Config,std::string RootPath,DefinitionTree *DefinitionTreePtr);
+    virtual bool Initialized();
+    virtual void Run(Mode mode);
 };
 
 class IirFilterClass: public SensorProcessingFunctionClass {
@@ -65,29 +66,22 @@ class BaselineAirDataClass: public SensorProcessingFunctionClass {
       std::vector<float*> StaticPressureSourcePtr;
       std::vector<float*> DifferentialPressureSourcePtr;
       std::vector<float> DifferentialPressureBiases;
-      std::vector<float*> TemperatureSourcePtr;
       std::vector<float*> MslAltSourcePtr;
       std::vector<uint8_t*> MslAltFixPtr;
       float InitializationTime_s;
-      float InitialTemperature_C;
       float InitialPressureAlt_m;
       float InitialMSLAlt_m;
     };
     struct Data {
       float StaticPressure_Pa;
       float DifferentialPressure_Pa;
-      float Temperature_C;
-      float Density_kgm3;
       float IAS_ms;
-      float EAS_ms;
-      float TAS_ms;
       float PressureAltitude_m;
       float AGL_m;
       float MSL_m;
-      float DensityAltitude_m;
       uint8_t Mode;
     };
-    AirData *airdata_;
+    AirData airdata_;
     Config config_;
     Data data_;
     bool InitializedLatch_ = false;
@@ -102,9 +96,9 @@ class SensorProcessing {
   private:
     std::string RootPath_ = "/Sensor-Processing";
     bool InitializedLatch_ = false;
-    std::string EngagedGroup_;
-    std::vector<SensorProcessingFunctionClass> BaselineSensorProcessing_;
-    std::map<std::string,std::vector<SensorProcessingFunctionClass>> ResearchSensorProcessingGroups_;
+    std::string EngagedGroup_ = "Baseline";
+    std::vector<std::shared_ptr<SensorProcessingFunctionClass>> BaselineSensorProcessing_;
+    std::map<std::string,std::vector<std::shared_ptr<SensorProcessingFunctionClass>>> ResearchSensorProcessingGroups_;
     std::vector<std::string> ResearchGroupKeys_;
     std::map<std::string,std::string> OutputKeys_;
     std::vector<std::variant<uint64_t,uint32_t,uint16_t,uint8_t,int64_t,int32_t,int16_t,int8_t,float, double>> OutputData_;

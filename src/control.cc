@@ -25,11 +25,6 @@ void ControlFunctionClass::Configure(const rapidjson::Value& Config,std::string 
 bool ControlFunctionClass::Initialized() {}
 void ControlFunctionClass::Run(Mode mode) {}
 
-/* control empty class methods */
-void ControlEmptyClass::Configure(const rapidjson::Value& Config,std::string RootPath,DefinitionTree *DefinitionTreePtr) {}
-bool ControlEmptyClass::Initialized() {}
-void ControlEmptyClass::Run(Mode mode) {}
-
 /* control constant class methods */
 void ControlConstantClass::Configure(const rapidjson::Value& Config,std::string RootPath,DefinitionTree *DefinitionTreePtr) {
   std::string OutputName;
@@ -57,24 +52,72 @@ void ControlConstantClass::Run(Mode mode) {
 }
 
 /* control gain class methods */
-void ControlGainClass::Configure(const rapidjson::Value& Config,std::string RootPath,DefinitionTree *DefinitionTreePtr) {}
-bool ControlGainClass::Initialized() {}
-void ControlGainClass::Run(Mode mode) {}
+void ControlGainClass::Configure(const rapidjson::Value& Config,std::string RootPath,DefinitionTree *DefinitionTreePtr) {
+  std::string OutputName;
+  if (Config.HasMember("Output-Name")) {
+    OutputName = RootPath + "/" + Config["Output-Name"].GetString();
+  } else {
+    throw std::runtime_error(std::string("ERROR")+RootPath+std::string(": Output-Name not specified in configuration."));
+  }
+  if (Config.HasMember("Gain")) {
+    config_.Gain = Config["Gain"].GetFloat();
+  } else {
+    throw std::runtime_error(std::string("ERROR")+OutputName+std::string(": Gain value not specified in configuration."));
+  }
+  if (Config.HasMember("Reference")) {
+    if (DefinitionTreePtr->GetValuePtr<float*>(Config["Reference"].GetString())) {
+      config_.Reference = DefinitionTreePtr->GetValuePtr<float*>(Config["Reference"].GetString());
+    } else {
+      throw std::runtime_error(std::string("ERROR")+OutputName+std::string(": Reference not found in global data."));
+    }
+  } else {
+    throw std::runtime_error(std::string("ERROR")+OutputName+std::string(": Reference not specified in configuration."));
+  }
+  // pointer to log run mode data
+  DefinitionTreePtr->InitMember(OutputName+"/Mode",&data_.Mode,"Run mode",true,false);
+  // pointer to log command data
+  DefinitionTreePtr->InitMember(OutputName+"/Command",&data_.Command,"Control law output",true,false);
+}
+bool ControlGainClass::Initialized() {
+  return true;
+}
+void ControlGainClass::Run(Mode mode) {
+  data_.Mode = (uint8_t) mode;
+  data_.Command = *config_.Reference*config_.Gain;
+}
 
 /* control PID class methods */
-void ControlPIDClass::Configure(const rapidjson::Value& Config,std::string RootPath,DefinitionTree *DefinitionTreePtr) {}
-bool ControlPIDClass::Initialized() {}
-void ControlPIDClass::Run(Mode mode) {}
+void ControlPIDClass::Configure(const rapidjson::Value& Config,std::string RootPath,DefinitionTree *DefinitionTreePtr) {
+
+}
+bool ControlPIDClass::Initialized() {
+
+}
+void ControlPIDClass::Run(Mode mode) {
+
+}
 
 /* control PID2 class methods */
-void ControlPID2Class::Configure(const rapidjson::Value& Config,std::string RootPath,DefinitionTree *DefinitionTreePtr) {}
-bool ControlPID2Class::Initialized() {}
-void ControlPID2Class::Run(Mode mode) {}
+void ControlPID2Class::Configure(const rapidjson::Value& Config,std::string RootPath,DefinitionTree *DefinitionTreePtr) {
+
+}
+bool ControlPID2Class::Initialized() {
+
+}
+void ControlPID2Class::Run(Mode mode) {
+
+}
 
 /* control state space class methods */
-void ControlStateSpaceClass::Configure(const rapidjson::Value& Config,std::string RootPath,DefinitionTree *DefinitionTreePtr) {}
-bool ControlStateSpaceClass::Initialized() {}
-void ControlStateSpaceClass::Run(Mode mode) {}
+void ControlStateSpaceClass::Configure(const rapidjson::Value& Config,std::string RootPath,DefinitionTree *DefinitionTreePtr) {
+
+}
+bool ControlStateSpaceClass::Initialized() {
+
+}
+void ControlStateSpaceClass::Run(Mode mode) {
+
+}
 
 /* configures control laws given a JSON value and registers data with global defs */
 void ControlLaws::Configure(const rapidjson::Value& Config, DefinitionTree *DefinitionTreePtr) {
@@ -88,35 +131,30 @@ void ControlLaws::Configure(const rapidjson::Value& Config, DefinitionTree *Defi
         for (size_t j=0; j < BaselineConfig[i]["Components"].Size(); j++) {
           const rapidjson::Value& Component = BaselineConfig[i]["Components"][j];
           if (Component.HasMember("Type")) {
-            if (Component["Type"] == "Empty") {
-              ControlEmptyClass Temp;
-              Temp.Configure(Component,PathName,DefinitionTreePtr);
-              BaselineControlGroup_[i].push_back(Temp);
-            }
             if (Component["Type"] == "Constant") {
               ControlConstantClass Temp;
-              Temp.Configure(Component,PathName,DefinitionTreePtr);
-              BaselineControlGroup_[i].push_back(Temp);
+              BaselineControlGroup_[i].push_back(std::make_shared<ControlConstantClass>(Temp));
+              BaselineControlGroup_[i][j]->Configure(Component,PathName,DefinitionTreePtr);
             }
             if (Component["Type"] == "Gain") {
               ControlGainClass Temp;
-              Temp.Configure(Component,PathName,DefinitionTreePtr);
-              BaselineControlGroup_[i].push_back(Temp);
+              BaselineControlGroup_[i].push_back(std::make_shared<ControlGainClass>(Temp));
+              BaselineControlGroup_[i][j]->Configure(Component,PathName,DefinitionTreePtr);
             }
             if (Component["Type"] == "PID") {
               ControlPIDClass Temp;
-              Temp.Configure(Component,PathName,DefinitionTreePtr);
-              BaselineControlGroup_[i].push_back(Temp);
+              BaselineControlGroup_[i].push_back(std::make_shared<ControlPIDClass>(Temp));
+              BaselineControlGroup_[i][j]->Configure(Component,PathName,DefinitionTreePtr);
             }
             if (Component["Type"] == "PID2") {
               ControlPID2Class Temp;
-              Temp.Configure(Component,PathName,DefinitionTreePtr);
-              BaselineControlGroup_[i].push_back(Temp);
+              BaselineControlGroup_[i].push_back(std::make_shared<ControlPID2Class>(Temp));
+              BaselineControlGroup_[i][j]->Configure(Component,PathName,DefinitionTreePtr);
             }
             if (Component["Type"] == "State-Space") {
               ControlStateSpaceClass Temp;
-              Temp.Configure(Component,PathName,DefinitionTreePtr);
-              BaselineControlGroup_[i].push_back(Temp);
+              BaselineControlGroup_[i].push_back(std::make_shared<ControlStateSpaceClass>(Temp));
+              BaselineControlGroup_[i][j]->Configure(Component,PathName,DefinitionTreePtr);
             }
           } else {
             throw std::runtime_error(std::string("ERROR")+PathName+std::string(": Control type not specified in configuration."));
@@ -150,35 +188,30 @@ void ControlLaws::Configure(const rapidjson::Value& Config, DefinitionTree *Defi
             for (size_t k=0; k < Components[j]["Components"].Size(); k++) {
               const rapidjson::Value& Component = Components[j]["Components"][k];
               if (Component.HasMember("Type")) {
-                if (Component["Type"] == "Empty") {
-                  ControlEmptyClass Temp;
-                  Temp.Configure(Component,PathName,DefinitionTreePtr);
-                  ResearchControlGroups_[ResearchConfig[i]["Group-Name"].GetString()][j].push_back(Temp);
-                }
                 if (Component["Type"] == "Constant") {
                   ControlConstantClass Temp;
-                  Temp.Configure(Component,PathName,DefinitionTreePtr);
-                  ResearchControlGroups_[ResearchConfig[i]["Group-Name"].GetString()][j].push_back(Temp);
+                  ResearchControlGroups_[ResearchConfig[i]["Group-Name"].GetString()][j].push_back(std::make_shared<ControlConstantClass>(Temp));
+                  ResearchControlGroups_[ResearchConfig[i]["Group-Name"].GetString()][j][k]->Configure(Component,PathName,DefinitionTreePtr);
                 }
                 if (Component["Type"] == "Gain") {
                   ControlGainClass Temp;
-                  Temp.Configure(Component,PathName,DefinitionTreePtr);
-                  ResearchControlGroups_[ResearchConfig[i]["Group-Name"].GetString()][j].push_back(Temp);
+                  ResearchControlGroups_[ResearchConfig[i]["Group-Name"].GetString()][j].push_back(std::make_shared<ControlGainClass>(Temp));
+                  ResearchControlGroups_[ResearchConfig[i]["Group-Name"].GetString()][j][k]->Configure(Component,PathName,DefinitionTreePtr);
                 }
                 if (Component["Type"] == "PID") {
                   ControlPIDClass Temp;
-                  Temp.Configure(Component,PathName,DefinitionTreePtr);
-                  ResearchControlGroups_[ResearchConfig[i]["Group-Name"].GetString()][j].push_back(Temp);
+                  ResearchControlGroups_[ResearchConfig[i]["Group-Name"].GetString()][j].push_back(std::make_shared<ControlPIDClass>(Temp));
+                  ResearchControlGroups_[ResearchConfig[i]["Group-Name"].GetString()][j][k]->Configure(Component,PathName,DefinitionTreePtr);
                 }
                 if (Component["Type"] == "PID2") {
                   ControlPID2Class Temp;
-                  Temp.Configure(Component,PathName,DefinitionTreePtr);
-                  ResearchControlGroups_[ResearchConfig[i]["Group-Name"].GetString()][j].push_back(Temp);
+                  ResearchControlGroups_[ResearchConfig[i]["Group-Name"].GetString()][j].push_back(std::make_shared<ControlPID2Class>(Temp));
+                  ResearchControlGroups_[ResearchConfig[i]["Group-Name"].GetString()][j][k]->Configure(Component,PathName,DefinitionTreePtr);
                 }
                 if (Component["Type"] == "State-Space") {
                   ControlStateSpaceClass Temp;
-                  Temp.Configure(Component,PathName,DefinitionTreePtr);
-                  ResearchControlGroups_[ResearchConfig[i]["Group-Name"].GetString()][j].push_back(Temp);
+                  ResearchControlGroups_[ResearchConfig[i]["Group-Name"].GetString()][j].push_back(std::make_shared<ControlStateSpaceClass>(Temp));
+                  ResearchControlGroups_[ResearchConfig[i]["Group-Name"].GetString()][j][k]->Configure(Component,PathName,DefinitionTreePtr);
                 }
               } else {
                 throw std::runtime_error(std::string("ERROR")+PathName+std::string(": Control type not specified in configuration."));
@@ -217,33 +250,43 @@ void ControlLaws::Configure(const rapidjson::Value& Config, DefinitionTree *Defi
       BaselineDataPtr_[i] = TempDef.Value;
       if (DefinitionTreePtr->Size(MemberName)==0) {
         if (DefinitionTreePtr->GetValuePtr<uint64_t*>(BaselineKeys[i])) {
+          OutputData_[i] = *(DefinitionTreePtr->GetValuePtr<uint64_t*>(BaselineKeys[i]));
           DefinitionTreePtr->InitMember(MemberName,std::get_if<uint64_t>(&OutputData_[i]),TempDef.Description,true,false);
         }
         if (DefinitionTreePtr->GetValuePtr<uint32_t*>(BaselineKeys[i])) {
+          OutputData_[i] = *(DefinitionTreePtr->GetValuePtr<uint32_t*>(BaselineKeys[i]));
           DefinitionTreePtr->InitMember(MemberName,std::get_if<uint32_t>(&OutputData_[i]),TempDef.Description,true,false);
         }
         if (DefinitionTreePtr->GetValuePtr<uint16_t*>(BaselineKeys[i])) {
+          OutputData_[i] = *(DefinitionTreePtr->GetValuePtr<uint16_t*>(BaselineKeys[i]));
           DefinitionTreePtr->InitMember(MemberName,std::get_if<uint16_t>(&OutputData_[i]),TempDef.Description,true,false);
         }
         if (DefinitionTreePtr->GetValuePtr<uint8_t*>(BaselineKeys[i])) {
+          OutputData_[i] = *(DefinitionTreePtr->GetValuePtr<uint8_t*>(BaselineKeys[i]));
           DefinitionTreePtr->InitMember(MemberName,std::get_if<uint8_t>(&OutputData_[i]),TempDef.Description,true,false);
         }
         if (DefinitionTreePtr->GetValuePtr<int64_t*>(BaselineKeys[i])) {
+          OutputData_[i] = *(DefinitionTreePtr->GetValuePtr<int64_t*>(BaselineKeys[i]));
           DefinitionTreePtr->InitMember(MemberName,std::get_if<int64_t>(&OutputData_[i]),TempDef.Description,true,false);
         }
         if (DefinitionTreePtr->GetValuePtr<int32_t*>(BaselineKeys[i])) {
+          OutputData_[i] = *(DefinitionTreePtr->GetValuePtr<int32_t*>(BaselineKeys[i]));
           DefinitionTreePtr->InitMember(MemberName,std::get_if<int32_t>(&OutputData_[i]),TempDef.Description,true,false);
         }
         if (DefinitionTreePtr->GetValuePtr<int16_t*>(BaselineKeys[i])) {
+          OutputData_[i] = *(DefinitionTreePtr->GetValuePtr<int16_t*>(BaselineKeys[i]));
           DefinitionTreePtr->InitMember(MemberName,std::get_if<int16_t>(&OutputData_[i]),TempDef.Description,true,false);
         }
         if (DefinitionTreePtr->GetValuePtr<int8_t*>(BaselineKeys[i])) {
+          OutputData_[i] = *(DefinitionTreePtr->GetValuePtr<int8_t*>(BaselineKeys[i]));
           DefinitionTreePtr->InitMember(MemberName,std::get_if<int8_t>(&OutputData_[i]),TempDef.Description,true,false);
         }
         if (DefinitionTreePtr->GetValuePtr<float*>(BaselineKeys[i])) {
+          OutputData_[i] = *(DefinitionTreePtr->GetValuePtr<float*>(BaselineKeys[i]));
           DefinitionTreePtr->InitMember(MemberName,std::get_if<float>(&OutputData_[i]),TempDef.Description,true,false);
         }
         if (DefinitionTreePtr->GetValuePtr<double*>(BaselineKeys[i])) {
+          OutputData_[i] = *(DefinitionTreePtr->GetValuePtr<double*>(BaselineKeys[i]));
           DefinitionTreePtr->InitMember(MemberName,std::get_if<double>(&OutputData_[i]),TempDef.Description,true,false);
         }
       }
@@ -266,33 +309,43 @@ void ControlLaws::Configure(const rapidjson::Value& Config, DefinitionTree *Defi
         ResearchDataPtr_[ResearchGroupKeys_[i]][j] = TempDef.Value;
         if (DefinitionTreePtr->Size(MemberName)==0) {
           if (DefinitionTreePtr->GetValuePtr<uint64_t*>(ResearchKeys[j])) {
+            OutputData_[i] = *(DefinitionTreePtr->GetValuePtr<uint64_t*>(ResearchKeys[j]));
             DefinitionTreePtr->InitMember(MemberName,std::get_if<uint64_t>(&OutputData_[j]),TempDef.Description,true,false);
           }
           if (DefinitionTreePtr->GetValuePtr<uint32_t*>(ResearchKeys[j])) {
+            OutputData_[i] = *(DefinitionTreePtr->GetValuePtr<uint32_t*>(ResearchKeys[j]));
             DefinitionTreePtr->InitMember(MemberName,std::get_if<uint32_t>(&OutputData_[j]),TempDef.Description,true,false);
           }
           if (DefinitionTreePtr->GetValuePtr<uint16_t*>(ResearchKeys[j])) {
+            OutputData_[i] = *(DefinitionTreePtr->GetValuePtr<uint16_t*>(ResearchKeys[j]));
             DefinitionTreePtr->InitMember(MemberName,std::get_if<uint16_t>(&OutputData_[j]),TempDef.Description,true,false);
           }
           if (DefinitionTreePtr->GetValuePtr<uint8_t*>(ResearchKeys[j])) {
+            OutputData_[i] = *(DefinitionTreePtr->GetValuePtr<uint8_t*>(ResearchKeys[j]));
             DefinitionTreePtr->InitMember(MemberName,std::get_if<uint8_t>(&OutputData_[j]),TempDef.Description,true,false);
           }
           if (DefinitionTreePtr->GetValuePtr<int64_t*>(ResearchKeys[j])) {
+            OutputData_[i] = *(DefinitionTreePtr->GetValuePtr<int64_t*>(ResearchKeys[j]));
             DefinitionTreePtr->InitMember(MemberName,std::get_if<int64_t>(&OutputData_[j]),TempDef.Description,true,false);
           }
           if (DefinitionTreePtr->GetValuePtr<int32_t*>(ResearchKeys[j])) {
+            OutputData_[i] = *(DefinitionTreePtr->GetValuePtr<int32_t*>(ResearchKeys[j]));
             DefinitionTreePtr->InitMember(MemberName,std::get_if<int32_t>(&OutputData_[j]),TempDef.Description,true,false);
           }
           if (DefinitionTreePtr->GetValuePtr<int16_t*>(ResearchKeys[j])) {
+            OutputData_[i] = *(DefinitionTreePtr->GetValuePtr<int16_t*>(ResearchKeys[j]));
             DefinitionTreePtr->InitMember(MemberName,std::get_if<int16_t>(&OutputData_[j]),TempDef.Description,true,false);
           }
           if (DefinitionTreePtr->GetValuePtr<int8_t*>(ResearchKeys[j])) {
+            OutputData_[i] = *(DefinitionTreePtr->GetValuePtr<int8_t*>(ResearchKeys[j]));
             DefinitionTreePtr->InitMember(MemberName,std::get_if<int8_t>(&OutputData_[j]),TempDef.Description,true,false);
           }
           if (DefinitionTreePtr->GetValuePtr<float*>(ResearchKeys[j])) {
-            DefinitionTreePtr->InitMember(MemberName,std::get_if<float>(&OutputData_[j]),TempDef.Description,true,false);
+            OutputData_[i] = *(DefinitionTreePtr->GetValuePtr<float*>(ResearchKeys[j]));
+            DefinitionTreePtr->InitMember(MemberName,&(std::get<float>(OutputData_[j])),TempDef.Description,true,false);
           }
           if (DefinitionTreePtr->GetValuePtr<double*>(ResearchKeys[j])) {
+            OutputData_[i] = *(DefinitionTreePtr->GetValuePtr<double*>(ResearchKeys[j]));
             DefinitionTreePtr->InitMember(MemberName,std::get_if<double>(&OutputData_[j]),TempDef.Description,true,false);
           }
         }
@@ -330,7 +383,7 @@ bool ControlLaws::Initialized() {
     // initializing baseline control laws
     for (size_t i=0; i < BaselineControlGroup_.size(); i++) {
       for (size_t j=0; j < BaselineControlGroup_[i].size(); j++) {
-        if (!BaselineControlGroup_[i][j].Initialized()) {
+        if (!BaselineControlGroup_[i][j]->Initialized()) {
           initialized = false;
         }
       }
@@ -339,7 +392,7 @@ bool ControlLaws::Initialized() {
     for (size_t i=0; i < ResearchGroupKeys_.size(); i++) {
       for (size_t j=0; j < ResearchControlGroups_[ResearchGroupKeys_[i]].size(); j++) {
         for (size_t k=0; k < ResearchControlGroups_[ResearchGroupKeys_[i]][j].size(); k++) {
-          if (!ResearchControlGroups_[ResearchGroupKeys_[i]][j][k].Initialized()) {
+          if (!ResearchControlGroups_[ResearchGroupKeys_[i]][j][k]->Initialized()) {
             initialized = false;
           }
         }
@@ -357,11 +410,13 @@ void ControlLaws::Run(size_t ControlLevel) {
   if (EngagedGroup_ == "Baseline") {
     // running baseline control laws as engaged
     for (size_t i=0; i < BaselineControlGroup_[ControlLevel].size(); i++) {
-      BaselineControlGroup_[ControlLevel][i].Run(ControlFunctionClass::kEngage);
+      BaselineControlGroup_[ControlLevel][i]->Run(ControlFunctionClass::kEngage);
     }
     // run armed research control laws
-    for (size_t i=0; i < ResearchControlGroups_[ArmedGroup_][ControlLevel].size(); i++) {
-      ResearchControlGroups_[ArmedGroup_][ControlLevel][i].Run(ControlFunctionClass::kInitialize);
+    if (ArmedGroup_ != "Baseline") {
+      for (size_t i=0; i < ResearchControlGroups_[ArmedGroup_][ControlLevel].size(); i++) {
+        ResearchControlGroups_[ArmedGroup_][ControlLevel][i]->Run(ControlFunctionClass::kInitialize);
+      }
     }
     // output baseline control laws
     for (size_t i=0; i < OutputData_.size(); i++) {
@@ -399,15 +454,17 @@ void ControlLaws::Run(size_t ControlLevel) {
   } else {
     // running engaged research control laws
     for (size_t i=0; i < ResearchControlGroups_[EngagedGroup_][ControlLevel].size(); i++) {
-      ResearchControlGroups_[EngagedGroup_][ControlLevel][i].Run(ControlFunctionClass::kEngage);
+      ResearchControlGroups_[EngagedGroup_][ControlLevel][i]->Run(ControlFunctionClass::kEngage);
     }
     // running armed research control laws
-    for (size_t i=0; i < ResearchControlGroups_[ArmedGroup_][ControlLevel].size(); i++) {
-      ResearchControlGroups_[ArmedGroup_][ControlLevel][i].Run(ControlFunctionClass::kInitialize);
+    if (ArmedGroup_ != "Baseline") {
+      for (size_t i=0; i < ResearchControlGroups_[ArmedGroup_][ControlLevel].size(); i++) {
+        ResearchControlGroups_[ArmedGroup_][ControlLevel][i]->Run(ControlFunctionClass::kInitialize);
+      }
     }
     // running baseline control laws as armed
     for (size_t i=0; i < BaselineControlGroup_[ControlLevel].size(); i++) {
-      BaselineControlGroup_[ControlLevel][i].Run(ControlFunctionClass::kInitialize);
+      BaselineControlGroup_[ControlLevel][i]->Run(ControlFunctionClass::kInitialize);
     }
     // output research control laws
     std::vector<std::variant<uint64_t*,uint32_t*,uint16_t*,uint8_t*,int64_t*,int32_t*,int16_t*,int8_t*,float*,double*>> ResearchPtr;
