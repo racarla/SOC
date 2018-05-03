@@ -156,6 +156,29 @@ private:
   bool TimeLatch = false;
 };
 
+class MultiSine: public ExcitationFunctionClass {
+public:
+  void Configure(const rapidjson::Value& Config,std::string RootPath,DefinitionTree *DefinitionTreePtr);
+  void Run(Mode mode);
+private:
+  struct Config {
+    float *Signal;
+    Eigen::Array<float,Eigen::Dynamic,1> Amplitude;
+    Eigen::Array<float,Eigen::Dynamic,1> Frequency;
+    Eigen::Array<float,Eigen::Dynamic,1> Phase;
+    float StartTime_s;
+    float Duration_s;
+  };
+  struct Data {
+    uint8_t Mode;
+    float Excitation;
+  };
+  Config config_;
+  Data data_;
+  elapsedMicros Time_us = 0;
+  bool TimeLatch = false;
+};
+
 class ExcitationSystem {
   public:
     void Configure(const rapidjson::Value& Config, DefinitionTree *DefinitionTreePtr);

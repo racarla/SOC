@@ -373,6 +373,93 @@ void LinearChirp::Run(Mode mode) {
   *config_.Signal = *config_.Signal + data_.Excitation;
 }
 
+void MultiSine::Configure(const rapidjson::Value& Config,std::string RootPath,DefinitionTree *DefinitionTreePtr) {
+  std::string SignalName;
+  std::string OutputName;
+  if (Config.HasMember("Signal")) {
+    SignalName = Config["Signal"].GetString();
+    OutputName = RootPath + SignalName.substr(SignalName.rfind("/"));
+    // pointer to log run mode data
+    DefinitionTreePtr->InitMember(OutputName+"/Mode",&data_.Mode,"Run mode",true,false);
+    // pointer to log excitation data
+    DefinitionTreePtr->InitMember(OutputName+"/Excitation",&data_.Excitation,"Excitation system output",true,false);
+    if (DefinitionTreePtr->GetValuePtr<float*>(Config["Signal"].GetString())) {
+      config_.Signal = DefinitionTreePtr->GetValuePtr<float*>(Config["Signal"].GetString());
+    } else {
+      throw std::runtime_error(std::string("ERROR")+OutputName+std::string(": Signal not found in global data."));
+    }
+  } else {
+    throw std::runtime_error(std::string("ERROR")+RootPath+std::string(": Signal not specified in configuration."));
+  }
+  if (Config.HasMember("Start-Time")) {
+    config_.StartTime_s = Config["Start-Time"].GetFloat();
+  } else {
+    throw std::runtime_error(std::string("ERROR")+OutputName+std::string(": Start time not specified in configuration."));
+  }
+  if (Config.HasMember("Duration")) {
+    config_.Duration_s = Config["Duration"].GetFloat();
+  } else {
+    throw std::runtime_error(std::string("ERROR")+OutputName+std::string(": Duration not specified in configuration."));
+  }
+  if (Config.HasMember("Amplitude")) {
+    config_.Amplitude.resize(Config["Amplitude"].Size(),1);
+    for (size_t i=0; i < Config["Amplitude"].Size(); i++) {
+      config_.Amplitude(i,0) = Config["Amplitude"][i].GetFloat();
+    }
+  } else {
+    throw std::runtime_error(std::string("ERROR")+OutputName+std::string(": Amplitude not specified in configuration."));
+  }
+  if (Config.HasMember("Frequency")) {
+    config_.Frequency.resize(Config["Frequency"].Size(),1);
+    for (size_t i=0; i < Config["Frequency"].Size(); i++) {
+      config_.Frequency(i,0) = Config["Frequency"][i].GetFloat();
+    }
+  } else {
+    throw std::runtime_error(std::string("ERROR")+OutputName+std::string(": Frequency not specified in configuration."));
+  }
+  if (Config.HasMember("Phase")) {
+    config_.Phase.resize(Config["Phase"].Size(),1);
+    for (size_t i=0; i < Config["Phase"].Size(); i++) {
+      config_.Phase(i,0) = Config["Phase"][i].GetFloat();
+    }
+  } else {
+    throw std::runtime_error(std::string("ERROR")+OutputName+std::string(": Phase not specified in configuration."));
+  }
+  if ((Config["Amplitude"].Size() != Config["Frequency"].Size())||(Config["Amplitude"].Size() != Config["Phase"].Size())) {
+    throw std::runtime_error(std::string("ERROR")+OutputName+std::string(": Amplitude, frequency, and phase arrays are not the same length."));
+  }
+}
+
+void MultiSine::Run(Mode mode) {
+  if (mode == kEngage) {
+    // initialize the time when first called
+    if (!TimeLatch) {
+      Time_us = 0;
+      TimeLatch = true;
+    }
+    // multisine logic
+    if (Time_us < (config_.StartTime_s)*1e6){
+      // do nothing
+      data_.Excitation = 0;
+    } else if (Time_us < config_.Duration_s*1e6) {
+      // Scale the waveform to preserve unity
+      float scale = sqrtf(1.0f/((float)config_.Amplitude.size()));
+      // Compute the Waveform - scale * sum(amp .* cos(freq * t + phase))
+      data_.Excitation=scale*(config_.Amplitude*(config_.Frequency*Time_us+config_.Phase).cos()).sum();
+    } else {
+      // do nothing
+      data_.Excitation = 0;
+    }
+  } else {
+    // reset the time latch
+    TimeLatch = false;
+    // do nothing
+    data_.Excitation = 0;
+  }
+  data_.Mode = (uint8_t)mode;
+  *config_.Signal = *config_.Signal + data_.Excitation;
+}
+
 /* configures excitation system given a JSON value and registers data with global defs */
 void ExcitationSystem::Configure(const rapidjson::Value& Config, DefinitionTree *DefinitionTreePtr) {
   ExcitationGroups_.resize(Config.Size());
@@ -411,6 +498,11 @@ void ExcitationSystem::Configure(const rapidjson::Value& Config, DefinitionTree 
               if (Component["Type"] == "Linear-Chirp") {
                 LinearChirp Temp;
                 ExcitationGroups_[i][j].push_back(std::make_shared<LinearChirp>(Temp));
+                ExcitationGroups_[i][j][k]->Configure(Component,PathName,DefinitionTreePtr);
+              }
+              if (Component["Type"] == "MultiSine") {
+                MultiSine Temp;
+                ExcitationGroups_[i][j].push_back(std::make_shared<MultiSine>(Temp));
                 ExcitationGroups_[i][j][k]->Configure(Component,PathName,DefinitionTreePtr);
               }
             } else {
