@@ -291,8 +291,87 @@ void Doublet3211::Run(Mode mode) {
   *config_.Signal = *config_.Signal + data_.Excitation;
 }
 
-void LinearChirp::Configure(const rapidjson::Value& Config,std::string RootPath,DefinitionTree *DefinitionTreePtr) {}
-void LinearChirp::Run(Mode mode) {}
+void LinearChirp::Configure(const rapidjson::Value& Config,std::string RootPath,DefinitionTree *DefinitionTreePtr) {
+  std::string SignalName;
+  std::string OutputName;
+  if (Config.HasMember("Signal")) {
+    SignalName = Config["Signal"].GetString();
+    OutputName = RootPath + SignalName.substr(SignalName.rfind("/"));
+    // pointer to log run mode data
+    DefinitionTreePtr->InitMember(OutputName+"/Mode",&data_.Mode,"Run mode",true,false);
+    // pointer to log excitation data
+    DefinitionTreePtr->InitMember(OutputName+"/Excitation",&data_.Excitation,"Excitation system output",true,false);
+    if (DefinitionTreePtr->GetValuePtr<float*>(Config["Signal"].GetString())) {
+      config_.Signal = DefinitionTreePtr->GetValuePtr<float*>(Config["Signal"].GetString());
+    } else {
+      throw std::runtime_error(std::string("ERROR")+OutputName+std::string(": Signal not found in global data."));
+    }
+  } else {
+    throw std::runtime_error(std::string("ERROR")+RootPath+std::string(": Signal not specified in configuration."));
+  }
+  if (Config.HasMember("Start-Time")) {
+    config_.StartTime_s = Config["Start-Time"].GetFloat();
+  } else {
+    throw std::runtime_error(std::string("ERROR")+OutputName+std::string(": Start time not specified in configuration."));
+  }
+  if (Config.HasMember("Duration")) {
+    config_.Duration_s = Config["Duration"].GetFloat();
+  } else {
+    throw std::runtime_error(std::string("ERROR")+OutputName+std::string(": Duration not specified in configuration."));
+  }
+  if (Config.HasMember("Amplitude")) {
+    if (Config["Amplitude"].Size() != 2) {
+      throw std::runtime_error(std::string("ERROR")+OutputName+std::string(": Amplitude size incorrect; should be two [min,max]"));
+    } else {
+      config_.Amplitude[0] = Config["Amplitude"][0].GetFloat();
+      config_.Amplitude[1] = Config["Amplitude"][1].GetFloat();
+    }
+  } else {
+    throw std::runtime_error(std::string("ERROR")+OutputName+std::string(": Amplitude not specified in configuration."));
+  }
+  if (Config.HasMember("Frequency")) {
+    if (Config["Frequency"].Size() != 2) {
+      throw std::runtime_error(std::string("ERROR")+OutputName+std::string(": Frequency size incorrect; should be two [min,max]"));
+    } else {
+      config_.Frequency[0] = Config["Frequency"][0].GetFloat();
+      config_.Frequency[1] = Config["Frequency"][1].GetFloat();
+    }
+  } else {
+    throw std::runtime_error(std::string("ERROR")+OutputName+std::string(": Frequency not specified in configuration."));
+  }
+}
+
+void LinearChirp::Run(Mode mode) {
+  if (mode == kEngage) {
+    // initialize the time when first called
+    if (!TimeLatch) {
+      Time_us = 0;
+      TimeLatch = true;
+    }
+    // chirp logic
+    if (Time_us < (config_.StartTime_s)*1e6){
+      // do nothing
+      data_.Excitation = 0;
+    } else if (Time_us < config_.Duration_s*1e6) {
+      // linear varying instantanious frequency
+      float freq_rps = config_.Frequency[0]+(config_.Frequency[1]-config_.Frequency[0])/(2.0f*config_.Duration_s*1e6)*Time_us;
+      // linear varying amplitude
+      float amp_nd = config_.Amplitude[0]+(config_.Amplitude[1]-config_.Amplitude[0])*Time_us/(config_.Duration_s*1e6);
+      // chirp Equation
+      data_.Excitation = amp_nd*sinf(freq_rps*Time_us);
+    } else {
+      // do nothing
+      data_.Excitation = 0;
+    }
+  } else {
+    // reset the time latch
+    TimeLatch = false;
+    // do nothing
+    data_.Excitation = 0;
+  }
+  data_.Mode = (uint8_t)mode;
+  *config_.Signal = *config_.Signal + data_.Excitation;
+}
 
 /* configures excitation system given a JSON value and registers data with global defs */
 void ExcitationSystem::Configure(const rapidjson::Value& Config, DefinitionTree *DefinitionTreePtr) {

@@ -138,6 +138,22 @@ class LinearChirp: public ExcitationFunctionClass {
 public:
   void Configure(const rapidjson::Value& Config,std::string RootPath,DefinitionTree *DefinitionTreePtr);
   void Run(Mode mode);
+private:
+  struct Config {
+    float *Signal;
+    float Amplitude[2];
+    float Frequency[2];
+    float StartTime_s;
+    float Duration_s;
+  };
+  struct Data {
+    uint8_t Mode;
+    float Excitation;
+  };
+  Config config_;
+  Data data_;
+  elapsedMicros Time_us = 0;
+  bool TimeLatch = false;
 };
 
 class ExcitationSystem {
