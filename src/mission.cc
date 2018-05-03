@@ -47,10 +47,11 @@ void MissionManager::Configure(const rapidjson::Value& Config, DefinitionTree *D
     NumberOfTestPoints_ = TestPoints.Size();
     for (size_t i=0; i < TestPoints.Size(); i++) {
       const rapidjson::Value& TestPoint = TestPoints[i];
-      if (TestPoint.HasMember("Test-ID")&&TestPoint.HasMember("Sensor-Processing")&&TestPoint.HasMember("Control")) {
+      if (TestPoint.HasMember("Test-ID")&&TestPoint.HasMember("Sensor-Processing")&&TestPoint.HasMember("Control")&&TestPoint.HasMember("Excitation")) {
         TestPointDefinition Temp;
         Temp.SensorProcessing = TestPoint["Sensor-Processing"].GetString();
         Temp.Control = TestPoint["Control"].GetString();
+        Temp.Excitation = TestPoint["Excitation"].GetString();
         TestPoints_[TestPoint["Test-ID"].GetString()] = Temp;
       } else {
         throw std::runtime_error(std::string("ERROR")+RootPath_+std::string(": Test-ID, Sensor-Processing, or Control not included in test point definition."));
@@ -80,6 +81,7 @@ void MissionManager::Run() {
     if (!TestPointIndexLatch_) {
       EngagedSensorProcessing_ = TestPoints_[std::to_string(TestPointIndex_)].SensorProcessing;
       EnagagedController_ = TestPoints_[std::to_string(TestPointIndex_)].Control;
+      EnagagedExcitation_ = TestPoints_[std::to_string(TestPointIndex_)].Excitation;
       TestPointIndexLatch_ = true;
       TestPointIndex_++;
       if (TestPointIndex_>=NumberOfTestPoints_) {
@@ -90,6 +92,7 @@ void MissionManager::Run() {
   } else {
     EngagedSensorProcessing_ = "Baseline";
     EnagagedController_ = "Baseline";
+    EnagagedExcitation_ = "None";
     TestPointIndexLatch_ = false;
   }
   // arm the next control law
@@ -109,4 +112,9 @@ std::string MissionManager::GetEnagagedController() {
 /* returns the string of the control group that is armed */
 std::string MissionManager::GetArmedController() {
   return ArmedController_;
+}
+
+/* returns the string of the excitation group that is engaged */
+std::string MissionManager::GetEnagagedExcitation() {
+  return EnagagedExcitation_;
 }

@@ -23,6 +23,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SO
 
 #include "hardware-defs.hxx"
 #include "definition-tree.hxx"
+#include "utils.hxx"
 #include "rapidjson/document.h"
 #include "rapidjson/stringbuffer.h"
 #include "rapidjson/writer.h"
@@ -41,49 +42,117 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SO
 
 class ExcitationFunctionClass {
   public:
+    enum Mode {
+      kArm,
+      kEngage
+    };
     virtual void Configure(const rapidjson::Value& Config,std::string RootPath,DefinitionTree *DefinitionTreePtr);
-    virtual void Run();
+    virtual void Run(Mode mode);
 };
 
 class Pulse: public ExcitationFunctionClass {
 public:
   void Configure(const rapidjson::Value& Config,std::string RootPath,DefinitionTree *DefinitionTreePtr);
-  void Run();
+  void Run(Mode mode);
+private:
+  struct Config {
+    float *Signal;
+    float Amplitude;
+    float StartTime_s;
+    float Duration_s;
+  };
+  struct Data {
+    uint8_t Mode;
+    float Excitation;
+  };
+  Config config_;
+  Data data_;
+  elapsedMicros Time_us = 0;
+  bool TimeLatch = false;
 };
 
 class Doublet: public ExcitationFunctionClass {
 public:
   void Configure(const rapidjson::Value& Config,std::string RootPath,DefinitionTree *DefinitionTreePtr);
-  void Run();
+  void Run(Mode mode);
+private:
+  struct Config {
+    float *Signal;
+    float Amplitude;
+    float StartTime_s;
+    float Duration_s;
+  };
+  struct Data {
+    uint8_t Mode;
+    float Excitation;
+  };
+  Config config_;
+  Data data_;
+  elapsedMicros Time_us = 0;
+  bool TimeLatch = false;
 };
 
 class Doublet121: public ExcitationFunctionClass {
 public:
   void Configure(const rapidjson::Value& Config,std::string RootPath,DefinitionTree *DefinitionTreePtr);
-  void Run();
+  void Run(Mode mode);
+private:
+  struct Config {
+    float *Signal;
+    float Amplitude;
+    float StartTime_s;
+    float Duration_s;
+  };
+  struct Data {
+    uint8_t Mode;
+    float Excitation;
+  };
+  Config config_;
+  Data data_;
+  elapsedMicros Time_us = 0;
+  bool TimeLatch = false;
 };
 
 class Doublet3211: public ExcitationFunctionClass {
 public:
   void Configure(const rapidjson::Value& Config,std::string RootPath,DefinitionTree *DefinitionTreePtr);
-  void Run();
+  void Run(Mode mode);
+private:
+  struct Config {
+    float *Signal;
+    float Amplitude;
+    float StartTime_s;
+    float Duration_s;
+  };
+  struct Data {
+    uint8_t Mode;
+    float Excitation;
+  };
+  Config config_;
+  Data data_;
+  elapsedMicros Time_us = 0;
+  bool TimeLatch = false;
 };
 
 class LinearChirp: public ExcitationFunctionClass {
 public:
   void Configure(const rapidjson::Value& Config,std::string RootPath,DefinitionTree *DefinitionTreePtr);
-  void Run();
+  void Run(Mode mode);
 };
 
 class ExcitationSystem {
   public:
     void Configure(const rapidjson::Value& Config, DefinitionTree *DefinitionTreePtr);
     bool Configured();
+    void SetEngagedExcitation(std::string ExcitationGroupName);
     void Run(std::string ControlLevel);
   private:
     std::string RootPath_ = "/Excitation";
     bool Configured_ = false;
-    std::map<std::string,std::vector<std::shared_ptr<ExcitationFunctionClass>>> ExcitationGroup_;
+    std::string EngagedGroup_ = "None";
+    std::vector<std::string> ExcitationGroupKeys_;
+    std::vector<std::string> ExcitationGroupLevels_;
+    std::vector<std::vector<std::vector<std::shared_ptr<ExcitationFunctionClass>>>> ExcitationGroups_;
 };
 
 #endif

@@ -43,6 +43,7 @@ class MissionManager {
     struct TestPointDefinition {
       std::string SensorProcessing;
       std::string Control;
+      std::string Excitation;
     };
     void Configure(const rapidjson::Value& Config, DefinitionTree *DefinitionTreePtr);
     bool Configured();
@@ -50,6 +51,7 @@ class MissionManager {
     std::string GetEnagagedSensorProcessing();
     std::string GetEnagagedController();
     std::string GetArmedController();
+    std::string GetEnagagedExcitation();
   private:
     struct Configuration {
       struct {
@@ -70,6 +72,7 @@ class MissionManager {
     std::string EngagedSensorProcessing_ = "Baseline";
     std::string EnagagedController_ = "Baseline";
     std::string ArmedController_;
+    std::string EnagagedExcitation_ = "None";
     std::map<std::string,TestPointDefinition> TestPoints_;
 };
 
