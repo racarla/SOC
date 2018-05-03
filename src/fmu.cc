@@ -481,7 +481,10 @@ bool FlightManagementUnit::ReceiveMessage(Message *message,std::vector<uint8_t> 
 void FlightManagementUnit::WritePort(uint8_t* Buffer,size_t BufferSize) {
   int count;
   if ((count=write(FmuFileDesc_,Buffer,BufferSize))<0) {
-    throw std::runtime_error(std::string("ERROR")+RootPath+std::string(": UART failed to write."));
+    do {
+      count=write(FmuFileDesc_,Buffer,BufferSize);
+      usleep(10);
+    } while (count < 0);
   }
 }
 
