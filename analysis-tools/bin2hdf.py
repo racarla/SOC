@@ -143,7 +143,7 @@ BinaryFile.close()
 if args.output:
     try:
         DataLogName = args.output
-        DataLogFile = h5py.File(DataLogName,'w-')
+        DataLogFile = h5py.File(DataLogName,'w-',libver='earliest')
     except:
         print "Could not create output file " + args.output
         sys.exit()
@@ -155,7 +155,7 @@ else:
     while FileExists(DataLogName):
         FileNameCounter += 1
         DataLogName = DataLogBaseName + str(FileNameCounter) + DataLogType
-    DataLogFile = h5py.File(DataLogName,'w-')
+    DataLogFile = h5py.File(DataLogName,'w-',libver='earliest')
 # instance of BfsMessage class to parse file
 DataLogMessage = BfsMessage()
 Uint64Datasets = []

@@ -160,8 +160,12 @@ void FlightManagementUnit::Configure(const rapidjson::Value& Config, DefinitionT
   SendMessage(Message::kModeCommand,Payload);
   // get the updated configuration from the sensor meta data
   std::cout << "\t\tGetting FMU configuration..." << std::flush;
-  while(1) {
-    if (ReceiveSensorData()) {break;}
+
+  size_t i=0;
+  while(i < 100) {
+    if (ReceiveSensorData()) {
+      i++;
+    }
   }
   std::cout <<  "done!" << std::endl;
   std::cout << "\t\tFMU configuration:" << std::endl;

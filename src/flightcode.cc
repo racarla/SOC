@@ -25,6 +25,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SO
 #include "fmu.hxx"
 #include "sensor-processing.hxx"
 #include "control.hxx"
+#include "excitation.hxx"
 #include "mission.hxx"
 #include "rapidjson/document.h"
 #include "rapidjson/stringbuffer.h"
@@ -51,6 +52,7 @@ int main(int argc, char* argv[]) {
   FlightManagementUnit Fmu;
   SensorProcessing SenProc;
   ControlLaws Control;
+  ExcitationSystem Excitation;
   MissionManager Mission;
   DatalogClient Datalog;
 
@@ -64,33 +66,48 @@ int main(int argc, char* argv[]) {
   rapidjson::Document AircraftConfiguration;
   Config.LoadConfiguration(argv[1], &AircraftConfiguration);
   Fmu.Configure(AircraftConfiguration,&GlobalData);
-  if (AircraftConfiguration.HasMember("Sensor-Processing")&&AircraftConfiguration.HasMember("Control")&&AircraftConfiguration.HasMember("Mission-Manager")) {
+  if (AircraftConfiguration.HasMember("Sensor-Processing")) {
     SenProc.Configure(AircraftConfiguration["Sensor-Processing"],&GlobalData);
-    Control.Configure(AircraftConfiguration["Control"],&GlobalData);
-    Mission.Configure(AircraftConfiguration["Mission-Manager"],&GlobalData);
+    if (AircraftConfiguration.HasMember("Control")&&AircraftConfiguration.HasMember("Mission-Manager")) {
+      Control.Configure(AircraftConfiguration["Control"],&GlobalData);
+      Mission.Configure(AircraftConfiguration["Mission-Manager"],&GlobalData);
+      if (AircraftConfiguration.HasMember("Excitation")) {
+        Excitation.Configure(AircraftConfiguration["Excitation"],&GlobalData);
+      }
+    }
   }
   Datalog.RegisterGlobalData(GlobalData);
 
   /* main loop */
   while(1) {
     if (Fmu.ReceiveSensorData()) {
-      if (SenProc.Initialized()&&Control.Initialized()&&Mission.Initialized()) {
-        // run mission
-        Mission.Run();
-        // get and set engaged sensor processing
-        SenProc.SetEngagedSensorProcessing(Mission.GetEnagagedSensorProcessing());
-        // get and set engaged and armed controllers
-        Control.SetEngagedController(Mission.GetEnagagedController());
-        Control.SetArmedController(Mission.GetArmedController());
+      if (SenProc.Configured()&&SenProc.Initialized()) {
+        if (Mission.Configured()) {
+          // run mission
+          Mission.Run();
+          // get and set engaged sensor processing
+          SenProc.SetEngagedSensorProcessing(Mission.GetEnagagedSensorProcessing());
+        }
         // run sensor processing
         SenProc.Run();
-        for (size_t i=0; i < Control.ActiveControlLevels(); i++) {
-          // run control
-          Control.Run(i);
+        if (Control.Configured()&&Mission.Configured()) {
+          // get and set engaged and armed controllers
+          Control.SetEngagedController(Mission.GetEnagagedController());
+          Control.SetArmedController(Mission.GetArmedController());
+          // loop through control levels running excitations and control laws
+          for (size_t i=0; i < Control.ActiveControlLevels(); i++) {
+            if (Excitation.Configured()) {
+              // run excitation
+              Excitation.Run(Control.GetActiveLevel(i));
+            }
+            // run control
+            Control.Run(i);
+          }
         }
-        // run datalog
-        Datalog.LogBinaryData();
+        // run telemetry
       }
+      // run datalog
+      Datalog.LogBinaryData();
     }
   }
 	return 0;

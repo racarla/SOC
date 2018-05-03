@@ -90,11 +90,13 @@ class BaselineAirDataClass: public SensorProcessingFunctionClass {
 class SensorProcessing {
   public:
     void Configure(const rapidjson::Value& Config,DefinitionTree *DefinitionTreePtr);
+    bool Configured();
     bool Initialized();
     void SetEngagedSensorProcessing(std::string EngagedSensorProcessing);
     void Run();
   private:
     std::string RootPath_ = "/Sensor-Processing";
+    bool Configured_ = false;
     bool InitializedLatch_ = false;
     std::string EngagedGroup_ = "Baseline";
     std::vector<std::shared_ptr<SensorProcessingFunctionClass>> BaselineSensorProcessing_;

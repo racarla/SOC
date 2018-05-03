@@ -57,17 +57,12 @@ void MissionManager::Configure(const rapidjson::Value& Config, DefinitionTree *D
       }
     }
   }
+  Configured_ = true;
 }
 
-/* initializes the mission manager */
-bool MissionManager::Initialized() {
-  if (InitializedLatch_) {
-    return true;
-  } else {
-    TestPointIndex_ = 0;
-    InitializedLatch_ = true;
-    return true;
-  }
+/* returns whether mission manager has been configured */
+bool MissionManager::Configured() {
+  return Configured_;
 }
 
 /* runs the mission manager */

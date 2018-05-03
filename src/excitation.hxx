@@ -1,5 +1,5 @@
 /*
-mission.hxx
+excitation.hxx
 Brian R Taylor
 brian.taylor@bolderflight.com
 
@@ -18,8 +18,8 @@ DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
-#ifndef MISSION_HXX_
-#define MISSION_HXX_
+#ifndef EXCITATION_HXX_
+#define EXCITATION_HXX_
 
 #include "hardware-defs.hxx"
 #include "definition-tree.hxx"
@@ -37,40 +37,53 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SO
 #include <vector>
 #include <cstring>
 #include <Eigen/Dense>
+#include <memory>
 
-class MissionManager {
+class ExcitationFunctionClass {
   public:
-    struct TestPointDefinition {
-      std::string SensorProcessing;
-      std::string Control;
-    };
+    virtual void Configure(const rapidjson::Value& Config,std::string RootPath,DefinitionTree *DefinitionTreePtr);
+    virtual void Run();
+};
+
+class Pulse: public ExcitationFunctionClass {
+public:
+  void Configure(const rapidjson::Value& Config,std::string RootPath,DefinitionTree *DefinitionTreePtr);
+  void Run();
+};
+
+class Doublet: public ExcitationFunctionClass {
+public:
+  void Configure(const rapidjson::Value& Config,std::string RootPath,DefinitionTree *DefinitionTreePtr);
+  void Run();
+};
+
+class Doublet121: public ExcitationFunctionClass {
+public:
+  void Configure(const rapidjson::Value& Config,std::string RootPath,DefinitionTree *DefinitionTreePtr);
+  void Run();
+};
+
+class Doublet3211: public ExcitationFunctionClass {
+public:
+  void Configure(const rapidjson::Value& Config,std::string RootPath,DefinitionTree *DefinitionTreePtr);
+  void Run();
+};
+
+class LinearChirp: public ExcitationFunctionClass {
+public:
+  void Configure(const rapidjson::Value& Config,std::string RootPath,DefinitionTree *DefinitionTreePtr);
+  void Run();
+};
+
+class ExcitationSystem {
+  public:
     void Configure(const rapidjson::Value& Config, DefinitionTree *DefinitionTreePtr);
     bool Configured();
-    void Run();
-    std::string GetEnagagedSensorProcessing();
-    std::string GetEnagagedController();
-    std::string GetArmedController();
+    void Run(std::string ControlLevel);
   private:
-    struct Configuration {
-      struct {
-        float *SourcePtr;
-        float Threshold = 0.5;
-        float Gain = 1.0;
-      } EngageSwitch;
-    };
-    Configuration config_;
-    std::string RootPath_ = "/Mission-Manager";
+    std::string RootPath_ = "/Excitation";
     bool Configured_ = false;
-    bool InitializedLatch_ = false;
-    size_t PersistenceCounter_ = 0;
-    const size_t PersistenceThreshold_ = 5;
-    size_t NumberOfTestPoints_;
-    size_t TestPointIndex_ = 0;
-    bool TestPointIndexLatch_ = false;
-    std::string EngagedSensorProcessing_ = "Baseline";
-    std::string EnagagedController_ = "Baseline";
-    std::string ArmedController_;
-    std::map<std::string,TestPointDefinition> TestPoints_;
+    std::map<std::string,std::vector<std::shared_ptr<ExcitationFunctionClass>>> ExcitationGroup_;
 };
 
 #endif

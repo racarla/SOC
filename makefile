@@ -35,6 +35,7 @@ OBJECTS_FLIGHT := \
 utils.o \
 AirData.o \
 mission.o \
+excitation.o \
 control.o \
 sensor-processing.o \
 configuration.o \

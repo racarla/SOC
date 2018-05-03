@@ -120,39 +120,35 @@ bool BaselineAirDataClass::Initialized() {
     if ((config_.MslAltSourcePtr.size() == 0)||(GpsFix)) {
       static elapsedMicros InitializationTimer = 0;
       static size_t NumberSamples = 1;
-      if (InitializationTimer > 1e6) {
-        // if we have at least one static pressure source
-        if (config_.StaticPressureSourcePtr.size() > 0) {
-          float AvgPress = 0;
-          for (size_t i=0; i < config_.StaticPressureSourcePtr.size(); i++) {
-            AvgPress += *config_.StaticPressureSourcePtr[i]/config_.StaticPressureSourcePtr.size();
-          }
-          // get the initial pressure altitude
-          config_.InitialPressureAlt_m = config_.InitialPressureAlt_m+(airdata_.getPressureAltitude(AvgPress)-config_.InitialPressureAlt_m)/((float)NumberSamples);
+      // if we have at least one static pressure source
+      if (config_.StaticPressureSourcePtr.size() > 0) {
+        float AvgPress = 0;
+        for (size_t i=0; i < config_.StaticPressureSourcePtr.size(); i++) {
+          AvgPress += *config_.StaticPressureSourcePtr[i]/config_.StaticPressureSourcePtr.size();
         }
-        // if we have at least one differential pressure source
-        if (config_.DifferentialPressureSourcePtr.size() > 0) {
-          for (size_t i=0; i < config_.DifferentialPressureSourcePtr.size(); i++) {
-            config_.DifferentialPressureBiases[i] = config_.DifferentialPressureBiases[i] + (*config_.DifferentialPressureSourcePtr[i]-config_.DifferentialPressureBiases[i])/((float)NumberSamples);
-          }
+        // get the initial pressure altitude
+        config_.InitialPressureAlt_m = config_.InitialPressureAlt_m+(airdata_.getPressureAltitude(AvgPress)-config_.InitialPressureAlt_m)/((float)NumberSamples);
+      }
+      // if we have at least one differential pressure source
+      if (config_.DifferentialPressureSourcePtr.size() > 0) {
+        for (size_t i=0; i < config_.DifferentialPressureSourcePtr.size(); i++) {
+          config_.DifferentialPressureBiases[i] = config_.DifferentialPressureBiases[i] + (*config_.DifferentialPressureSourcePtr[i]-config_.DifferentialPressureBiases[i])/((float)NumberSamples);
         }
-        // if at least one static pressure and one MSL altitude source
-        if ((config_.MslAltSourcePtr.size() > 0)&&(config_.StaticPressureSourcePtr.size() > 0)) {
-          float AvgMSL = 0;
-          for (size_t i=0; i < config_.MslAltSourcePtr.size(); i++) {
-            AvgMSL += *config_.MslAltSourcePtr[i]/config_.MslAltSourcePtr.size();
-          }
-          // get the initial MSL altitude
-          config_.InitialMSLAlt_m = config_.InitialMSLAlt_m+(AvgMSL-config_.InitialMSLAlt_m)/((float)NumberSamples);
+      }
+      // if at least one static pressure and one MSL altitude source
+      if ((config_.MslAltSourcePtr.size() > 0)&&(config_.StaticPressureSourcePtr.size() > 0)) {
+        float AvgMSL = 0;
+        for (size_t i=0; i < config_.MslAltSourcePtr.size(); i++) {
+          AvgMSL += *config_.MslAltSourcePtr[i]/config_.MslAltSourcePtr.size();
         }
-        NumberSamples++;
-        // if time > duration return true
-        if (InitializationTimer > (config_.InitializationTime_s + 1)*1e6) {
-          InitializedLatch_ = true;
-          return true;
-        } else {
-          return false;
-        }
+        // get the initial MSL altitude
+        config_.InitialMSLAlt_m = config_.InitialMSLAlt_m+(AvgMSL-config_.InitialMSLAlt_m)/((float)NumberSamples);
+      }
+      NumberSamples++;
+      // if time > duration return true
+      if (InitializationTimer > config_.InitializationTime_s*1e6) {
+        InitializedLatch_ = true;
+        return true;
       } else {
         return false;
       }
@@ -371,6 +367,12 @@ void SensorProcessing::Configure(const rapidjson::Value& Config,DefinitionTree *
       j++;
     }
   }
+  Configured_ = true;
+}
+
+/* returns whether sensor processing has been configured */
+bool SensorProcessing::Configured() {
+  return Configured_;
 }
 
 /* initializes sensor processing */

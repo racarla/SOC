@@ -22,7 +22,6 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SO
 
 /* base function class methods */
 void ControlFunctionClass::Configure(const rapidjson::Value& Config,std::string RootPath,DefinitionTree *DefinitionTreePtr) {}
-bool ControlFunctionClass::Initialized() {}
 void ControlFunctionClass::Run(Mode mode) {}
 
 /* control constant class methods */
@@ -43,9 +42,7 @@ void ControlConstantClass::Configure(const rapidjson::Value& Config,std::string 
   // pointer to log command data
   DefinitionTreePtr->InitMember(OutputName+"/Command",&data_.Command,"Control law output",true,false);
 }
-bool ControlConstantClass::Initialized() {
-  return true;
-}
+
 void ControlConstantClass::Run(Mode mode) {
   data_.Mode = (uint8_t) mode;
   data_.Command = config_.Constant;
@@ -78,9 +75,7 @@ void ControlGainClass::Configure(const rapidjson::Value& Config,std::string Root
   // pointer to log command data
   DefinitionTreePtr->InitMember(OutputName+"/Command",&data_.Command,"Control law output",true,false);
 }
-bool ControlGainClass::Initialized() {
-  return true;
-}
+
 void ControlGainClass::Run(Mode mode) {
   data_.Mode = (uint8_t) mode;
   data_.Command = *config_.Reference*config_.Gain;
@@ -90,9 +85,7 @@ void ControlGainClass::Run(Mode mode) {
 void ControlPIDClass::Configure(const rapidjson::Value& Config,std::string RootPath,DefinitionTree *DefinitionTreePtr) {
 
 }
-bool ControlPIDClass::Initialized() {
 
-}
 void ControlPIDClass::Run(Mode mode) {
 
 }
@@ -101,9 +94,7 @@ void ControlPIDClass::Run(Mode mode) {
 void ControlPID2Class::Configure(const rapidjson::Value& Config,std::string RootPath,DefinitionTree *DefinitionTreePtr) {
 
 }
-bool ControlPID2Class::Initialized() {
 
-}
 void ControlPID2Class::Run(Mode mode) {
 
 }
@@ -112,9 +103,7 @@ void ControlPID2Class::Run(Mode mode) {
 void ControlStateSpaceClass::Configure(const rapidjson::Value& Config,std::string RootPath,DefinitionTree *DefinitionTreePtr) {
 
 }
-bool ControlStateSpaceClass::Initialized() {
 
-}
 void ControlStateSpaceClass::Run(Mode mode) {
 
 }
@@ -128,6 +117,7 @@ void ControlLaws::Configure(const rapidjson::Value& Config, DefinitionTree *Defi
     BaselineControlGroup_.resize(BaselineConfig.Size());
     for (size_t i=0; i < BaselineConfig.Size(); i++) {
       if (BaselineConfig[i].HasMember("Level-Name")&&BaselineConfig[i].HasMember("Components")) {
+        BaselineLevelNames_.push_back(BaselineConfig[i]["Level-Name"].GetString());
         for (size_t j=0; j < BaselineConfig[i]["Components"].Size(); j++) {
           const rapidjson::Value& Component = BaselineConfig[i]["Components"][j];
           if (Component.HasMember("Type")) {
@@ -185,6 +175,7 @@ void ControlLaws::Configure(const rapidjson::Value& Config, DefinitionTree *Defi
         ResearchControlGroups_[ResearchConfig[i]["Group-Name"].GetString()].resize(Components.Size());
         for (size_t j=0; j < Components.Size(); j++) {
           if (Components[j].HasMember("Level-Name")&&Components[j].HasMember("Components")) {
+            ResearchLevelNames_[ResearchConfig[i]["Group-Name"].GetString()].push_back(Components[j]["Level-Name"].GetString());
             for (size_t k=0; k < Components[j]["Components"].Size(); k++) {
               const rapidjson::Value& Component = Components[j]["Components"][k];
               if (Component.HasMember("Type")) {
@@ -353,6 +344,12 @@ void ControlLaws::Configure(const rapidjson::Value& Config, DefinitionTree *Defi
       j++;
     }
   }
+  Configured_ = true;
+}
+
+/* returns whether control has been configured */
+bool ControlLaws::Configured() {
+  return Configured_;
 }
 
 /* sets the control law that is engaged and currently output */
@@ -374,34 +371,12 @@ size_t ControlLaws::ActiveControlLevels() {
   }
 }
 
-/* initializes control laws */
-bool ControlLaws::Initialized() {
-  if (InitializedLatch_) {
-    return true;
+/* returns the name of the level for the engaged control law */
+std::string ControlLaws::GetActiveLevel(size_t ControlLevel) {
+  if (EngagedGroup_ == "Baseline") {
+    return BaselineLevelNames_[ControlLevel];
   } else {
-    bool initialized = true;
-    // initializing baseline control laws
-    for (size_t i=0; i < BaselineControlGroup_.size(); i++) {
-      for (size_t j=0; j < BaselineControlGroup_[i].size(); j++) {
-        if (!BaselineControlGroup_[i][j]->Initialized()) {
-          initialized = false;
-        }
-      }
-    }
-    // initializing research control laws
-    for (size_t i=0; i < ResearchGroupKeys_.size(); i++) {
-      for (size_t j=0; j < ResearchControlGroups_[ResearchGroupKeys_[i]].size(); j++) {
-        for (size_t k=0; k < ResearchControlGroups_[ResearchGroupKeys_[i]][j].size(); k++) {
-          if (!ResearchControlGroups_[ResearchGroupKeys_[i]][j][k]->Initialized()) {
-            initialized = false;
-          }
-        }
-      }
-    }
-    if (initialized) {
-      InitializedLatch_ = true;
-    }
-    return initialized;
+    return ResearchLevelNames_[EngagedGroup_][ControlLevel];
   }
 }
 

@@ -49,14 +49,12 @@ class ControlFunctionClass {
       kEngage
     };
     virtual void Configure(const rapidjson::Value& Config,std::string RootPath,DefinitionTree *DefinitionTreePtr);
-    virtual bool Initialized();
     virtual void Run(Mode mode);
 };
 
 class ControlConstantClass: public ControlFunctionClass {
   public:
     void Configure(const rapidjson::Value& Config,std::string RootPath,DefinitionTree *DefinitionTreePtr);
-    bool Initialized();
     void Run(Mode mode);
   private:
     struct Config {
@@ -73,7 +71,6 @@ class ControlConstantClass: public ControlFunctionClass {
 class ControlGainClass: public ControlFunctionClass {
   public:
     void Configure(const rapidjson::Value& Config,std::string RootPath,DefinitionTree *DefinitionTreePtr);
-    bool Initialized();
     void Run(Mode mode);
   private:
     struct Config {
@@ -91,39 +88,40 @@ class ControlGainClass: public ControlFunctionClass {
 class ControlPIDClass: public ControlFunctionClass {
   public:
     void Configure(const rapidjson::Value& Config,std::string RootPath,DefinitionTree *DefinitionTreePtr);
-    bool Initialized();
     void Run(Mode mode);
 };
 
 class ControlPID2Class: public ControlFunctionClass {
   public:
     void Configure(const rapidjson::Value& Config,std::string RootPath,DefinitionTree *DefinitionTreePtr);
-    bool Initialized();
     void Run(Mode mode);
 };
 
 class ControlStateSpaceClass: public ControlFunctionClass {
   public:
     void Configure(const rapidjson::Value& Config,std::string RootPath,DefinitionTree *DefinitionTreePtr);
-    bool Initialized();
     void Run(Mode mode);
 };
 
 class ControlLaws {
   public:
     void Configure(const rapidjson::Value& Config, DefinitionTree *DefinitionTreePtr);
-    bool Initialized();
+    bool Configured();
     void SetEngagedController(std::string ControlGroupName);
     void SetArmedController(std::string ControlGroupName);
     size_t ActiveControlLevels();
+    std::string GetActiveLevel(size_t ControlLevel);
     void Run(size_t ControlLevel);
   private:
     std::string RootPath_ = "/Control";
+    bool Configured_ = false;
     bool InitializedLatch_ = false;
     std::string EngagedGroup_ = "Baseline";
     std::string ArmedGroup_;
     std::vector<std::string> ResearchGroupKeys_;
     std::map<std::string,std::string> OutputKeys_;
+    std::vector<std::string> BaselineLevelNames_;
+    std::map<std::string,std::vector<std::string>> ResearchLevelNames_;
     std::vector<std::vector<std::shared_ptr<ControlFunctionClass>>> BaselineControlGroup_;
     std::map<std::string,std::vector<std::vector<std::shared_ptr<ControlFunctionClass>>>> ResearchControlGroups_;
     std::vector<std::variant<uint64_t,uint32_t,uint16_t,uint8_t,int64_t,int32_t,int16_t,int8_t,float, double>> OutputData_;
