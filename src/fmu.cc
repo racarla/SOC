@@ -67,46 +67,46 @@ void FlightManagementUnit::Configure(const rapidjson::Value& Config, DefinitionT
         SendMessage(Message::kConfigMesg,Payload);
         // create list of sensor output names
         if (Sensor["Type"] == "Time") {
-          SensorNames_.Time_us.push_back(RootPath + "/" + Sensor["Output-Name"].GetString());
+          SensorNames_.Time_us.push_back(RootPath + "/" + Sensor["Output"].GetString());
         }
         if (Sensor["Type"] == "InternalMpu9250") {
-          SensorNames_.InternalMpu9250.push_back(RootPath + "/" + Sensor["Output-Name"].GetString());
+          SensorNames_.InternalMpu9250.push_back(RootPath + "/" + Sensor["Output"].GetString());
         }
         if (Sensor["Type"] == "InternalBme280") {
-          SensorNames_.InternalBme280.push_back(RootPath + "/" + Sensor["Output-Name"].GetString());
+          SensorNames_.InternalBme280.push_back(RootPath + "/" + Sensor["Output"].GetString());
         }
         if (Sensor["Type"] == "InputVoltage") {
-          SensorNames_.InputVoltage_V.push_back(RootPath + "/" + Sensor["Output-Name"].GetString());
+          SensorNames_.InputVoltage_V.push_back(RootPath + "/" + Sensor["Output"].GetString());
         }
         if (Sensor["Type"] == "RegulatedVoltage") {
-          SensorNames_.RegulatedVoltage_V.push_back(RootPath + "/" + Sensor["Output-Name"].GetString());
+          SensorNames_.RegulatedVoltage_V.push_back(RootPath + "/" + Sensor["Output"].GetString());
         }
         if (Sensor["Type"] == "PwmVoltage") {
-          SensorNames_.PwmVoltage_V.push_back(RootPath + "/" + Sensor["Output-Name"].GetString());
+          SensorNames_.PwmVoltage_V.push_back(RootPath + "/" + Sensor["Output"].GetString());
         }
         if (Sensor["Type"] == "SbusVoltage") {
-          SensorNames_.SbusVoltage_V.push_back(RootPath + "/" + Sensor["Output-Name"].GetString());
+          SensorNames_.SbusVoltage_V.push_back(RootPath + "/" + Sensor["Output"].GetString());
         }
         if (Sensor["Type"] == "Mpu9250") {
-          SensorNames_.Mpu9250.push_back(RootPath + "/" + Sensor["Output-Name"].GetString());
+          SensorNames_.Mpu9250.push_back(RootPath + "/" + Sensor["Output"].GetString());
         }
         if (Sensor["Type"] == "Bme280") {
-          SensorNames_.Bme280.push_back(RootPath + "/" + Sensor["Output-Name"].GetString());
+          SensorNames_.Bme280.push_back(RootPath + "/" + Sensor["Output"].GetString());
         }
         if (Sensor["Type"] == "uBlox") {
-          SensorNames_.uBlox.push_back(RootPath + "/" + Sensor["Output-Name"].GetString());
+          SensorNames_.uBlox.push_back(RootPath + "/" + Sensor["Output"].GetString());
         }
         if (Sensor["Type"] == "Swift") {
-          SensorNames_.Swift.push_back(RootPath + "/" + Sensor["Output-Name"].GetString());
+          SensorNames_.Swift.push_back(RootPath + "/" + Sensor["Output"].GetString());
         }
         if (Sensor["Type"] == "Ams5915") {
-          SensorNames_.Ams5915.push_back(RootPath + "/" + Sensor["Output-Name"].GetString());
+          SensorNames_.Ams5915.push_back(RootPath + "/" + Sensor["Output"].GetString());
         }
         if (Sensor["Type"] == "Sbus") {
-          SensorNames_.Sbus.push_back(RootPath + "/" + Sensor["Output-Name"].GetString());
+          SensorNames_.Sbus.push_back(RootPath + "/" + Sensor["Output"].GetString());
         }
         if (Sensor["Type"] == "Analog") {
-          SensorNames_.Analog.push_back(RootPath + "/" + Sensor["Output-Name"].GetString());
+          SensorNames_.Analog.push_back(RootPath + "/" + Sensor["Output"].GetString());
         }
         if (Sensor["Type"] == "Node") {
           const rapidjson::Value& Node = Sensor;
@@ -117,31 +117,31 @@ void FlightManagementUnit::Configure(const rapidjson::Value& Config, DefinitionT
               const rapidjson::Value& NodeSensor = NodeSensors[j];
               if (NodeSensor.HasMember("Type")) {
                 if (NodeSensor["Type"] == "PwmVoltage") {
-                  SensorNames_.PwmVoltage_V.push_back(RootPath + "/" + NodeSensor["Output-Name"].GetString());
+                  SensorNames_.PwmVoltage_V.push_back(RootPath + "/" + NodeSensor["Output"].GetString());
                 }
                 if (NodeSensor["Type"] == "SbusVoltage") {
-                  SensorNames_.SbusVoltage_V.push_back(RootPath + "/" + NodeSensor["Output-Name"].GetString());
+                  SensorNames_.SbusVoltage_V.push_back(RootPath + "/" + NodeSensor["Output"].GetString());
                 }
                 if (NodeSensor["Type"] == "Mpu9250") {
-                  SensorNames_.Mpu9250.push_back(RootPath + "/" + NodeSensor["Output-Name"].GetString());
+                  SensorNames_.Mpu9250.push_back(RootPath + "/" + NodeSensor["Output"].GetString());
                 }
                 if (NodeSensor["Type"] == "Bme280") {
-                  SensorNames_.Bme280.push_back(RootPath + "/" + NodeSensor["Output-Name"].GetString());
+                  SensorNames_.Bme280.push_back(RootPath + "/" + NodeSensor["Output"].GetString());
                 }
                 if (NodeSensor["Type"] == "uBlox") {
-                  SensorNames_.uBlox.push_back(RootPath + "/" + NodeSensor["Output-Name"].GetString());
+                  SensorNames_.uBlox.push_back(RootPath + "/" + NodeSensor["Output"].GetString());
                 }
                 if (NodeSensor["Type"] == "Swift") {
-                  SensorNames_.Swift.push_back(RootPath + "/" + NodeSensor["Output-Name"].GetString());
+                  SensorNames_.Swift.push_back(RootPath + "/" + NodeSensor["Output"].GetString());
                 }
                 if (NodeSensor["Type"] == "Ams5915") {
-                  SensorNames_.Ams5915.push_back(RootPath + "/" + NodeSensor["Output-Name"].GetString());
+                  SensorNames_.Ams5915.push_back(RootPath + "/" + NodeSensor["Output"].GetString());
                 }
                 if (NodeSensor["Type"] == "Sbus") {
-                  SensorNames_.Sbus.push_back(RootPath + "/" + NodeSensor["Output-Name"].GetString());
+                  SensorNames_.Sbus.push_back(RootPath + "/" + NodeSensor["Output"].GetString());
                 }
                 if (NodeSensor["Type"] == "Analog") {
-                  SensorNames_.Analog.push_back(RootPath + "/" + NodeSensor["Output-Name"].GetString());
+                  SensorNames_.Analog.push_back(RootPath + "/" + NodeSensor["Output"].GetString());
                 }
               } else {
                 throw std::runtime_error(std::string("ERROR")+RootPath+std::string(": Node sensor type not specified."));

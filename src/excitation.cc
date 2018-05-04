@@ -41,6 +41,15 @@ void Pulse::Configure(const rapidjson::Value& Config,std::string RootPath,Defini
   } else {
     throw std::runtime_error(std::string("ERROR")+RootPath+std::string(": Signal not specified in configuration."));
   }
+  if (Config.HasMember("Time")) {
+    if (DefinitionTreePtr->GetValuePtr<uint64_t*>(Config["Time"].GetString())) {
+      config_.Time_us = DefinitionTreePtr->GetValuePtr<uint64_t*>(Config["Time"].GetString());
+    } else {
+      throw std::runtime_error(std::string("ERROR")+OutputName+std::string(": Time not found in global data."));
+    }
+  } else {
+    throw std::runtime_error(std::string("ERROR")+OutputName+std::string(": Time not specified in configuration."));
+  }
   if (Config.HasMember("Start-Time")) {
     config_.StartTime_s = Config["Start-Time"].GetFloat();
   } else {
@@ -62,14 +71,15 @@ void Pulse::Run(Mode mode) {
   if (mode == kEngage) {
     // initialize the time when first called
     if (!TimeLatch) {
-      Time_us = 0;
+      Time0_us = *config_.Time_us;
       TimeLatch = true;
     }
+    ElapsedTime_us = (float)(*config_.Time_us-Time0_us);
     // pulse logic
-    if (Time_us < (config_.StartTime_s)*1e6){
+    if (ElapsedTime_us < (config_.StartTime_s)*1e6){
       // do nothing
       data_.Excitation = 0;
-    } else if (Time_us < (config_.StartTime_s+config_.Duration_s)*1e6) {
+    } else if (ElapsedTime_us < (config_.StartTime_s+config_.Duration_s)*1e6) {
       // add the pulse to the signal
       data_.Excitation = config_.Amplitude;
     } else {
@@ -104,6 +114,15 @@ void Doublet::Configure(const rapidjson::Value& Config,std::string RootPath,Defi
   } else {
     throw std::runtime_error(std::string("ERROR")+RootPath+std::string(": Signal not specified in configuration."));
   }
+  if (Config.HasMember("Time")) {
+    if (DefinitionTreePtr->GetValuePtr<uint64_t*>(Config["Time"].GetString())) {
+      config_.Time_us = DefinitionTreePtr->GetValuePtr<uint64_t*>(Config["Time"].GetString());
+    } else {
+      throw std::runtime_error(std::string("ERROR")+OutputName+std::string(": Time not found in global data."));
+    }
+  } else {
+    throw std::runtime_error(std::string("ERROR")+OutputName+std::string(": Time not specified in configuration."));
+  }
   if (Config.HasMember("Start-Time")) {
     config_.StartTime_s = Config["Start-Time"].GetFloat();
   } else {
@@ -125,17 +144,18 @@ void Doublet::Run(Mode mode) {
   if (mode == kEngage) {
     // initialize the time when first called
     if (!TimeLatch) {
-      Time_us = 0;
+      Time0_us = *config_.Time_us;
       TimeLatch = true;
     }
+    ElapsedTime_us = (float)(*config_.Time_us-Time0_us);
     // doublet logic
-    if (Time_us < (config_.StartTime_s)*1e6){
+    if (ElapsedTime_us < (config_.StartTime_s)*1e6){
       // do nothing
       data_.Excitation = 0;
-    } else if (Time_us < (config_.StartTime_s+config_.Duration_s)*1e6) {
+    } else if (ElapsedTime_us < (config_.StartTime_s+config_.Duration_s)*1e6) {
       // add the doublet to the signal
       data_.Excitation = config_.Amplitude;
-    } else if (Time_us < (config_.StartTime_s+2.0f*config_.Duration_s)*1e6) {
+    } else if (ElapsedTime_us < (config_.StartTime_s+2.0f*config_.Duration_s)*1e6) {
       // add the doublet to the signal
       data_.Excitation = -1*config_.Amplitude;
     } else {
@@ -170,6 +190,15 @@ void Doublet121::Configure(const rapidjson::Value& Config,std::string RootPath,D
   } else {
     throw std::runtime_error(std::string("ERROR")+RootPath+std::string(": Signal not specified in configuration."));
   }
+  if (Config.HasMember("Time")) {
+    if (DefinitionTreePtr->GetValuePtr<uint64_t*>(Config["Time"].GetString())) {
+      config_.Time_us = DefinitionTreePtr->GetValuePtr<uint64_t*>(Config["Time"].GetString());
+    } else {
+      throw std::runtime_error(std::string("ERROR")+OutputName+std::string(": Time not found in global data."));
+    }
+  } else {
+    throw std::runtime_error(std::string("ERROR")+OutputName+std::string(": Time not specified in configuration."));
+  }
   if (Config.HasMember("Start-Time")) {
     config_.StartTime_s = Config["Start-Time"].GetFloat();
   } else {
@@ -190,20 +219,21 @@ void Doublet121::Run(Mode mode) {
   if (mode == kEngage) {
     // initialize the time when first called
     if (!TimeLatch) {
-      Time_us = 0;
+      Time0_us = *config_.Time_us;
       TimeLatch = true;
     }
+    ElapsedTime_us = (float)(*config_.Time_us-Time0_us);
     // doublet logic, 1-2-1
-    if (Time_us < (config_.StartTime_s)*1e6){
+    if (ElapsedTime_us < (config_.StartTime_s)*1e6){
       // do nothing
       data_.Excitation = 0;
-    } else if (Time_us < (config_.StartTime_s+config_.Duration_s)*1e6) {
+    } else if (ElapsedTime_us < (config_.StartTime_s+config_.Duration_s)*1e6) {
       // add the doublet to the signal
       data_.Excitation = config_.Amplitude;
-    } else if (Time_us < (config_.StartTime_s+3.0f*config_.Duration_s)*1e6) {
+    } else if (ElapsedTime_us < (config_.StartTime_s+3.0f*config_.Duration_s)*1e6) {
       // add the doublet to the signal
       data_.Excitation = -1*config_.Amplitude;
-    } else if (Time_us < (config_.StartTime_s+4.0f*config_.Duration_s)*1e6) {
+    } else if (ElapsedTime_us < (config_.StartTime_s+4.0f*config_.Duration_s)*1e6) {
       // add the doublet to the signal
       data_.Excitation = config_.Amplitude;
     } else {
@@ -238,6 +268,15 @@ void Doublet3211::Configure(const rapidjson::Value& Config,std::string RootPath,
   } else {
     throw std::runtime_error(std::string("ERROR")+RootPath+std::string(": Signal not specified in configuration."));
   }
+  if (Config.HasMember("Time")) {
+    if (DefinitionTreePtr->GetValuePtr<uint64_t*>(Config["Time"].GetString())) {
+      config_.Time_us = DefinitionTreePtr->GetValuePtr<uint64_t*>(Config["Time"].GetString());
+    } else {
+      throw std::runtime_error(std::string("ERROR")+OutputName+std::string(": Time not found in global data."));
+    }
+  } else {
+    throw std::runtime_error(std::string("ERROR")+OutputName+std::string(": Time not specified in configuration."));
+  }
   if (Config.HasMember("Start-Time")) {
     config_.StartTime_s = Config["Start-Time"].GetFloat();
   } else {
@@ -258,23 +297,24 @@ void Doublet3211::Run(Mode mode) {
   if (mode == kEngage) {
     // initialize the time when first called
     if (!TimeLatch) {
-      Time_us = 0;
+      Time0_us = *config_.Time_us;
       TimeLatch = true;
     }
+    ElapsedTime_us = (float)(*config_.Time_us-Time0_us);
     // doublet logic, 3-2-1-1
-    if (Time_us < (config_.StartTime_s)*1e6){
+    if (ElapsedTime_us < (config_.StartTime_s)*1e6){
       // do nothing
       data_.Excitation = 0;
-    } else if (Time_us < (config_.StartTime_s+3.0f*config_.Duration_s)*1e6) {
+    } else if (ElapsedTime_us < (config_.StartTime_s+3.0f*config_.Duration_s)*1e6) {
       // add the doublet to the signal
       data_.Excitation = config_.Amplitude;
-    } else if (Time_us < (config_.StartTime_s+5.0f*config_.Duration_s)*1e6) {
+    } else if (ElapsedTime_us < (config_.StartTime_s+5.0f*config_.Duration_s)*1e6) {
       // add the doublet to the signal
       data_.Excitation = -1*config_.Amplitude;
-    } else if (Time_us < (config_.StartTime_s+6.0f*config_.Duration_s)*1e6) {
+    } else if (ElapsedTime_us < (config_.StartTime_s+6.0f*config_.Duration_s)*1e6) {
       // add the doublet to the signal
       data_.Excitation = config_.Amplitude;
-    } else if (Time_us < (config_.StartTime_s+7.0f*config_.Duration_s)*1e6) {
+    } else if (ElapsedTime_us < (config_.StartTime_s+7.0f*config_.Duration_s)*1e6) {
       // add the doublet to the signal
       data_.Excitation = -1*config_.Amplitude;
     } else {
@@ -308,6 +348,15 @@ void LinearChirp::Configure(const rapidjson::Value& Config,std::string RootPath,
     }
   } else {
     throw std::runtime_error(std::string("ERROR")+RootPath+std::string(": Signal not specified in configuration."));
+  }
+  if (Config.HasMember("Time")) {
+    if (DefinitionTreePtr->GetValuePtr<uint64_t*>(Config["Time"].GetString())) {
+      config_.Time_us = DefinitionTreePtr->GetValuePtr<uint64_t*>(Config["Time"].GetString());
+    } else {
+      throw std::runtime_error(std::string("ERROR")+OutputName+std::string(": Time not found in global data."));
+    }
+  } else {
+    throw std::runtime_error(std::string("ERROR")+OutputName+std::string(": Time not specified in configuration."));
   }
   if (Config.HasMember("Start-Time")) {
     config_.StartTime_s = Config["Start-Time"].GetFloat();
@@ -345,20 +394,21 @@ void LinearChirp::Run(Mode mode) {
   if (mode == kEngage) {
     // initialize the time when first called
     if (!TimeLatch) {
-      Time_us = 0;
+      Time0_us = *config_.Time_us;
       TimeLatch = true;
     }
+    ElapsedTime_us = (float)(*config_.Time_us-Time0_us);
     // chirp logic
-    if (Time_us < (config_.StartTime_s)*1e6){
+    if (ElapsedTime_us < (config_.StartTime_s)*1e6){
       // do nothing
       data_.Excitation = 0;
-    } else if (Time_us < config_.Duration_s*1e6) {
+    } else if (ElapsedTime_us < config_.Duration_s*1e6) {
       // linear varying instantanious frequency
-      float freq_rps = config_.Frequency[0]+(config_.Frequency[1]-config_.Frequency[0])/(2.0f*config_.Duration_s*1e6)*Time_us;
+      float freq_rps = config_.Frequency[0]+(config_.Frequency[1]-config_.Frequency[0])/(2.0f*config_.Duration_s*1e6)*ElapsedTime_us;
       // linear varying amplitude
-      float amp_nd = config_.Amplitude[0]+(config_.Amplitude[1]-config_.Amplitude[0])*Time_us/(config_.Duration_s*1e6);
+      float amp_nd = config_.Amplitude[0]+(config_.Amplitude[1]-config_.Amplitude[0])*ElapsedTime_us/(config_.Duration_s*1e6);
       // chirp Equation
-      data_.Excitation = amp_nd*sinf(freq_rps*Time_us);
+      data_.Excitation = amp_nd*sinf(freq_rps*ElapsedTime_us);
     } else {
       // do nothing
       data_.Excitation = 0;
@@ -390,6 +440,15 @@ void MultiSine::Configure(const rapidjson::Value& Config,std::string RootPath,De
     }
   } else {
     throw std::runtime_error(std::string("ERROR")+RootPath+std::string(": Signal not specified in configuration."));
+  }
+  if (Config.HasMember("Time")) {
+    if (DefinitionTreePtr->GetValuePtr<uint64_t*>(Config["Time"].GetString())) {
+      config_.Time_us = DefinitionTreePtr->GetValuePtr<uint64_t*>(Config["Time"].GetString());
+    } else {
+      throw std::runtime_error(std::string("ERROR")+OutputName+std::string(": Time not found in global data."));
+    }
+  } else {
+    throw std::runtime_error(std::string("ERROR")+OutputName+std::string(": Time not specified in configuration."));
   }
   if (Config.HasMember("Start-Time")) {
     config_.StartTime_s = Config["Start-Time"].GetFloat();
@@ -434,18 +493,19 @@ void MultiSine::Run(Mode mode) {
   if (mode == kEngage) {
     // initialize the time when first called
     if (!TimeLatch) {
-      Time_us = 0;
+      Time0_us = *config_.Time_us;
       TimeLatch = true;
     }
+    ElapsedTime_us = (float)(*config_.Time_us-Time0_us);
     // multisine logic
-    if (Time_us < (config_.StartTime_s)*1e6){
+    if (ElapsedTime_us < (config_.StartTime_s)*1e6){
       // do nothing
       data_.Excitation = 0;
-    } else if (Time_us < config_.Duration_s*1e6) {
+    } else if (ElapsedTime_us < config_.Duration_s*1e6) {
       // Scale the waveform to preserve unity
       float scale = sqrtf(1.0f/((float)config_.Amplitude.size()));
       // Compute the Waveform - scale * sum(amp .* cos(freq * t + phase))
-      data_.Excitation=scale*(config_.Amplitude*(config_.Frequency*Time_us+config_.Phase).cos()).sum();
+      data_.Excitation=scale*(config_.Amplitude*(config_.Frequency*(ElapsedTime_us/1e6)+config_.Phase).cos()).sum();
     } else {
       // do nothing
       data_.Excitation = 0;

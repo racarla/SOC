@@ -23,7 +23,6 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SO
 
 #include "hardware-defs.hxx"
 #include "definition-tree.hxx"
-#include "utils.hxx"
 #include "rapidjson/document.h"
 #include "rapidjson/stringbuffer.h"
 #include "rapidjson/writer.h"
@@ -56,6 +55,7 @@ public:
   void Run(Mode mode);
 private:
   struct Config {
+    uint64_t *Time_us;
     float *Signal;
     float Amplitude;
     float StartTime_s;
@@ -67,7 +67,8 @@ private:
   };
   Config config_;
   Data data_;
-  elapsedMicros Time_us = 0;
+  uint64_t Time0_us = 0;
+  float ElapsedTime_us = 0;
   bool TimeLatch = false;
 };
 
@@ -77,6 +78,7 @@ public:
   void Run(Mode mode);
 private:
   struct Config {
+    uint64_t *Time_us;
     float *Signal;
     float Amplitude;
     float StartTime_s;
@@ -88,7 +90,8 @@ private:
   };
   Config config_;
   Data data_;
-  elapsedMicros Time_us = 0;
+  uint64_t Time0_us = 0;
+  float ElapsedTime_us = 0;
   bool TimeLatch = false;
 };
 
@@ -98,6 +101,7 @@ public:
   void Run(Mode mode);
 private:
   struct Config {
+    uint64_t *Time_us;
     float *Signal;
     float Amplitude;
     float StartTime_s;
@@ -109,7 +113,8 @@ private:
   };
   Config config_;
   Data data_;
-  elapsedMicros Time_us = 0;
+  uint64_t Time0_us = 0;
+  float ElapsedTime_us = 0;
   bool TimeLatch = false;
 };
 
@@ -119,6 +124,7 @@ public:
   void Run(Mode mode);
 private:
   struct Config {
+    uint64_t *Time_us;
     float *Signal;
     float Amplitude;
     float StartTime_s;
@@ -130,7 +136,8 @@ private:
   };
   Config config_;
   Data data_;
-  elapsedMicros Time_us = 0;
+  uint64_t Time0_us = 0;
+  float ElapsedTime_us = 0;
   bool TimeLatch = false;
 };
 
@@ -140,6 +147,7 @@ public:
   void Run(Mode mode);
 private:
   struct Config {
+    uint64_t *Time_us;
     float *Signal;
     float Amplitude[2];
     float Frequency[2];
@@ -152,7 +160,8 @@ private:
   };
   Config config_;
   Data data_;
-  elapsedMicros Time_us = 0;
+  uint64_t Time0_us = 0;
+  float ElapsedTime_us = 0;
   bool TimeLatch = false;
 };
 
@@ -162,6 +171,7 @@ public:
   void Run(Mode mode);
 private:
   struct Config {
+    uint64_t *Time_us;
     float *Signal;
     Eigen::Array<float,Eigen::Dynamic,1> Amplitude;
     Eigen::Array<float,Eigen::Dynamic,1> Frequency;
@@ -175,7 +185,8 @@ private:
   };
   Config config_;
   Data data_;
-  elapsedMicros Time_us = 0;
+  uint64_t Time0_us = 0;
+  float ElapsedTime_us = 0;
   bool TimeLatch = false;
 };
 

@@ -22,7 +22,6 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SO
 #define SENSOR_PROCESSING_HXX_
 
 #include "AirData.h"
-#include "utils.hxx"
 #include "hardware-defs.hxx"
 #include "definition-tree.hxx"
 #include "rapidjson/document.h"
@@ -63,6 +62,7 @@ class BaselineAirDataClass: public SensorProcessingFunctionClass {
     void Run(Mode mode);
   private:
     struct Config {
+      uint64_t* TimeSourcePtr;
       std::vector<float*> StaticPressureSourcePtr;
       std::vector<float*> DifferentialPressureSourcePtr;
       std::vector<float> DifferentialPressureBiases;
@@ -85,6 +85,9 @@ class BaselineAirDataClass: public SensorProcessingFunctionClass {
     Config config_;
     Data data_;
     bool InitializedLatch_ = false;
+    bool TimeLatch_ = false;
+    uint64_t Time0_us_;
+    float InitializationTimer_us_;
 };
 
 class SensorProcessing {

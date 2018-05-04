@@ -49,6 +49,7 @@ class ControlFunctionClass {
       kEngage
     };
     virtual void Configure(const rapidjson::Value& Config,std::string RootPath,DefinitionTree *DefinitionTreePtr);
+    virtual void SetPreviousOutput(std::string RootPath,DefinitionTree *DefinitionTreePtr);
     virtual void Run(Mode mode);
 };
 
@@ -58,11 +59,11 @@ class ControlConstantClass: public ControlFunctionClass {
     void Run(Mode mode);
   private:
     struct Config {
-      float Constant;
+      float Constant = 0;
     };
     struct Data {
-      uint8_t Mode;
-      float Command;
+      uint8_t Mode = kStandby;
+      float Command = 0;
     };
     Config config_;
     Data data_;
@@ -74,34 +75,130 @@ class ControlGainClass: public ControlFunctionClass {
     void Run(Mode mode);
   private:
     struct Config {
-      float *Reference;
-      float Gain;
+      float *Input;
+      float Gain = 1;
+      bool SaturateOutput = false;
+      float UpperLimit, LowerLimit = 0;
+    };
+    struct Data {
+      uint8_t Mode = kStandby;
+      float Command = 0;
+      int8_t Saturated = 0;
+    };
+    Config config_;
+    Data data_;
+    void CalculateCommand();
+};
+
+class ControlSumClass: public ControlFunctionClass {
+  public:
+    void Configure(const rapidjson::Value& Config,std::string RootPath,DefinitionTree *DefinitionTreePtr);
+    void Run(Mode mode);
+  private:
+    struct Config {
+      std::vector<float*> Inputs;
+      bool SaturateOutput = false;
+      float UpperLimit, LowerLimit = 0;
+    };
+    struct Data {
+      uint8_t Mode;
+      float Command;
+      int8_t Saturated = 0;
+    };
+    Config config_;
+    Data data_;
+    void CalculateCommand();
+};
+
+class WashoutFilterClass: public ControlFunctionClass {
+  public:
+    void Configure(const rapidjson::Value& Config,std::string RootPath,DefinitionTree *DefinitionTreePtr);
+    void SetPreviousOutput(std::string RootPath,DefinitionTree *DefinitionTreePtr);
+    void Run(Mode mode);
+  private:
+    struct Config {
+      std::string OutputName;
+      float *Input;
+      float *PreviousCommand;
+      float *dt;
+      float Tf;
     };
     struct Data {
       uint8_t Mode;
       float Command;
     };
+    struct States {
+      float Filter;
+    };
     Config config_;
     Data data_;
+    States states_;
+    void InitializeState();
+    void UpdateState();
+    void CalculateCommand();
 };
 
-class ControlPIDClass: public ControlFunctionClass {
-  public:
-    void Configure(const rapidjson::Value& Config,std::string RootPath,DefinitionTree *DefinitionTreePtr);
-    void Run(Mode mode);
-};
-
-class ControlPID2Class: public ControlFunctionClass {
-  public:
-    void Configure(const rapidjson::Value& Config,std::string RootPath,DefinitionTree *DefinitionTreePtr);
-    void Run(Mode mode);
-};
-
-class ControlStateSpaceClass: public ControlFunctionClass {
-  public:
-    void Configure(const rapidjson::Value& Config,std::string RootPath,DefinitionTree *DefinitionTreePtr);
-    void Run(Mode mode);
-};
+// class ControlPIDClass: public ControlFunctionClass {
+//   public:
+//     void Configure(const rapidjson::Value& Config,std::string RootPath,DefinitionTree *DefinitionTreePtr);
+//     void Run(Mode mode);
+//   private:
+//     struct Config {
+//       float *PreviousCommand;
+//       float *Reference;
+//       float *Feedback;
+//       float *dt;
+//       float Kp,Ki,Kd,Tf = 0;
+//       bool SaturateOutput = false;
+//       float UpperLimit, LowerLimit = 0;
+//     };
+//     struct Data {
+//       uint8_t Mode = kStandby;
+//       float Command = 0;
+//       int8_t Saturated = 0;
+//     };
+//     struct States {
+//       float Error, PreviousError = 0;
+//       float DerivativeErrorState, IntegralErrorState = 0;
+//     };
+//     Config config_;
+//     Data data_;
+//     States states_;
+//     void InitializeState(float Command);
+//     void UpdateState();
+//     void CalculateCommand();
+// };
+//
+// class ControlPID2Class: public ControlFunctionClass {
+//   public:
+//     void Configure(const rapidjson::Value& Config,std::string RootPath,DefinitionTree *DefinitionTreePtr);
+//     void Run(Mode mode);
+//   private:
+//     struct Config {
+//       float *Reference;
+//       float *Feedback;
+//       float *dt;
+//       float Limit[2];
+//       float Kp,Ki,Kd,b,c,Tf = 0;
+//     };
+//     struct Data {
+//       uint8_t Mode = kStandby;
+//       float Command = 0;
+//     };
+//     Config config_;
+//     Data data_;
+//     float ProportionalError_, DerivativeError_, PreviousDerivativeError_, IntegralError_ = 0;
+//     float DerivativeErrorState_, IntegralErrorState_ = 0;
+//     void InitializeState(float Command);
+//     void UpdateState();
+//     void CalculateCommand();
+// };
+//
+// class ControlStateSpaceClass: public ControlFunctionClass {
+//   public:
+//     void Configure(const rapidjson::Value& Config,std::string RootPath,DefinitionTree *DefinitionTreePtr);
+//     void Run(Mode mode);
+// };
 
 class ControlLaws {
   public:

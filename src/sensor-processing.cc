@@ -29,10 +29,20 @@ void SensorProcessingFunctionClass::Run(Mode mode) {}
 void BaselineAirDataClass::Configure(const rapidjson::Value& Config,std::string RootPath,DefinitionTree *DefinitionTreePtr) {
   std::string OutputName;
   // get output name
-  if (Config.HasMember("Output-Name")) {
-    OutputName = RootPath + "/" + Config["Output-Name"].GetString();
+  if (Config.HasMember("Output")) {
+    OutputName = RootPath + "/" + Config["Output"].GetString();
   } else {
-    throw std::runtime_error(std::string("ERROR")+RootPath+std::string(": Output-Name not specified in configuration."));
+    throw std::runtime_error(std::string("ERROR")+RootPath+std::string(": Output not specified in configuration."));
+  }
+  // get time source
+  if (Config.HasMember("Time")) {
+    if (DefinitionTreePtr->GetValuePtr<uint64_t*>(Config["Time"].GetString())) {
+      config_.TimeSourcePtr = DefinitionTreePtr->GetValuePtr<uint64_t*>(Config["Time"].GetString());
+    } else {
+      throw std::runtime_error(std::string("ERROR")+OutputName+std::string(": Time source ")+Config["Time"].GetString()+std::string(" not found in global data."));
+    }
+  } else {
+    throw std::runtime_error(std::string("ERROR")+OutputName+std::string(": Time source not specified in configuration."));
   }
   // get initialization time
   if (Config.HasMember("Initialization-Time")) {
@@ -49,7 +59,7 @@ void BaselineAirDataClass::Configure(const rapidjson::Value& Config,std::string 
       if (DefinitionTreePtr->GetValuePtr<float*>(source)) {
         config_.StaticPressureSourcePtr.push_back(DefinitionTreePtr->GetValuePtr<float*>(source));
       } else {
-        throw std::runtime_error(std::string("ERROR")+OutputName+std::string(": Static pressure source not found in global data."));
+        throw std::runtime_error(std::string("ERROR")+OutputName+std::string(": Static pressure source ")+source+std::string(" not found in global data."));
       }
     }
   }
@@ -62,7 +72,7 @@ void BaselineAirDataClass::Configure(const rapidjson::Value& Config,std::string 
       if (DefinitionTreePtr->GetValuePtr<float*>(source)) {
         config_.DifferentialPressureSourcePtr.push_back(DefinitionTreePtr->GetValuePtr<float*>(source));
       } else {
-        throw std::runtime_error(std::string("ERROR")+OutputName+std::string(": Differential pressure source not found in global data."));
+        throw std::runtime_error(std::string("ERROR")+OutputName+std::string(": Differential pressure source ")+source+std::string(" not found in global data."));
       }
 
     }
@@ -78,17 +88,17 @@ void BaselineAirDataClass::Configure(const rapidjson::Value& Config,std::string 
       if (DefinitionTreePtr->GetValuePtr<float*>(source)) {
         config_.MslAltSourcePtr.push_back(DefinitionTreePtr->GetValuePtr<float*>(source));
       } else {
-        throw std::runtime_error(std::string("ERROR")+OutputName+std::string(": MSL altitude source not found in global data."));
+        throw std::runtime_error(std::string("ERROR")+OutputName+std::string(": MSL altitude source ")+source+std::string(" not found in global data."));
       }
       if (DefinitionTreePtr->GetValuePtr<uint8_t*>(fix)) {
         config_.MslAltFixPtr.push_back(DefinitionTreePtr->GetValuePtr<uint8_t*>(fix));
       } else {
-        throw std::runtime_error(std::string("ERROR")+OutputName+std::string(": MSL altitude fix not found in global data."));
+        throw std::runtime_error(std::string("ERROR")+OutputName+std::string(": MSL altitude fix ")+fix+std::string(" not found in global data."));
       }
     }
   }
   // pointer to log run mode data
-  DefinitionTreePtr->InitMember(OutputName+"/Mode",&data_.Mode,"Run mode",true,false);
+  DefinitionTreePtr->InitMember(OutputName+"/Mode",&data_.Mode,"Sensor processing mode",true,false);
   // if at least one static pressure source, register: pressure altitude and AGL altitude
   if (config_.StaticPressureSourcePtr.size() > 0) {
     DefinitionTreePtr->InitMember(OutputName+"/Pressure/Static_Pa",&data_.StaticPressure_Pa,"Static pressure, Pa",true,false);
@@ -118,7 +128,11 @@ bool BaselineAirDataClass::Initialized() {
       }
     }
     if ((config_.MslAltSourcePtr.size() == 0)||(GpsFix)) {
-      static elapsedMicros InitializationTimer = 0;
+      if (!TimeLatch_) {
+        Time0_us_ = *config_.TimeSourcePtr;
+        TimeLatch_ = true;
+      }
+      InitializationTimer_us_ = (float)(*config_.TimeSourcePtr - Time0_us_);
       static size_t NumberSamples = 1;
       // if we have at least one static pressure source
       if (config_.StaticPressureSourcePtr.size() > 0) {
@@ -146,7 +160,7 @@ bool BaselineAirDataClass::Initialized() {
       }
       NumberSamples++;
       // if time > duration return true
-      if (InitializationTimer > config_.InitializationTime_s*1e6) {
+      if (InitializationTimer_us_ > config_.InitializationTime_s*1e6) {
         InitializedLatch_ = true;
         return true;
       } else {
