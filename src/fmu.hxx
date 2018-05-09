@@ -53,6 +53,7 @@ class FlightManagementUnit {
     void Begin();
     void Configure(const rapidjson::Value& Config,DefinitionTree *DefinitionTreePtr);
     bool ReceiveSensorData();
+    void SendEffectorCommands(std::vector<float> Commands);
   private:
     struct InternalMpu9250SensorData {
       Eigen::Matrix<float,3,1>Accel_mss;        // x,y,z accelerometers, m/s/s

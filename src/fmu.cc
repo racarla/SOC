@@ -154,6 +154,35 @@ void FlightManagementUnit::Configure(const rapidjson::Value& Config, DefinitionT
       }
     }
   }
+
+  if (Config.HasMember("Control")) {
+    const rapidjson::Value& Control = Config["Control"];
+    Payload.clear();
+    rapidjson::StringBuffer StringBuff;
+    rapidjson::Writer<rapidjson::StringBuffer> Writer(StringBuff);
+    Control.Accept(Writer);
+    std::string OutputString = StringBuff.GetString();
+    std::string ConfigString = std::string("{\"Control\":") + OutputString + std::string("}");
+    for (size_t j=0; j < ConfigString.size(); j++) {
+      Payload.push_back((uint8_t)ConfigString[j]);
+    }
+    SendMessage(Message::kConfigMesg,Payload);
+  }
+
+  if (Config.HasMember("Effectors")) {
+    const rapidjson::Value& Effectors = Config["Effectors"];
+    Payload.clear();
+    rapidjson::StringBuffer StringBuff;
+    rapidjson::Writer<rapidjson::StringBuffer> Writer(StringBuff);
+    Effectors.Accept(Writer);
+    std::string OutputString = StringBuff.GetString();
+    std::string ConfigString = std::string("{\"Effectors\":") + OutputString + std::string("}");
+    for (size_t j=0; j < ConfigString.size(); j++) {
+      Payload.push_back((uint8_t)ConfigString[j]);
+    }
+    SendMessage(Message::kConfigMesg,Payload);
+  }
+
   // switch FMU to run mode
   Payload.clear();
   Payload.push_back((uint8_t)Mode::kRunMode);
@@ -375,6 +404,14 @@ bool FlightManagementUnit::ReceiveSensorData() {
   } else {
     return false;
   }
+}
+
+/* Sends effector commands to FMU */
+void FlightManagementUnit::SendEffectorCommands(std::vector<float> Commands) {
+  std::vector<uint8_t> Payload;
+  Payload.resize(Commands.size()*sizeof(float));
+  memcpy(Payload.data(),Commands.data(),Payload.size());
+  SendMessage(kEffectorCommand,Payload);
 }
 
 /* Send a BFS Bus message. */
