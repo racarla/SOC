@@ -155,6 +155,20 @@ void FlightManagementUnit::Configure(const rapidjson::Value& Config, DefinitionT
     }
   }
 
+  if (Config.HasMember("Mission-Manager")) {
+    const rapidjson::Value& Mission = Config["Mission-Manager"];
+    Payload.clear();
+    rapidjson::StringBuffer StringBuff;
+    rapidjson::Writer<rapidjson::StringBuffer> Writer(StringBuff);
+    Mission.Accept(Writer);
+    std::string OutputString = StringBuff.GetString();
+    std::string ConfigString = std::string("{\"Mission-Manager\":") + OutputString + std::string("}");
+    for (size_t j=0; j < ConfigString.size(); j++) {
+      Payload.push_back((uint8_t)ConfigString[j]);
+    }
+    SendMessage(Message::kConfigMesg,Payload);
+  }
+
   if (Config.HasMember("Control")) {
     const rapidjson::Value& Control = Config["Control"];
     Payload.clear();
