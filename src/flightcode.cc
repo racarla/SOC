@@ -120,7 +120,7 @@ int main(int argc, char* argv[]) {
             Control.Run(i);
           }
           // run effectors
-            Effectors.Run();
+          Effectors.Run();
         }
         // run telemetry
       }
