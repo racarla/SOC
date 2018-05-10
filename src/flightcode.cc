@@ -58,37 +58,38 @@ int main(int argc, char* argv[]) {
   std::cout << "Initializing software modules." << std::endl;
   std::cout << "\tInitializing FMU..." << std::flush;
   Fmu.Begin();
-  std::cout << "\tdone!" << std::endl;
+  std::cout << "done!" << std::endl;
   /* configure classes and register with global defs */
   std::cout << "Configuring aircraft." << std::endl;
   rapidjson::Document AircraftConfiguration;
   std::cout << "\tLoading configuration..." << std::flush;
   Config.LoadConfiguration(argv[1], &AircraftConfiguration);
-  std::cout << "\tdone!" << std::endl;
+  std::cout << "done!" << std::endl;
   std::cout << "\tConfiguring flight management unit..." << std::flush;
   Fmu.Configure(AircraftConfiguration,&GlobalData);
-  std::cout << "\tdone!" << std::endl;
+  std::cout << "done!" << std::endl;
   if (AircraftConfiguration.HasMember("Sensor-Processing")) {
     std::cout << "\tConfiguring sensor processing..." << std::flush;
     SenProc.Configure(AircraftConfiguration["Sensor-Processing"],&GlobalData);
-    std::cout << "\tdone!" << std::endl;
+    std::cout << "done!" << std::endl;
     if (AircraftConfiguration.HasMember("Control")&&AircraftConfiguration.HasMember("Mission-Manager")&&AircraftConfiguration.HasMember("Effectors")) {
       std::cout << "\tConfiguring mission manager..." << std::flush;
       Mission.Configure(AircraftConfiguration["Mission-Manager"],&GlobalData);
-      std::cout << "\tdone!" << std::endl;
+      std::cout << "done!" << std::endl;
       std::cout << "\tConfiguring control laws..." << std::flush;
       Control.Configure(AircraftConfiguration["Control"],&GlobalData);
-      std::cout << "\tdone!" << std::endl;
+      std::cout << "done!" << std::endl;
       std::cout << "\tConfiguring effectors..." << std::flush;
       Effectors.Configure(AircraftConfiguration["Effectors"],&GlobalData);
-      std::cout << "\tdone!" << std::endl;
+      std::cout << "done!" << std::endl;
       if (AircraftConfiguration.HasMember("Excitation")) {
         std::cout << "\tConfiguring excitations..." << std::flush;
         Excitation.Configure(AircraftConfiguration["Excitation"],&GlobalData);
-        std::cout << "\tdone!" << std::endl;
+        std::cout << "done!" << std::endl;
       }
     }
   }
+  std::cout << "\tConfiguring datalog..." << std::flush;
   Datalog.RegisterGlobalData(GlobalData);
   std::cout << "done!" << std::endl;
   std::cout << "Entering main loop." << std::endl;
