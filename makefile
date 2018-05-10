@@ -33,14 +33,15 @@ SRCDIR := src
 # flight code objects
 OBJECTS_FLIGHT := \
 AirData.o \
-mission.o \
+datalog.o \
+effector.o \
 excitation.o \
 control.o \
+mission.o \
 sensor-processing.o \
+fmu.o \
 configuration.o \
 definition-tree.o \
-datalog.o \
-fmu.o \
 flightcode.o
 # datalog server objects
 OBJECTS_DATALOG := \
