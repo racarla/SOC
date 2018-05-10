@@ -52,6 +52,7 @@ class FlightManagementUnit {
     };
     void Begin();
     void Configure(const rapidjson::Value& Config,DefinitionTree *DefinitionTreePtr);
+    void SendModeCommand(Mode mode);
     bool ReceiveSensorData();
     void SendEffectorCommands(std::vector<float> Commands);
   private:
@@ -128,22 +129,6 @@ class FlightManagementUnit {
       std::vector<SbusSensorData> Sbus;
       std::vector<AnalogSensorData> Analog;
     };
-    struct SensorNames {
-      std::vector<std::string> Time_us;
-      std::vector<std::string> InternalMpu9250;
-      std::vector<std::string> InternalBme280;
-      std::vector<std::string> InputVoltage_V;
-      std::vector<std::string> RegulatedVoltage_V;
-      std::vector<std::string> PwmVoltage_V;
-      std::vector<std::string> SbusVoltage_V;
-      std::vector<std::string> Mpu9250;
-      std::vector<std::string> Bme280;
-      std::vector<std::string> uBlox;
-      std::vector<std::string> Swift;
-      std::vector<std::string> Ams5915;
-      std::vector<std::string> Sbus;
-      std::vector<std::string> Analog;
-    };
     const std::string Port_ = FmuPort;
     const speed_t Baud_ = FmuBaud;
     int FmuFileDesc_;
@@ -157,8 +142,13 @@ class FlightManagementUnit {
     uint16_t Length_ = 0;
     uint8_t Checksum_[2];
     SensorData SensorData_;
-    SensorNames SensorNames_;
-    std::string RootPath = "/Sensors";
+    std::string RootPath_ = "/Sensors";
+    void ConfigureSensors(const rapidjson::Value& Config);
+    void ConfigureMissionManager(const rapidjson::Value& Config);
+    void ConfigureControlLaws(const rapidjson::Value& Config);
+    void ConfigureEffectors(const rapidjson::Value& Config);
+    void RegisterSensors(const rapidjson::Value& Config,DefinitionTree *DefinitionTreePtr);
+    std::string GetSensorOutputName(const rapidjson::Value& Config,std::string Key,size_t index);
     void SendMessage(Message message,std::vector<uint8_t> &Payload);
     bool ReceiveMessage(Message *message,std::vector<uint8_t> *Payload);
     void WritePort(uint8_t* Buffer,size_t BufferSize);
