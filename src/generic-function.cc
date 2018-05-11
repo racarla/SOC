@@ -24,4 +24,4 @@ void GenericFunction::Configure(const rapidjson::Value& Config,std::string RootP
 void GenericFunction::Initialize() {}
 bool GenericFunction::Initialized() {}
 void GenericFunction::Run(Mode mode) {}
-void GenericFunction::Clear() {}
+void GenericFunction::Clear(DefinitionTree *DefinitionTreePtr) {}

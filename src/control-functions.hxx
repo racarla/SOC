@@ -27,6 +27,10 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SO
 #include "definition-tree.hxx"
 #include "generic-function.hxx"
 
+/* Control related functions. Each function describes its JSON
+configuration below. See generic-function.hxx for more information
+on the methods and modes. */
+
 /* 
 Constant Class - Outputs a constant value.
 Example JSON configuration:
@@ -34,8 +38,10 @@ Example JSON configuration:
   "Output": "OutputName",
   "Constant": X
 }
-Where OutputName gives a convenient name for the block (i.e. SpeedReference).
-Constant is the value of the constant output. Data type for output is float.
+Where: 
+   * Output gives a convenient name for the block (i.e. SpeedReference).
+   * Constant is the value of the constant output.
+Data type for the output is float.
 */
 class ConstantClass: public GenericFunction {
   public:
@@ -45,7 +51,6 @@ class ConstantClass: public GenericFunction {
     void Run(Mode mode);
     void Clear(DefinitionTree *DefinitionTreePtr);
   private:
-    std::string ModeKey_, OutputKey_;
     struct Config {
       float Constant = 0.0f;
     };
@@ -55,6 +60,51 @@ class ConstantClass: public GenericFunction {
     };
     Config config_;
     Data data_;
+    std::string ModeKey_,OutputKey_;
+};
+
+/* 
+Gain Class - Multiplies an input by a gain
+Example JSON configuration:
+{
+  "Output": "OutputName",
+  "Input": "InputName",
+  "Gain": X,
+  "Limits": {
+    "Upper": X,
+    "Lower": X
+  }
+}
+Where: 
+   * Output gives a convenient name for the block (i.e. SpeedControl).
+   * Input is the full path name of the input signal.
+   * Gain is the gain applied to the input signal.
+   * Limits are optional and saturate the output if defined.
+Data types for the input and output are both float.
+*/
+
+class GainClass: public GenericFunction {
+  public:
+    void Configure(const rapidjson::Value& Config,std::string RootPath,DefinitionTree *DefinitionTreePtr);
+    void Initialize();
+    bool Initialized();
+    void Run(Mode mode);
+    void Clear(DefinitionTree *DefinitionTreePtr);
+  private:
+    struct Config {
+      float *Input;
+      float Gain = 1.0f;
+      bool SaturateOutput = false;
+      float UpperLimit, LowerLimit = 0.0f;
+    };
+    struct Data {
+      uint8_t Mode = kStandby;
+      float Output = 0.0f;
+      int8_t Saturated = 0;
+    };
+    Config config_;
+    Data data_;
+    std::string InputKey_,ModeKey_,SaturatedKey_,OutputKey_;
 };
 
 

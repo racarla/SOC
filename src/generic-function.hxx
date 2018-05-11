@@ -67,7 +67,7 @@ class GenericFunction {
     virtual void Initialize();
     virtual bool Initialized();
     virtual void Run(Mode mode);
-    virtual void Clear();
+    virtual void Clear(DefinitionTree *DefinitionTreePtr);
 };
 
 #endif
