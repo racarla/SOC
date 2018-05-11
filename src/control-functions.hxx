@@ -82,7 +82,6 @@ Where:
    * Limits are optional and saturate the output if defined.
 Data types for the input and output are both float.
 */
-
 class GainClass: public GenericFunction {
   public:
     void Configure(const rapidjson::Value& Config,std::string RootPath,DefinitionTree *DefinitionTreePtr);
@@ -107,5 +106,46 @@ class GainClass: public GenericFunction {
     std::string InputKey_,ModeKey_,SaturatedKey_,OutputKey_;
 };
 
+/* 
+Sum Class - Sums all inputs
+Example JSON configuration:
+{
+  "Output": "OutputName",
+  "Inputs": ["InputName1","InputName2",...],
+  "Limits": {
+    "Upper": X,
+    "Lower": X
+  }
+}
+Where: 
+   * Output gives a convenient name for the block (i.e. SpeedReference).
+   * Inputs is a vector of full path names of the input signals. All inputs
+     will be summed.
+   * Limits are optional and saturate the output if defined.
+Data types for the input and output are both float.
+*/
+class SumClass: public GenericFunction {
+  public:
+    void Configure(const rapidjson::Value& Config,std::string RootPath,DefinitionTree *DefinitionTreePtr);
+    void Initialize();
+    bool Initialized();
+    void Run(Mode mode);
+    void Clear(DefinitionTree *DefinitionTreePtr);
+  private:
+    struct Config {
+      std::vector<float*> Inputs;
+      bool SaturateOutput = false;
+      float UpperLimit, LowerLimit = 0.0f;
+    };
+    struct Data {
+      uint8_t Mode = kStandby;
+      float Output = 0.0f;
+      int8_t Saturated = 0;
+    };
+    Config config_;
+    Data data_;
+    std::vector<std::string> InputKeys_;
+    std::string ModeKey_,SaturatedKey_,OutputKey_;
+};
 
 #endif
