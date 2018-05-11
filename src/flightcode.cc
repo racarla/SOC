@@ -120,8 +120,8 @@ int main(int argc, char* argv[]) {
             // run control
             Control.Run(i);
           }
-          // run effectors
-          Effectors.Run();
+          // send effector commands to FMU
+          Fmu.SendEffectorCommands(Effectors.Run());
         }
         // run telemetry
       }

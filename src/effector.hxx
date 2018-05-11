@@ -42,9 +42,12 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SO
 class AircraftEffectors {
   public:
     void Configure(const rapidjson::Value& Config, DefinitionTree *DefinitionTreePtr);
-    void Run();
+    std::vector<float> Run();
     bool Configured();
   private:
+    std::string RootPath_ = "/Effectors";
+    bool Configured_ = false;
+    std::vector<float*> Inputs_;
 };
 
 #endif
