@@ -21,4 +21,41 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SO
 #ifndef CONTROL_FUNCTIONS_HXX_
 #define CONTROL_FUNCTIONS_HXX_
 
+#include "rapidjson/document.h"
+#include "rapidjson/stringbuffer.h"
+#include "rapidjson/writer.h"
+#include "definition-tree.hxx"
+#include "generic-function.hxx"
+
+/* 
+Constant Class - Outputs a constant value.
+Example JSON configuration:
+{
+  "Output": "OutputName",
+  "Constant": X
+}
+Where OutputName gives a convenient name for the block (i.e. SpeedReference).
+Constant is the value of the constant output. Data type for output is float.
+*/
+class ConstantClass: public GenericFunction {
+  public:
+    void Configure(const rapidjson::Value& Config,std::string RootPath,DefinitionTree *DefinitionTreePtr);
+    void Initialize();
+    bool Initialized();
+    void Run(Mode mode);
+    void Clear(DefinitionTree *DefinitionTreePtr);
+  private:
+    std::string ModeKey_, OutputKey_;
+    struct Config {
+      float Constant = 0.0f;
+    };
+    struct Data {
+      uint8_t Mode = kStandby;
+      float Output = 0.0f;
+    };
+    Config config_;
+    Data data_;
+};
+
+
 #endif

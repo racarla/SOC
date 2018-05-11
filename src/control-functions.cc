@@ -19,3 +19,42 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SO
 */
 
 #include "control-functions.hxx"
+
+void ConstantClass::Configure(const rapidjson::Value& Config,std::string RootPath,DefinitionTree *DefinitionTreePtr) {
+  std::string OutputName;
+  if (Config.HasMember("Output")) {
+    OutputName = RootPath + "/" + Config["Output"].GetString();
+  } else {
+    throw std::runtime_error(std::string("ERROR")+RootPath+std::string(": Output not specified in configuration."));
+  }
+  if (Config.HasMember("Constant")) {
+    config_.Constant = Config["Constant"].GetFloat();
+  } else {
+    throw std::runtime_error(std::string("ERROR")+OutputName+std::string(": Constant value not specified in configuration."));
+  }
+  // pointer to log run mode data
+  ModeKey_ = OutputName+"/Mode";
+  DefinitionTreePtr->InitMember(ModeKey_,&data_.Mode,"Control law mode",true,false);
+  // pointer to log command data
+  OutputKey_ = OutputName+"/Output";
+  DefinitionTreePtr->InitMember(OutputKey_,&data_.Output,"Control law output",true,false);
+}
+
+void ConstantClass::Initialize() {}
+
+bool ConstantClass::Initialized() {return true;}
+
+void ConstantClass::Run(Mode mode) {
+  data_.Mode = (uint8_t) mode;
+  data_.Output = config_.Constant;
+}
+
+void ConstantClass::Clear(DefinitionTree *DefinitionTreePtr) {
+  config_.Constant = 0.0f;
+  data_.Mode = kStandby;
+  data_.Output = 0.0f;
+  DefinitionTreePtr->Erase(ModeKey_);
+  DefinitionTreePtr->Erase(OutputKey_);
+  ModeKey_.clear();
+  OutputKey_.clear();
+}
