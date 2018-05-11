@@ -32,6 +32,12 @@ BINDIR := bin
 SRCDIR := src
 # flight code objects
 OBJECTS_FLIGHT := \
+airdata-functions.o \
+allocation-functions.o \
+control-functions.o \
+excitation-waveforms.o \
+filter-functions.o \
+generic-function.o \
 AirData.o \
 datalog.o \
 effector.o \
