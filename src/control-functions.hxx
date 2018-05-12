@@ -94,8 +94,8 @@ class PIDClass: public GenericFunction {
       int8_t Saturated = 0;
     };
     struct States {
-      float ProportionalError_, DerivativeError_, PreviousDerivativeError_, IntegralError_ = 0.0f;
-      float DerivativeErrorState_, IntegralErrorState_ = 0.0f;
+      float ProportionalError, DerivativeError, PreviousDerivativeError, IntegralError = 0.0f;
+      float DerivativeErrorState, IntegralErrorState = 0.0f;
     };
     Config config_;
     Data data_;

@@ -108,5 +108,116 @@ void PIDClass::Configure(const rapidjson::Value& Config,std::string RootPath,Def
 
 void PIDClass::Initialize() {}
 bool PIDClass::Initialized() {return true;}
-void PIDClass::Run(Mode mode) {}
-void PIDClass::Clear(DefinitionTree *DefinitionTreePtr) {}
+
+void PIDClass::Run(Mode mode) {
+  // mode
+  data_.Mode = (uint8_t) mode;
+  // sample time
+  if(!config_.UseSampleTime) {
+    config_.SampleTime = *config_.dt;
+  }
+  // error for proportional
+  states_.ProportionalError = (config_.b*(*config_.Reference))-*config_.Feedback;
+  // error for integral
+  states_.IntegralError = *config_.Reference-*config_.Feedback;
+  // error for derivative
+  states_.DerivativeError = (config_.c*(*config_.Reference))-*config_.Feedback;
+  // derivative of Error
+  if (config_.SampleTime > 0.0f) {
+    states_.DerivativeErrorState = 1.0f/(config_.Tf+config_.SampleTime/(states_.DerivativeError-states_.PreviousDerivativeError));
+  }
+  states_.PreviousDerivativeError = states_.DerivativeError;
+  switch(mode) {
+    case kStandby: {
+      break;
+    }
+    case kArm: {
+      InitializeState(0.0f);
+      CalculateCommand();
+      break;
+    }
+    case kHold: {
+      CalculateCommand();
+      break;
+    }
+    case kEngage: {
+      UpdateState();
+      CalculateCommand();
+      break;
+    }
+  }
+}
+
+void PIDClass::InitializeState(float Command) {
+  // Protect for Ki == 0
+  if (config_.Ki != 0.0f) {
+    states_.IntegralErrorState = (Command-(config_.Kp*states_.ProportionalError+config_.Kd*states_.DerivativeErrorState))/config_.Ki;
+  } else {
+    states_.IntegralErrorState = 0.0f;
+  }
+}
+
+void PIDClass::UpdateState() {
+  // Protect for unlimited windup when Ki == 0
+  if (config_.Ki != 0.0f) {
+    states_.IntegralErrorState += (config_.SampleTime*states_.IntegralError);
+  } else {
+    states_.IntegralErrorState = 0.0;
+  }
+}
+
+void PIDClass::CalculateCommand() {
+  float ProportionalCommand = config_.Kp*states_.ProportionalError;
+  float IntegralCommand = config_.Ki*states_.IntegralErrorState;
+  float DerivativeCommand = config_.Kd*states_.DerivativeErrorState;
+  data_.Output = ProportionalCommand+IntegralCommand+DerivativeCommand;
+  // saturate cmd, set iErr to limit that produces saturated cmd
+  // saturate command
+  if (config_.SaturateOutput) {
+    if (data_.Output <= config_.LowerLimit) {
+      data_.Output = config_.LowerLimit;
+      data_.Saturated = -1;
+      // Re-compute the integrator state
+      InitializeState(data_.Output);
+    } else if (data_.Output >= config_.UpperLimit) {
+      data_.Output = config_.UpperLimit;
+      data_.Saturated = 1;
+      // Re-compute the integrator state
+      InitializeState(data_.Output);
+    } else {
+      data_.Saturated = 0;
+    }
+  }
+}
+
+void PIDClass::Clear(DefinitionTree *DefinitionTreePtr) {
+  config_.UseSampleTime = false;
+  config_.Kp = 0.0f;
+  config_.Ki = 0.0f;
+  config_.Kd = 0.0f;
+  config_.Tf = 0.0f;
+  config_.b = 1.0f;
+  config_.c = 1.0f;
+  config_.SaturateOutput = false;
+  config_.UpperLimit = 0.0f;
+  config_.LowerLimit = 0.0f;
+  states_.ProportionalError = 0.0f;
+  states_.DerivativeError = 0.0f;
+  states_.PreviousDerivativeError = 0.0f;
+  states_.IntegralError = 0.0f;
+  states_.DerivativeErrorState = 0.0f;
+  states_.IntegralErrorState = 0.0f;
+  data_.Mode = kStandby;
+  data_.Saturated = 0;
+  data_.Output = 0.0f;
+  DefinitionTreePtr->Erase(ReferenceKey_);
+  DefinitionTreePtr->Erase(FeedbackKey_);
+  DefinitionTreePtr->Erase(ModeKey_);
+  DefinitionTreePtr->Erase(SaturatedKey_);
+  DefinitionTreePtr->Erase(OutputKey_);
+  ReferenceKey_.clear();
+  FeedbackKey_.clear();
+  ModeKey_.clear();
+  SaturatedKey_.clear();
+  OutputKey_.clear();
+}
