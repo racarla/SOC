@@ -29,6 +29,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SO
 #include "generic-function.hxx"
 #include "general-functions.hxx"
 #include "control-functions.hxx"
+#include "allocation-functions.hxx"
 #include "filter-functions.hxx"
 #include <stdio.h>
 #include <fcntl.h>
