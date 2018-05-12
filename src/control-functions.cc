@@ -178,7 +178,7 @@ void SumClass::Configure(const rapidjson::Value& Config,std::string RootPath,Def
   ModeKey_ = OutputName+"/Mode";
   DefinitionTreePtr->InitMember(ModeKey_,&data_.Mode,"Run mode",true,false);
   // pointer to log command data
-  OutputKey_ = OutputName+"/Command";
+  OutputKey_ = OutputName+"/Output";
   DefinitionTreePtr->InitMember(OutputKey_,&data_.Output,"Control law output",true,false);
 }
 
@@ -224,3 +224,94 @@ void SumClass::Clear(DefinitionTree *DefinitionTreePtr) {
   SaturatedKey_.clear();
   OutputKey_.clear();
 }
+
+/* PID class methods, see control-functions.hxx for more information */
+void PIDClass::Configure(const rapidjson::Value& Config,std::string RootPath,DefinitionTree *DefinitionTreePtr) {
+  std::string OutputName;
+  if (Config.HasMember("Output")) {
+    OutputName = RootPath + "/" + Config["Output"].GetString();
+  } else {
+    throw std::runtime_error(std::string("ERROR")+RootPath+std::string(": Output not specified in configuration."));
+  }
+  if (Config.HasMember("Reference")) {
+    ReferenceKey_ = Config["Reference"].GetString();
+    if (DefinitionTreePtr->GetValuePtr<float*>(ReferenceKey_)) {
+      config_.Reference = DefinitionTreePtr->GetValuePtr<float*>(ReferenceKey_);
+    } else {
+      throw std::runtime_error(std::string("ERROR")+OutputName+std::string(": Reference ")+ReferenceKey_+std::string(" not found in global data."));
+    }
+  } else {
+    throw std::runtime_error(std::string("ERROR")+OutputName+std::string(": Reference not specified in configuration."));
+  }
+  if (Config.HasMember("Feedback")) {
+    FeedbackKey_ = Config["Feedback"].GetString();
+    if (DefinitionTreePtr->GetValuePtr<float*>(FeedbackKey_)) {
+      config_.Reference = DefinitionTreePtr->GetValuePtr<float*>(FeedbackKey_);
+    } else {
+      throw std::runtime_error(std::string("ERROR")+OutputName+std::string(": Feedback ")+FeedbackKey_+std::string(" not found in global data."));
+    }
+  } else {
+    throw std::runtime_error(std::string("ERROR")+OutputName+std::string(": Feedback not specified in configuration."));
+  }
+  if (Config.HasMember("Gains")) {
+    const rapidjson::Value& Gains = Config["Gains"];
+    if (Gains.HasMember("Proportional")) {
+      config_.Kp = Gains["Proportional"].GetFloat();
+    }
+    if (Gains.HasMember("Derivative")) {
+      config_.Kd = Gains["Derivative"].GetFloat();
+    }
+    if (Gains.HasMember("Integral")) {
+      config_.Ki = Gains["Integral"].GetFloat();
+    }
+  } else {
+    throw std::runtime_error(std::string("ERROR")+OutputName+std::string(": Gains not specified in configuration."));
+  }
+  if (Config.HasMember("Sample-Time")) {
+    if (Config["Sample-Time"].IsString()) {
+      SampleTimeKey_ = Config["Sample-Time"].GetString();
+      if (DefinitionTreePtr->GetValuePtr<float*>(SampleTimeKey_)) {
+        config_.dt = DefinitionTreePtr->GetValuePtr<float*>(SampleTimeKey_);
+      } else {
+        throw std::runtime_error(std::string("ERROR")+OutputName+std::string(": Sample time ")+SampleTimeKey_+std::string(" not found in global data."));
+      }
+    } else {
+      config_.UseSampleTime = true;
+      config_.SampleTime = Config["Sample-Time"].GetFloat();
+    }
+  } else {
+    throw std::runtime_error(std::string("ERROR")+OutputName+std::string(": Sample time not specified in configuration."));
+  }
+  if (Config.HasMember("Setpoint-Weights")) {
+    const rapidjson::Value& Weights = Config["Setpoint-Weights"];
+    if (Weights.HasMember("Proportional")) {
+      config_.b = Weights["Proportional"].GetFloat();
+    }
+    if (Weights.HasMember("Derivative")) {
+      config_.c = Weights["Derivative"].GetFloat();
+    }
+  }
+  if (Config.HasMember("Limits")) {
+    config_.SaturateOutput = true;
+    // pointer to log saturation data
+    SaturatedKey_ = OutputName+"/Saturated";
+    DefinitionTreePtr->InitMember(SaturatedKey_,&data_.Saturated,"Control law saturation, 0 if not saturated, 1 if saturated on the upper limit, and -1 if saturated on the lower limit",true,false);
+    if (Config["Limits"].HasMember("Lower")&&Config["Limits"].HasMember("Upper")) {
+      config_.UpperLimit = Config["Limits"]["Upper"].GetFloat();
+      config_.LowerLimit = Config["Limits"]["Lower"].GetFloat();
+    } else {
+      throw std::runtime_error(std::string("ERROR")+OutputName+std::string(": Either upper or lower limit not specified in configuration."));
+    }
+  }
+  // pointer to log run mode data
+  ModeKey_ = OutputName+"/Mode";
+  DefinitionTreePtr->InitMember(ModeKey_,&data_.Mode,"Run mode",true,false);
+  // pointer to log command data
+  OutputKey_ = OutputName+"/Output";
+  DefinitionTreePtr->InitMember(OutputKey_,&data_.Output,"Control law output",true,false);
+}
+
+void PIDClass::Initialize() {}
+bool PIDClass::Initialized() {return true;}
+void PIDClass::Run(Mode mode) {}
+void PIDClass::Clear(DefinitionTree *DefinitionTreePtr) {}

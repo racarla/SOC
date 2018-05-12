@@ -148,4 +148,79 @@ class SumClass: public GenericFunction {
     std::string ModeKey_,SaturatedKey_,OutputKey_;
 };
 
+/* 
+PID Class - PID and PID2 control law
+Example JSON configuration:
+{
+  "Output": "OutputName",
+  "Reference": "ReferenceName",
+  "Feedback": "FeedbackName",
+  "Sample-Time": "SampleTime" or X,
+  "Time-Constant": X,
+  "Gains": {
+    "Proportional": Kp,
+    "Integral": Ki,
+    "Derivative": Kd,
+  },
+  "Setpoint-Weights": {
+    "Proportional": b,
+    "Derivative": c
+  },
+  "Limits": {
+    "Upper": X,
+    "Lower": X
+  }
+}
+Where: 
+   * Output gives a convenient name for the block (i.e. PitchControl).
+   * Reference is the full path name of the reference signal.
+   * Feedback is the full path name of the feedback signal.
+   * Sample-Time is either: the full path name of the sample time signal in seconds, 
+     or a fixed value sample time in seconds.
+   * Time-Constant is the time constant for the derivative filter.
+     If a time constant is not specified, then no filtering is used.
+   * Gains specifies the proportional derivative and integral gains.
+   * Setpoint weights optionally specifies the proportional and derivative setpoint
+     weights used in the filter.
+   * Limits are optional and saturate the output if defined.
+Data types for all input and output values are float.
+*/
+
+class PIDClass: public GenericFunction {
+  public:
+    void Configure(const rapidjson::Value& Config,std::string RootPath,DefinitionTree *DefinitionTreePtr);
+    void Initialize();
+    bool Initialized();
+    void Run(Mode mode);
+    void Clear(DefinitionTree *DefinitionTreePtr);
+  private:
+    struct Config {
+      float *Reference;
+      float *Feedback;
+      float *dt;
+      float SampleTime;
+      bool UseSampleTime = false;
+      float Kp,Ki,Kd,Tf = 0.0f;
+      float b,c = 1.0f;
+      bool SaturateOutput = false;
+      float UpperLimit, LowerLimit = 0.0f;
+    };
+    struct Data {
+      uint8_t Mode = kStandby;
+      float Output = 0.0f;
+      int8_t Saturated = 0;
+    };
+    struct States {
+      float ProportionalError_, DerivativeError_, PreviousDerivativeError_, IntegralError_ = 0.0f;
+      float DerivativeErrorState_, IntegralErrorState_ = 0.0f;
+    };
+    Config config_;
+    Data data_;
+    States states_;
+    std::string ReferenceKey_,FeedbackKey_,SampleTimeKey_,ModeKey_,SaturatedKey_,OutputKey_; 
+    void InitializeState(float Command);
+    void UpdateState();
+    void CalculateCommand();
+};
+
 #endif
