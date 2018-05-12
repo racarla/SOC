@@ -26,6 +26,10 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SO
 #include "rapidjson/document.h"
 #include "rapidjson/stringbuffer.h"
 #include "rapidjson/writer.h"
+#include "generic-function.hxx"
+#include "general-functions.hxx"
+#include "control-functions.hxx"
+#include "filter-functions.hxx"
 #include <stdio.h>
 #include <fcntl.h>
 #include <unistd.h>
@@ -39,166 +43,48 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SO
 #include <Eigen/Dense>
 #include <memory>
 
-class ControlFunctionClass {
-  public:
-    enum Mode {
-      kReset,
-      kInitialize,
-      kStandby,
-      kHold,
-      kEngage
-    };
-    virtual void Configure(const rapidjson::Value& Config,std::string RootPath,DefinitionTree *DefinitionTreePtr);
-    virtual void SetPreviousOutput(std::string RootPath,DefinitionTree *DefinitionTreePtr);
-    virtual void Run(Mode mode);
-};
+/* Class to manage control laws
+Example JSON configuration:
+{ 
+  "Control": {
+    "Baseline": "BaselineGroup1",
+    "Research": ["ResearchGroup1","ResearchGroup2",...],
+    "BaselineGroup1": [
+      { "Level": "1",
+        "Components": [
+          { "Type": "Gain",
+            "Input": 
+            "Output":
+            "Gain":
+          }
+        ]
+      }
+    ]
+    "ResearchGroup1": [
+      { "Level": "1",
+        "Components": [
+          { "Type": "Gain",
+            "Input": 
+            "Output":
+            "Gain":
+          }
+        ]
+      }
+    ]
+  }
+}
 
-class ControlConstantClass: public ControlFunctionClass {
-  public:
-    void Configure(const rapidjson::Value& Config,std::string RootPath,DefinitionTree *DefinitionTreePtr);
-    void Run(Mode mode);
-  private:
-    struct Config {
-      float Constant = 0;
-    };
-    struct Data {
-      uint8_t Mode = kStandby;
-      float Command = 0;
-    };
-    Config config_;
-    Data data_;
-};
+Where:
+   * Baseline names the control law group for the baseline control law to use. The baseline
+     control law is run on the FMU anytime the research control law is not engaged.
+   * Research is a vector of control law group names. Research control laws are run on the
+     SOC anytime they are engaged.
+   * Control law goups are named as arrays. Each array contains an object for each control
+     law level starting with the outermost level and working to the innermost. Each level
+     is named for easy reference by the excitation system. Components for each control
+     level are objects configuring the specific control law.
 
-class ControlGainClass: public ControlFunctionClass {
-  public:
-    void Configure(const rapidjson::Value& Config,std::string RootPath,DefinitionTree *DefinitionTreePtr);
-    void Run(Mode mode);
-  private:
-    struct Config {
-      float *Input;
-      float Gain = 1;
-      bool SaturateOutput = false;
-      float UpperLimit, LowerLimit = 0;
-    };
-    struct Data {
-      uint8_t Mode = kStandby;
-      float Command = 0;
-      int8_t Saturated = 0;
-    };
-    Config config_;
-    Data data_;
-    void CalculateCommand();
-};
-
-class ControlSumClass: public ControlFunctionClass {
-  public:
-    void Configure(const rapidjson::Value& Config,std::string RootPath,DefinitionTree *DefinitionTreePtr);
-    void Run(Mode mode);
-  private:
-    struct Config {
-      std::vector<float*> Inputs;
-      bool SaturateOutput = false;
-      float UpperLimit, LowerLimit = 0;
-    };
-    struct Data {
-      uint8_t Mode;
-      float Command;
-      int8_t Saturated = 0;
-    };
-    Config config_;
-    Data data_;
-    void CalculateCommand();
-};
-
-class WashoutFilterClass: public ControlFunctionClass {
-  public:
-    void Configure(const rapidjson::Value& Config,std::string RootPath,DefinitionTree *DefinitionTreePtr);
-    void SetPreviousOutput(std::string RootPath,DefinitionTree *DefinitionTreePtr);
-    void Run(Mode mode);
-  private:
-    struct Config {
-      std::string OutputName;
-      float *Input;
-      float *PreviousCommand;
-      float *dt;
-      float Tf;
-    };
-    struct Data {
-      uint8_t Mode;
-      float Command;
-    };
-    struct States {
-      float Filter;
-    };
-    Config config_;
-    Data data_;
-    States states_;
-    void InitializeState();
-    void UpdateState();
-    void CalculateCommand();
-};
-
-// class ControlPIDClass: public ControlFunctionClass {
-//   public:
-//     void Configure(const rapidjson::Value& Config,std::string RootPath,DefinitionTree *DefinitionTreePtr);
-//     void Run(Mode mode);
-//   private:
-//     struct Config {
-//       float *PreviousCommand;
-//       float *Reference;
-//       float *Feedback;
-//       float *dt;
-//       float Kp,Ki,Kd,Tf = 0;
-//       bool SaturateOutput = false;
-//       float UpperLimit, LowerLimit = 0;
-//     };
-//     struct Data {
-//       uint8_t Mode = kStandby;
-//       float Command = 0;
-//       int8_t Saturated = 0;
-//     };
-//     struct States {
-//       float Error, PreviousError = 0;
-//       float DerivativeErrorState, IntegralErrorState = 0;
-//     };
-//     Config config_;
-//     Data data_;
-//     States states_;
-//     void InitializeState(float Command);
-//     void UpdateState();
-//     void CalculateCommand();
-// };
-//
-// class ControlPID2Class: public ControlFunctionClass {
-//   public:
-//     void Configure(const rapidjson::Value& Config,std::string RootPath,DefinitionTree *DefinitionTreePtr);
-//     void Run(Mode mode);
-//   private:
-//     struct Config {
-//       float *Reference;
-//       float *Feedback;
-//       float *dt;
-//       float Limit[2];
-//       float Kp,Ki,Kd,b,c,Tf = 0;
-//     };
-//     struct Data {
-//       uint8_t Mode = kStandby;
-//       float Command = 0;
-//     };
-//     Config config_;
-//     Data data_;
-//     float ProportionalError_, DerivativeError_, PreviousDerivativeError_, IntegralError_ = 0;
-//     float DerivativeErrorState_, IntegralErrorState_ = 0;
-//     void InitializeState(float Command);
-//     void UpdateState();
-//     void CalculateCommand();
-// };
-//
-// class ControlStateSpaceClass: public ControlFunctionClass {
-//   public:
-//     void Configure(const rapidjson::Value& Config,std::string RootPath,DefinitionTree *DefinitionTreePtr);
-//     void Run(Mode mode);
-// };
+*/
 
 class ControlLaws {
   public:
@@ -208,21 +94,18 @@ class ControlLaws {
     void SetArmedController(std::string ControlGroupName);
     size_t ActiveControlLevels();
     std::string GetActiveLevel(size_t ControlLevel);
-    void Run(size_t ControlLevel);
+    void RunEngaged(size_t ControlLevel);
+    void RunArmed();
   private:
     std::string RootPath_ = "/Control";
     bool Configured_ = false;
-    bool InitializedLatch_ = false;
-    std::string EngagedGroup_ = "Baseline";
+    std::string EngagedGroup_;
     std::string ArmedGroup_;
     std::vector<std::string> ResearchGroupKeys_;
     std::map<std::string,std::string> OutputKeys_;
-    std::vector<std::string> BaselineLevelNames_;
     std::map<std::string,std::vector<std::string>> ResearchLevelNames_;
-    std::vector<std::vector<std::shared_ptr<ControlFunctionClass>>> BaselineControlGroup_;
-    std::map<std::string,std::vector<std::vector<std::shared_ptr<ControlFunctionClass>>>> ResearchControlGroups_;
+    std::map<std::string,std::vector<std::vector<std::shared_ptr<GenericFunction>>>> ResearchControlGroups_;
     std::vector<std::variant<uint64_t,uint32_t,uint16_t,uint8_t,int64_t,int32_t,int16_t,int8_t,float, double>> OutputData_;
-    std::vector<std::variant<uint64_t*,uint32_t*,uint16_t*,uint8_t*,int64_t*,int32_t*,int16_t*,int8_t*,float*,double*>> BaselineDataPtr_;
     std::map<std::string,std::vector<std::variant<uint64_t*,uint32_t*,uint16_t*,uint8_t*,int64_t*,int32_t*,int16_t*,int8_t*,float*,double*>>> ResearchDataPtr_;
 };
 

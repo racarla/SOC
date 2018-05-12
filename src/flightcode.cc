@@ -106,22 +106,26 @@ int main(int argc, char* argv[]) {
         // run sensor processing
         SenProc.Run();
         if (Control.Configured()&&Mission.Configured()&&Effectors.Configured()) {
-          // get and set engaged and armed controllers
-          Control.SetEngagedController(Mission.GetEnagagedController());
-          Control.SetArmedController(Mission.GetArmedController());
-          // get and set engaged excitation
-          Excitation.SetEngagedExcitation(Mission.GetEnagagedExcitation());
-          // loop through control levels running excitations and control laws
-          for (size_t i=0; i < Control.ActiveControlLevels(); i++) {
-            if (Excitation.Configured()) {
-              // run excitation
-              Excitation.Run(Control.GetActiveLevel(i));
+          if (Mission.GetEnagagedController()!="Baseline") {
+            // get and set engaged and armed controllers
+            Control.SetEngagedController(Mission.GetEnagagedController());
+            Control.SetArmedController(Mission.GetArmedController());
+            // get and set engaged excitation
+            Excitation.SetEngagedExcitation(Mission.GetEnagagedExcitation());
+            // loop through control levels running excitations and control laws
+            for (size_t i=0; i < Control.ActiveControlLevels(); i++) {
+              if (Excitation.Configured()) {
+                // run excitation
+                Excitation.Run(Control.GetActiveLevel(i));
+              }
+              // run control
+              Control.RunEngaged(i);
             }
-            // run control
-            Control.Run(i);
+            // send effector commands to FMU
+            Fmu.SendEffectorCommands(Effectors.Run());
           }
-          // send effector commands to FMU
-          Fmu.SendEffectorCommands(Effectors.Run());
+          // run armed control laws
+          Control.RunArmed();
         }
         // run telemetry
       }
