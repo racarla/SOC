@@ -212,6 +212,21 @@ void SensorProcessing::Configure(const rapidjson::Value& Config,DefinitionTree *
     const rapidjson::Value& BaselineConfig = Config["Baseline"];
     for (size_t i=0; i < BaselineConfig.Size(); i++) {
       if (BaselineConfig[i].HasMember("Type")) {
+        if (BaselineConfig[i]["Type"] == "Constant") {
+          ConstantClass Temp;
+          BaselineSensorProcessing_.push_back(std::make_shared<ConstantClass>(Temp));
+          BaselineSensorProcessing_[i]->Configure(BaselineConfig[i],PathName,DefinitionTreePtr);
+        }
+        if (BaselineConfig[i]["Type"] == "Gain") {
+          GainClass Temp;
+          BaselineSensorProcessing_.push_back(std::make_shared<GainClass>(Temp));
+          BaselineSensorProcessing_[i]->Configure(BaselineConfig[i],PathName,DefinitionTreePtr);
+        }
+        if (BaselineConfig[i]["Type"] == "Sum") {
+          SumClass Temp;
+          BaselineSensorProcessing_.push_back(std::make_shared<SumClass>(Temp));
+          BaselineSensorProcessing_[i]->Configure(BaselineConfig[i],PathName,DefinitionTreePtr);
+        }
         if (BaselineConfig[i]["Type"] == "BaselineAirData") {
           // BaselineAirDataClass Temp;
           // BaselineSensorProcessing_.push_back(std::make_shared<BaselineAirDataClass>(Temp));
@@ -240,6 +255,21 @@ void SensorProcessing::Configure(const rapidjson::Value& Config,DefinitionTree *
         std::string PathName = RootPath_ + "/" + ResearchConfig[i]["Group-Name"].GetString();
         for (size_t j=0; j < ResearchConfig[i]["Components"].Size(); j++) {
           if (ResearchConfig[i]["Components"][j].HasMember("Type")) {
+            if (ResearchConfig[i]["Components"][j]["Type"] == "Constant") {
+              ConstantClass Temp;
+              ResearchSensorProcessingGroups_[ResearchConfig[i]["Group-Name"].GetString()].push_back(std::make_shared<ConstantClass>(Temp));
+              ResearchSensorProcessingGroups_[ResearchConfig[i]["Group-Name"].GetString()][j]->Configure(ResearchConfig[i]["Components"][j],PathName,DefinitionTreePtr);
+            }
+            if (ResearchConfig[i]["Components"][j]["Type"] == "Gain") {
+              GainClass Temp;
+              ResearchSensorProcessingGroups_[ResearchConfig[i]["Group-Name"].GetString()].push_back(std::make_shared<GainClass>(Temp));
+              ResearchSensorProcessingGroups_[ResearchConfig[i]["Group-Name"].GetString()][j]->Configure(ResearchConfig[i]["Components"][j],PathName,DefinitionTreePtr);
+            }
+            if (ResearchConfig[i]["Components"][j]["Type"] == "Sum") {
+              SumClass Temp;
+              ResearchSensorProcessingGroups_[ResearchConfig[i]["Group-Name"].GetString()].push_back(std::make_shared<SumClass>(Temp));
+              ResearchSensorProcessingGroups_[ResearchConfig[i]["Group-Name"].GetString()][j]->Configure(ResearchConfig[i]["Components"][j],PathName,DefinitionTreePtr);
+            }
             if (ResearchConfig[i]["Components"][j]["Type"] == "BaselineAirData") {
               // BaselineAirDataClass Temp;
               // ResearchSensorProcessingGroups_[ResearchConfig[i]["Group-Name"].GetString()].push_back(std::make_shared<BaselineAirDataClass>(Temp));
