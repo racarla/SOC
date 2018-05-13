@@ -210,8 +210,6 @@ void PIDClass::Clear(DefinitionTree *DefinitionTreePtr) {
   data_.Mode = kStandby;
   data_.Saturated = 0;
   data_.Output = 0.0f;
-  DefinitionTreePtr->Erase(ReferenceKey_);
-  DefinitionTreePtr->Erase(FeedbackKey_);
   DefinitionTreePtr->Erase(ModeKey_);
   DefinitionTreePtr->Erase(SaturatedKey_);
   DefinitionTreePtr->Erase(OutputKey_);

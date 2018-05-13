@@ -131,7 +131,6 @@ void GainClass::Clear(DefinitionTree *DefinitionTreePtr) {
   data_.Mode = kStandby;
   data_.Output = 0.0f;
   data_.Saturated = 0.0f;
-  DefinitionTreePtr->Erase(InputKey_);
   DefinitionTreePtr->Erase(ModeKey_);
   DefinitionTreePtr->Erase(SaturatedKey_);
   DefinitionTreePtr->Erase(OutputKey_);
@@ -213,9 +212,6 @@ void SumClass::Clear(DefinitionTree *DefinitionTreePtr) {
   data_.Mode = kStandby;
   data_.Output = 0.0f;
   data_.Saturated = 0.0f;
-  for (size_t i=0; i < InputKeys_.size(); i++) {
-    DefinitionTreePtr->Erase(InputKeys_[i]);
-  }
   DefinitionTreePtr->Erase(ModeKey_);
   DefinitionTreePtr->Erase(SaturatedKey_);
   DefinitionTreePtr->Erase(OutputKey_);

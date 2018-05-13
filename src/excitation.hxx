@@ -23,6 +23,9 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SO
 
 #include "hardware-defs.hxx"
 #include "definition-tree.hxx"
+#include "generic-function.hxx"
+#include "general-functions.hxx"
+#include "excitation-waveforms.hxx"
 #include "rapidjson/document.h"
 #include "rapidjson/stringbuffer.h"
 #include "rapidjson/writer.h"
@@ -39,156 +42,40 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SO
 #include <Eigen/Dense>
 #include <memory>
 
-class ExcitationFunctionClass {
-  public:
-    enum Mode {
-      kArm,
-      kEngage
-    };
-    virtual void Configure(const rapidjson::Value& Config,std::string RootPath,DefinitionTree *DefinitionTreePtr);
-    virtual void Run(Mode mode);
-};
+/* Class to manage excitations
+Example JSON configuration:
+{ 
+  "Excitation": {
+    "Time": "",
+    "Groups": [
+      { "Name": "GroupName"
+        "Components": [
+          { "Level": "1",
+            "Components": [
+              {"Waveform": "0_5-Sec-Pulse","Signal": "","Start-Time": 1,,"Amplitude": 0.2}
+            ]
+          }
+        ]
+      }
+    ]
+    "0_5-Sec-Pulse": {
+      "Type": "Pulse"
+      "Duration": 5
+    }
+  }
+}
 
-class Pulse: public ExcitationFunctionClass {
-public:
-  void Configure(const rapidjson::Value& Config,std::string RootPath,DefinitionTree *DefinitionTreePtr);
-  void Run(Mode mode);
-private:
-  struct Config {
-    uint64_t *Time_us;
-    float *Signal;
-    float Amplitude;
-    float StartTime_s;
-    float Duration_s;
-  };
-  struct Data {
-    uint8_t Mode;
-    float Excitation;
-  };
-  Config config_;
-  Data data_;
-  uint64_t Time0_us = 0;
-  float ElapsedTime_us = 0;
-  bool TimeLatch = false;
-};
+Where:
+   * Time is the full path to the current system time in us
+   * Groups is a vector of excitation groups, each group contains:
+      * Name, the name of the group used to identify it in the test points
+      * Components, the group components, organized into levels corresponding to
+        the control law levels and definining a vector of waveforms that will be run
+         * Each waveform is defined by name, the signal it's modifying (i.e. "/Control/Pitch_Cmd"),
+           the start time in seconds and the amplitude
+   * Each waveform is defined by name, the type of waveform, and any other information needed by the specific waveform type
 
-class Doublet: public ExcitationFunctionClass {
-public:
-  void Configure(const rapidjson::Value& Config,std::string RootPath,DefinitionTree *DefinitionTreePtr);
-  void Run(Mode mode);
-private:
-  struct Config {
-    uint64_t *Time_us;
-    float *Signal;
-    float Amplitude;
-    float StartTime_s;
-    float Duration_s;
-  };
-  struct Data {
-    uint8_t Mode;
-    float Excitation;
-  };
-  Config config_;
-  Data data_;
-  uint64_t Time0_us = 0;
-  float ElapsedTime_us = 0;
-  bool TimeLatch = false;
-};
-
-class Doublet121: public ExcitationFunctionClass {
-public:
-  void Configure(const rapidjson::Value& Config,std::string RootPath,DefinitionTree *DefinitionTreePtr);
-  void Run(Mode mode);
-private:
-  struct Config {
-    uint64_t *Time_us;
-    float *Signal;
-    float Amplitude;
-    float StartTime_s;
-    float Duration_s;
-  };
-  struct Data {
-    uint8_t Mode;
-    float Excitation;
-  };
-  Config config_;
-  Data data_;
-  uint64_t Time0_us = 0;
-  float ElapsedTime_us = 0;
-  bool TimeLatch = false;
-};
-
-class Doublet3211: public ExcitationFunctionClass {
-public:
-  void Configure(const rapidjson::Value& Config,std::string RootPath,DefinitionTree *DefinitionTreePtr);
-  void Run(Mode mode);
-private:
-  struct Config {
-    uint64_t *Time_us;
-    float *Signal;
-    float Amplitude;
-    float StartTime_s;
-    float Duration_s;
-  };
-  struct Data {
-    uint8_t Mode;
-    float Excitation;
-  };
-  Config config_;
-  Data data_;
-  uint64_t Time0_us = 0;
-  float ElapsedTime_us = 0;
-  bool TimeLatch = false;
-};
-
-class LinearChirp: public ExcitationFunctionClass {
-public:
-  void Configure(const rapidjson::Value& Config,std::string RootPath,DefinitionTree *DefinitionTreePtr);
-  void Run(Mode mode);
-private:
-  struct Config {
-    uint64_t *Time_us;
-    float *Signal;
-    float Amplitude[2];
-    float Frequency[2];
-    float StartTime_s;
-    float Duration_s;
-  };
-  struct Data {
-    uint8_t Mode;
-    float Excitation;
-  };
-  Config config_;
-  Data data_;
-  uint64_t Time0_us = 0;
-  float ElapsedTime_us = 0;
-  bool TimeLatch = false;
-};
-
-class MultiSine: public ExcitationFunctionClass {
-public:
-  void Configure(const rapidjson::Value& Config,std::string RootPath,DefinitionTree *DefinitionTreePtr);
-  void Run(Mode mode);
-private:
-  struct Config {
-    uint64_t *Time_us;
-    float *Signal;
-    Eigen::Array<float,Eigen::Dynamic,1> Amplitude;
-    Eigen::Array<float,Eigen::Dynamic,1> Frequency;
-    Eigen::Array<float,Eigen::Dynamic,1> Phase;
-    float StartTime_s;
-    float Duration_s;
-  };
-  struct Data {
-    uint8_t Mode;
-    float Excitation;
-  };
-  Config config_;
-  Data data_;
-  uint64_t Time0_us = 0;
-  float ElapsedTime_us = 0;
-  bool TimeLatch = false;
-};
+*/
 
 class ExcitationSystem {
   public:
@@ -202,7 +89,7 @@ class ExcitationSystem {
     std::string EngagedGroup_ = "None";
     std::vector<std::string> ExcitationGroupKeys_;
     std::vector<std::string> ExcitationGroupLevels_;
-    std::vector<std::vector<std::vector<std::shared_ptr<ExcitationFunctionClass>>>> ExcitationGroups_;
+    std::vector<std::vector<std::vector<std::shared_ptr<GenericFunction>>>> ExcitationGroups_;
 };
 
 #endif

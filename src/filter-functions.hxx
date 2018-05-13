@@ -21,4 +21,32 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SO
 #ifndef FILTER_FUNCTIONS_HXX_
 #define FILTER_FUNCTIONS_HXX_
 
+// class WashoutFilterClass: public ControlFunctionClass {
+//   public:
+//     void Configure(const rapidjson::Value& Config,std::string RootPath,DefinitionTree *DefinitionTreePtr);
+//     void SetPreviousOutput(std::string RootPath,DefinitionTree *DefinitionTreePtr);
+//     void Run(Mode mode);
+//   private:
+//     struct Config {
+//       std::string OutputName;
+//       float *Input;
+//       float *PreviousCommand;
+//       float *dt;
+//       float Tf;
+//     };
+//     struct Data {
+//       uint8_t Mode;
+//       float Command;
+//     };
+//     struct States {
+//       float Filter;
+//     };
+//     Config config_;
+//     Data data_;
+//     States states_;
+//     void InitializeState();
+//     void UpdateState();
+//     void CalculateCommand();
+// };
+
 #endif

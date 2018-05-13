@@ -19,3 +19,657 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SO
 */
 
 #include "excitation-waveforms.hxx"
+
+void Pulse::Configure(const rapidjson::Value& Config,std::string RootPath,DefinitionTree *DefinitionTreePtr) {
+  std::string SignalName;
+  std::string OutputName;
+  if (Config.HasMember("Scale-Factor")) {
+    config_.Scale = Config["Scale-Factor"].GetFloat();
+  }
+  if (Config.HasMember("Signal")) {
+    SignalName = Config["Signal"].GetString();
+    OutputName = RootPath + SignalName.substr(SignalName.rfind("/"));
+    // pointer to log run mode data
+    ModeKey_ = OutputName+"/Mode";
+    DefinitionTreePtr->InitMember(ModeKey_,&data_.Mode,"Run mode",true,false);
+    // pointer to log excitation data
+    OutputKey_ = OutputName+"/Excitation";
+    DefinitionTreePtr->InitMember(OutputKey_,&data_.Excitation,"Excitation system output",true,false);
+    if (DefinitionTreePtr->GetValuePtr<float*>(SignalName)) {
+      config_.Signal = DefinitionTreePtr->GetValuePtr<float*>(SignalName);
+    } else {
+      throw std::runtime_error(std::string("ERROR")+OutputName+std::string(": Signal ")+SignalName+std::string(" not found in global data."));
+    }
+  } else {
+    throw std::runtime_error(std::string("ERROR")+RootPath+std::string(": Signal not specified in configuration."));
+  }
+  if (Config.HasMember("Time")) {
+    if (DefinitionTreePtr->GetValuePtr<uint64_t*>(Config["Time"].GetString())) {
+      config_.Time_us = DefinitionTreePtr->GetValuePtr<uint64_t*>(Config["Time"].GetString());
+    } else {
+      throw std::runtime_error(std::string("ERROR")+OutputName+std::string(": Time ")+Config["Time"].GetString()+std::string(" not found in global data."));
+    }
+  } else {
+    throw std::runtime_error(std::string("ERROR")+OutputName+std::string(": Time not specified in configuration."));
+  }
+  if (Config.HasMember("Start-Time")) {
+    config_.StartTime_s = Config["Start-Time"].GetFloat();
+  } else {
+    throw std::runtime_error(std::string("ERROR")+OutputName+std::string(": Start time not specified in configuration."));
+  }
+  if (Config.HasMember("Duration")) {
+    config_.Duration_s = Config["Duration"].GetFloat();
+  } else {
+    throw std::runtime_error(std::string("ERROR")+OutputName+std::string(": Duration not specified in configuration."));
+  }
+  if (Config.HasMember("Amplitude")) {
+    config_.Amplitude = Config["Amplitude"].GetFloat();
+  } else {
+    throw std::runtime_error(std::string("ERROR")+OutputName+std::string(": Amplitude not specified in configuration."));
+  }
+}
+
+void Pulse::Initialize() {}
+bool Pulse::Initialized() {return true;}
+
+void Pulse::Run(Mode mode) {
+  if (mode == kEngage) {
+    // initialize the time when first called
+    if (!TimeLatch) {
+      Time0_us = *config_.Time_us;
+      TimeLatch = true;
+    }
+    ElapsedTime_us = (float)(*config_.Time_us-Time0_us);
+    // pulse logic
+    if (ElapsedTime_us < (config_.StartTime_s)*1e6){
+      // do nothing
+      data_.Excitation = 0;
+    } else if (ElapsedTime_us < (config_.StartTime_s+config_.Duration_s)*1e6) {
+      // add the pulse to the signal
+      data_.Excitation = config_.Amplitude;
+    } else {
+      // do nothing
+      data_.Excitation = 0;
+    }
+  } else {
+    // reset the time latch
+    TimeLatch = false;
+    // do nothing
+    data_.Excitation = 0;
+  }
+  data_.Excitation = data_.Excitation * config_.Scale;
+  data_.Mode = (uint8_t)mode;
+  *config_.Signal = *config_.Signal + data_.Excitation;
+}
+
+void Pulse::Clear(DefinitionTree *DefinitionTreePtr) {
+  config_.Scale = 1.0f;
+  config_.Amplitude = 0.0f;
+  config_.StartTime_s = 0.0f;
+  config_.Duration_s = 0.0f;
+  data_.Mode = kStandby;
+  data_.Excitation = 0.0f;
+  Time0_us = 0;
+  ElapsedTime_us = 0;
+  TimeLatch = false;
+  DefinitionTreePtr->Erase(ModeKey_);
+  DefinitionTreePtr->Erase(OutputKey_);
+  ModeKey_.clear();
+  OutputKey_.clear();
+}
+
+void Doublet::Configure(const rapidjson::Value& Config,std::string RootPath,DefinitionTree *DefinitionTreePtr) {
+  std::string SignalName;
+  std::string OutputName;
+  if (Config.HasMember("Scale-Factor")) {
+    config_.Scale = Config["Scale-Factor"].GetFloat();
+  }
+  if (Config.HasMember("Signal")) {
+    SignalName = Config["Signal"].GetString();
+    OutputName = RootPath + SignalName.substr(SignalName.rfind("/"));
+    // pointer to log run mode data
+    ModeKey_ = OutputName+"/Mode";
+    DefinitionTreePtr->InitMember(ModeKey_,&data_.Mode,"Run mode",true,false);
+    // pointer to log excitation data
+    OutputKey_ = OutputName+"/Excitation";
+    DefinitionTreePtr->InitMember(OutputKey_,&data_.Excitation,"Excitation system output",true,false);
+    if (DefinitionTreePtr->GetValuePtr<float*>(SignalName)) {
+      config_.Signal = DefinitionTreePtr->GetValuePtr<float*>(SignalName);
+    } else {
+      throw std::runtime_error(std::string("ERROR")+OutputName+std::string(": Signal ")+SignalName+std::string(" not found in global data."));
+    }
+  } else {
+    throw std::runtime_error(std::string("ERROR")+RootPath+std::string(": Signal not specified in configuration."));
+  }
+  if (Config.HasMember("Time")) {
+    if (DefinitionTreePtr->GetValuePtr<uint64_t*>(Config["Time"].GetString())) {
+      config_.Time_us = DefinitionTreePtr->GetValuePtr<uint64_t*>(Config["Time"].GetString());
+    } else {
+      throw std::runtime_error(std::string("ERROR")+OutputName+std::string(": Time ")+Config["Time"].GetString()+std::string(" not found in global data."));
+    }
+  } else {
+    throw std::runtime_error(std::string("ERROR")+OutputName+std::string(": Time not specified in configuration."));
+  }
+  if (Config.HasMember("Start-Time")) {
+    config_.StartTime_s = Config["Start-Time"].GetFloat();
+  } else {
+    throw std::runtime_error(std::string("ERROR")+OutputName+std::string(": Start time not specified in configuration."));
+  }
+  if (Config.HasMember("Duration")) {
+    config_.Duration_s = Config["Duration"].GetFloat();
+  } else {
+    throw std::runtime_error(std::string("ERROR")+OutputName+std::string(": Duration not specified in configuration."));
+  }
+  if (Config.HasMember("Amplitude")) {
+    config_.Amplitude = Config["Amplitude"].GetFloat();
+  } else {
+    throw std::runtime_error(std::string("ERROR")+OutputName+std::string(": Amplitude not specified in configuration."));
+  }
+}
+
+void Doublet::Initialize() {}
+bool Doublet::Initialized() {return true;}
+
+void Doublet::Run(Mode mode) {
+  if (mode == kEngage) {
+    // initialize the time when first called
+    if (!TimeLatch) {
+      Time0_us = *config_.Time_us;
+      TimeLatch = true;
+    }
+    ElapsedTime_us = (float)(*config_.Time_us-Time0_us);
+    // doublet logic
+    if (ElapsedTime_us < (config_.StartTime_s)*1e6){
+      // do nothing
+      data_.Excitation = 0;
+    } else if (ElapsedTime_us < (config_.StartTime_s+config_.Duration_s)*1e6) {
+      // add the doublet to the signal
+      data_.Excitation = config_.Amplitude;
+    } else if (ElapsedTime_us < (config_.StartTime_s+2.0f*config_.Duration_s)*1e6) {
+      // add the doublet to the signal
+      data_.Excitation = -1*config_.Amplitude;
+    } else {
+      // do nothing
+      data_.Excitation = 0;
+    }
+  } else {
+    // reset the time latch
+    TimeLatch = false;
+    // do nothing
+    data_.Excitation = 0;
+  }
+  data_.Excitation = data_.Excitation * config_.Scale;
+  data_.Mode = (uint8_t)mode;
+  *config_.Signal = *config_.Signal + data_.Excitation;
+}
+
+void Doublet::Clear(DefinitionTree *DefinitionTreePtr) {
+  config_.Scale = 1.0f;
+  config_.Amplitude = 0.0f;
+  config_.StartTime_s = 0.0f;
+  config_.Duration_s = 0.0f;
+  data_.Mode = kStandby;
+  data_.Excitation = 0.0f;
+  Time0_us = 0;
+  ElapsedTime_us = 0;
+  TimeLatch = false;
+  DefinitionTreePtr->Erase(ModeKey_);
+  DefinitionTreePtr->Erase(OutputKey_);
+  ModeKey_.clear();
+  OutputKey_.clear();
+}
+
+void Doublet121::Configure(const rapidjson::Value& Config,std::string RootPath,DefinitionTree *DefinitionTreePtr) {
+  std::string SignalName;
+  std::string OutputName;
+  if (Config.HasMember("Scale-Factor")) {
+    config_.Scale = Config["Scale-Factor"].GetFloat();
+  }
+  if (Config.HasMember("Signal")) {
+    SignalName = Config["Signal"].GetString();
+    OutputName = RootPath + SignalName.substr(SignalName.rfind("/"));
+    // pointer to log run mode data
+    ModeKey_ = OutputName+"/Mode";
+    DefinitionTreePtr->InitMember(ModeKey_,&data_.Mode,"Run mode",true,false);
+    // pointer to log excitation data
+    OutputKey_ = OutputName+"/Excitation";
+    DefinitionTreePtr->InitMember(OutputKey_,&data_.Excitation,"Excitation system output",true,false);
+    if (DefinitionTreePtr->GetValuePtr<float*>(SignalName)) {
+      config_.Signal = DefinitionTreePtr->GetValuePtr<float*>(SignalName);
+    } else {
+      throw std::runtime_error(std::string("ERROR")+OutputName+std::string(": Signal ")+SignalName+std::string(" not found in global data."));
+    }
+  } else {
+    throw std::runtime_error(std::string("ERROR")+RootPath+std::string(": Signal not specified in configuration."));
+  }
+  if (Config.HasMember("Time")) {
+    if (DefinitionTreePtr->GetValuePtr<uint64_t*>(Config["Time"].GetString())) {
+      config_.Time_us = DefinitionTreePtr->GetValuePtr<uint64_t*>(Config["Time"].GetString());
+    } else {
+      throw std::runtime_error(std::string("ERROR")+OutputName+std::string(": Time ")+Config["Time"].GetString()+std::string(" not found in global data."));
+    }
+  } else {
+    throw std::runtime_error(std::string("ERROR")+OutputName+std::string(": Time not specified in configuration."));
+  }
+  if (Config.HasMember("Start-Time")) {
+    config_.StartTime_s = Config["Start-Time"].GetFloat();
+  } else {
+    throw std::runtime_error(std::string("ERROR")+OutputName+std::string(": Start time not specified in configuration."));
+  }
+  if (Config.HasMember("Duration")) {
+    config_.Duration_s = Config["Duration"].GetFloat();
+  } else {
+    throw std::runtime_error(std::string("ERROR")+OutputName+std::string(": Duration not specified in configuration."));
+  }
+  if (Config.HasMember("Amplitude")) {
+    config_.Amplitude = Config["Amplitude"].GetFloat();
+  } else {
+    throw std::runtime_error(std::string("ERROR")+OutputName+std::string(": Amplitude not specified in configuration."));
+  }
+}
+
+void Doublet121::Initialize() {}
+bool Doublet121::Initialized() {return true;}
+
+void Doublet121::Run(Mode mode) {
+  if (mode == kEngage) {
+    // initialize the time when first called
+    if (!TimeLatch) {
+      Time0_us = *config_.Time_us;
+      TimeLatch = true;
+    }
+    ElapsedTime_us = (float)(*config_.Time_us-Time0_us);
+    // doublet logic, 1-2-1
+    if (ElapsedTime_us < (config_.StartTime_s)*1e6){
+      // do nothing
+      data_.Excitation = 0;
+    } else if (ElapsedTime_us < (config_.StartTime_s+config_.Duration_s)*1e6) {
+      // add the doublet to the signal
+      data_.Excitation = config_.Amplitude;
+    } else if (ElapsedTime_us < (config_.StartTime_s+3.0f*config_.Duration_s)*1e6) {
+      // add the doublet to the signal
+      data_.Excitation = -1*config_.Amplitude;
+    } else if (ElapsedTime_us < (config_.StartTime_s+4.0f*config_.Duration_s)*1e6) {
+      // add the doublet to the signal
+      data_.Excitation = config_.Amplitude;
+    } else {
+      // do nothing
+      data_.Excitation = 0;
+    }
+  } else {
+    // reset the time latch
+    TimeLatch = false;
+    // do nothing
+    data_.Excitation = 0;
+  }
+  data_.Excitation = data_.Excitation * config_.Scale;
+  data_.Mode = (uint8_t)mode;
+  *config_.Signal = *config_.Signal + data_.Excitation;
+}
+
+void Doublet121::Clear(DefinitionTree *DefinitionTreePtr) {
+  config_.Scale = 1.0f;
+  config_.Amplitude = 0.0f;
+  config_.StartTime_s = 0.0f;
+  config_.Duration_s = 0.0f;
+  data_.Mode = kStandby;
+  data_.Excitation = 0.0f;
+  Time0_us = 0;
+  ElapsedTime_us = 0;
+  TimeLatch = false;
+  DefinitionTreePtr->Erase(ModeKey_);
+  DefinitionTreePtr->Erase(OutputKey_);
+  ModeKey_.clear();
+  OutputKey_.clear();
+}
+
+void Doublet3211::Configure(const rapidjson::Value& Config,std::string RootPath,DefinitionTree *DefinitionTreePtr) {
+  std::string SignalName;
+  std::string OutputName;
+  if (Config.HasMember("Scale-Factor")) {
+    config_.Scale = Config["Scale-Factor"].GetFloat();
+  }
+  if (Config.HasMember("Signal")) {
+    SignalName = Config["Signal"].GetString();
+    OutputName = RootPath + SignalName.substr(SignalName.rfind("/"));
+    // pointer to log run mode data
+    ModeKey_ = OutputName+"/Mode";
+    DefinitionTreePtr->InitMember(ModeKey_,&data_.Mode,"Run mode",true,false);
+    // pointer to log excitation data
+    OutputKey_ = OutputName+"/Excitation";
+    DefinitionTreePtr->InitMember(OutputKey_,&data_.Excitation,"Excitation system output",true,false);
+    if (DefinitionTreePtr->GetValuePtr<float*>(SignalName)) {
+      config_.Signal = DefinitionTreePtr->GetValuePtr<float*>(SignalName);
+    } else {
+      throw std::runtime_error(std::string("ERROR")+OutputName+std::string(": Signal ")+SignalName+std::string(" not found in global data."));
+    }
+  } else {
+    throw std::runtime_error(std::string("ERROR")+RootPath+std::string(": Signal not specified in configuration."));
+  }
+  if (Config.HasMember("Time")) {
+    if (DefinitionTreePtr->GetValuePtr<uint64_t*>(Config["Time"].GetString())) {
+      config_.Time_us = DefinitionTreePtr->GetValuePtr<uint64_t*>(Config["Time"].GetString());
+    } else {
+      throw std::runtime_error(std::string("ERROR")+OutputName+std::string(": Time ")+Config["Time"].GetString()+std::string(" not found in global data."));
+    }
+  } else {
+    throw std::runtime_error(std::string("ERROR")+OutputName+std::string(": Time not specified in configuration."));
+  }
+  if (Config.HasMember("Start-Time")) {
+    config_.StartTime_s = Config["Start-Time"].GetFloat();
+  } else {
+    throw std::runtime_error(std::string("ERROR")+OutputName+std::string(": Start time not specified in configuration."));
+  }
+  if (Config.HasMember("Duration")) {
+    config_.Duration_s = Config["Duration"].GetFloat();
+  } else {
+    throw std::runtime_error(std::string("ERROR")+OutputName+std::string(": Duration not specified in configuration."));
+  }
+  if (Config.HasMember("Amplitude")) {
+    config_.Amplitude = Config["Amplitude"].GetFloat();
+  } else {
+    throw std::runtime_error(std::string("ERROR")+OutputName+std::string(": Amplitude not specified in configuration."));
+  }
+}
+
+void Doublet3211::Initialize() {}
+bool Doublet3211::Initialized() {return true;}
+
+void Doublet3211::Run(Mode mode) {
+  if (mode == kEngage) {
+    // initialize the time when first called
+    if (!TimeLatch) {
+      Time0_us = *config_.Time_us;
+      TimeLatch = true;
+    }
+    ElapsedTime_us = (float)(*config_.Time_us-Time0_us);
+    // doublet logic, 3-2-1-1
+    if (ElapsedTime_us < (config_.StartTime_s)*1e6){
+      // do nothing
+      data_.Excitation = 0;
+    } else if (ElapsedTime_us < (config_.StartTime_s+3.0f*config_.Duration_s)*1e6) {
+      // add the doublet to the signal
+      data_.Excitation = config_.Amplitude;
+    } else if (ElapsedTime_us < (config_.StartTime_s+5.0f*config_.Duration_s)*1e6) {
+      // add the doublet to the signal
+      data_.Excitation = -1*config_.Amplitude;
+    } else if (ElapsedTime_us < (config_.StartTime_s+6.0f*config_.Duration_s)*1e6) {
+      // add the doublet to the signal
+      data_.Excitation = config_.Amplitude;
+    } else if (ElapsedTime_us < (config_.StartTime_s+7.0f*config_.Duration_s)*1e6) {
+      // add the doublet to the signal
+      data_.Excitation = -1*config_.Amplitude;
+    } else {
+      // do nothing
+      data_.Excitation = 0;
+    }
+  } else {
+    // reset the time latch
+    TimeLatch = false;
+    // do nothing
+    data_.Excitation = 0;
+  }
+  data_.Excitation = data_.Excitation * config_.Scale;
+  data_.Mode = (uint8_t)mode;
+  *config_.Signal = *config_.Signal + data_.Excitation;
+}
+
+void Doublet3211::Clear(DefinitionTree *DefinitionTreePtr) {
+  config_.Scale = 1.0f;
+  config_.Amplitude = 0.0f;
+  config_.StartTime_s = 0.0f;
+  config_.Duration_s = 0.0f;
+  data_.Mode = kStandby;
+  data_.Excitation = 0.0f;
+  Time0_us = 0;
+  ElapsedTime_us = 0;
+  TimeLatch = false;
+  DefinitionTreePtr->Erase(ModeKey_);
+  DefinitionTreePtr->Erase(OutputKey_);
+  ModeKey_.clear();
+  OutputKey_.clear();
+}
+
+void LinearChirp::Configure(const rapidjson::Value& Config,std::string RootPath,DefinitionTree *DefinitionTreePtr) {
+  std::string SignalName;
+  std::string OutputName;
+  if (Config.HasMember("Scale-Factor")) {
+    config_.Scale = Config["Scale-Factor"].GetFloat();
+  }
+  if (Config.HasMember("Signal")) {
+    SignalName = Config["Signal"].GetString();
+    OutputName = RootPath + SignalName.substr(SignalName.rfind("/"));
+    // pointer to log run mode data
+    ModeKey_ = OutputName+"/Mode";
+    DefinitionTreePtr->InitMember(ModeKey_,&data_.Mode,"Run mode",true,false);
+    // pointer to log excitation data
+    OutputKey_ = OutputName+"/Excitation";
+    DefinitionTreePtr->InitMember(OutputKey_,&data_.Excitation,"Excitation system output",true,false);
+    if (DefinitionTreePtr->GetValuePtr<float*>(SignalName)) {
+      config_.Signal = DefinitionTreePtr->GetValuePtr<float*>(SignalName);
+    } else {
+      throw std::runtime_error(std::string("ERROR")+OutputName+std::string(": Signal ")+SignalName+std::string(" not found in global data."));
+    }
+  } else {
+    throw std::runtime_error(std::string("ERROR")+RootPath+std::string(": Signal not specified in configuration."));
+  }
+  if (Config.HasMember("Time")) {
+    if (DefinitionTreePtr->GetValuePtr<uint64_t*>(Config["Time"].GetString())) {
+      config_.Time_us = DefinitionTreePtr->GetValuePtr<uint64_t*>(Config["Time"].GetString());
+    } else {
+      throw std::runtime_error(std::string("ERROR")+OutputName+std::string(": Time ")+Config["Time"].GetString()+std::string(" not found in global data."));
+    }
+  } else {
+    throw std::runtime_error(std::string("ERROR")+OutputName+std::string(": Time not specified in configuration."));
+  }
+  if (Config.HasMember("Start-Time")) {
+    config_.StartTime_s = Config["Start-Time"].GetFloat();
+  } else {
+    throw std::runtime_error(std::string("ERROR")+OutputName+std::string(": Start time not specified in configuration."));
+  }
+  if (Config.HasMember("Duration")) {
+    config_.Duration_s = Config["Duration"].GetFloat();
+  } else {
+    throw std::runtime_error(std::string("ERROR")+OutputName+std::string(": Duration not specified in configuration."));
+  }
+  if (Config.HasMember("Amplitude")) {
+    if (Config["Amplitude"].Size() != 2) {
+      throw std::runtime_error(std::string("ERROR")+OutputName+std::string(": Amplitude size incorrect; should be two [min,max]"));
+    } else {
+      config_.Amplitude[0] = Config["Amplitude"][0].GetFloat();
+      config_.Amplitude[1] = Config["Amplitude"][1].GetFloat();
+    }
+  } else {
+    throw std::runtime_error(std::string("ERROR")+OutputName+std::string(": Amplitude not specified in configuration."));
+  }
+  if (Config.HasMember("Frequency")) {
+    if (Config["Frequency"].Size() != 2) {
+      throw std::runtime_error(std::string("ERROR")+OutputName+std::string(": Frequency size incorrect; should be two [min,max]"));
+    } else {
+      config_.Frequency[0] = Config["Frequency"][0].GetFloat();
+      config_.Frequency[1] = Config["Frequency"][1].GetFloat();
+    }
+  } else {
+    throw std::runtime_error(std::string("ERROR")+OutputName+std::string(": Frequency not specified in configuration."));
+  }
+}
+
+void LinearChirp::Initialize() {}
+bool LinearChirp::Initialized() {return true;}
+
+void LinearChirp::Run(Mode mode) {
+  if (mode == kEngage) {
+    // initialize the time when first called
+    if (!TimeLatch) {
+      Time0_us = *config_.Time_us;
+      TimeLatch = true;
+    }
+    ElapsedTime_us = (float)(*config_.Time_us-Time0_us);
+    // chirp logic
+    if (ElapsedTime_us < (config_.StartTime_s)*1e6){
+      // do nothing
+      data_.Excitation = 0;
+    } else if (ElapsedTime_us < config_.Duration_s*1e6) {
+      // linear varying instantanious frequency
+      float freq_rps = config_.Frequency[0]+(config_.Frequency[1]-config_.Frequency[0])/(2.0f*config_.Duration_s*1e6)*ElapsedTime_us;
+      // linear varying amplitude
+      float amp_nd = config_.Amplitude[0]+(config_.Amplitude[1]-config_.Amplitude[0])*ElapsedTime_us/(config_.Duration_s*1e6);
+      // chirp Equation
+      data_.Excitation = amp_nd*sinf(freq_rps*ElapsedTime_us);
+    } else {
+      // do nothing
+      data_.Excitation = 0;
+    }
+  } else {
+    // reset the time latch
+    TimeLatch = false;
+    // do nothing
+    data_.Excitation = 0;
+  }
+  data_.Excitation = data_.Excitation * config_.Scale;
+  data_.Mode = (uint8_t)mode;
+  *config_.Signal = *config_.Signal + data_.Excitation;
+}
+
+void LinearChirp::Clear(DefinitionTree *DefinitionTreePtr) {
+  config_.Scale = 1.0f;
+  config_.Amplitude[0] = 0.0f;
+  config_.Amplitude[1] = 0.0f;
+  config_.Frequency[0] = 0.0f;
+  config_.Frequency[1] = 0.0f;
+  config_.StartTime_s = 0.0f;
+  config_.Duration_s = 0.0f;
+  data_.Mode = kStandby;
+  data_.Excitation = 0.0f;
+  Time0_us = 0;
+  ElapsedTime_us = 0;
+  TimeLatch = false;
+  DefinitionTreePtr->Erase(ModeKey_);
+  DefinitionTreePtr->Erase(OutputKey_);
+  ModeKey_.clear();
+  OutputKey_.clear();
+}
+
+void MultiSine::Configure(const rapidjson::Value& Config,std::string RootPath,DefinitionTree *DefinitionTreePtr) {
+  std::string SignalName;
+  std::string OutputName;
+  if (Config.HasMember("Scale-Factor")) {
+    config_.Scale = Config["Scale-Factor"].GetFloat();
+  }
+  if (Config.HasMember("Signal")) {
+    SignalName = Config["Signal"].GetString();
+    OutputName = RootPath + SignalName.substr(SignalName.rfind("/"));
+    // pointer to log run mode data
+    ModeKey_ = OutputName+"/Mode";
+    DefinitionTreePtr->InitMember(ModeKey_,&data_.Mode,"Run mode",true,false);
+    // pointer to log excitation data
+    OutputKey_ = OutputName+"/Excitation";
+    DefinitionTreePtr->InitMember(OutputKey_,&data_.Excitation,"Excitation system output",true,false);
+    if (DefinitionTreePtr->GetValuePtr<float*>(SignalName)) {
+      config_.Signal = DefinitionTreePtr->GetValuePtr<float*>(SignalName);
+    } else {
+      throw std::runtime_error(std::string("ERROR")+OutputName+std::string(": Signal ")+SignalName+std::string(" not found in global data."));
+    }
+  } else {
+    throw std::runtime_error(std::string("ERROR")+RootPath+std::string(": Signal not specified in configuration."));
+  }
+  if (Config.HasMember("Time")) {
+    if (DefinitionTreePtr->GetValuePtr<uint64_t*>(Config["Time"].GetString())) {
+      config_.Time_us = DefinitionTreePtr->GetValuePtr<uint64_t*>(Config["Time"].GetString());
+    } else {
+      throw std::runtime_error(std::string("ERROR")+OutputName+std::string(": Time ")+Config["Time"].GetString()+std::string(" not found in global data."));
+    }
+  } else {
+    throw std::runtime_error(std::string("ERROR")+OutputName+std::string(": Time not specified in configuration."));
+  }
+  if (Config.HasMember("Start-Time")) {
+    config_.StartTime_s = Config["Start-Time"].GetFloat();
+  } else {
+    throw std::runtime_error(std::string("ERROR")+OutputName+std::string(": Start time not specified in configuration."));
+  }
+  if (Config.HasMember("Duration")) {
+    config_.Duration_s = Config["Duration"].GetFloat();
+  } else {
+    throw std::runtime_error(std::string("ERROR")+OutputName+std::string(": Duration not specified in configuration."));
+  }
+  if (Config.HasMember("Amplitude")) {
+    config_.Amplitude.resize(Config["Amplitude"].Size(),1);
+    for (size_t i=0; i < Config["Amplitude"].Size(); i++) {
+      config_.Amplitude(i,0) = Config["Amplitude"][i].GetFloat();
+    }
+  } else {
+    throw std::runtime_error(std::string("ERROR")+OutputName+std::string(": Amplitude not specified in configuration."));
+  }
+  if (Config.HasMember("Frequency")) {
+    config_.Frequency.resize(Config["Frequency"].Size(),1);
+    for (size_t i=0; i < Config["Frequency"].Size(); i++) {
+      config_.Frequency(i,0) = Config["Frequency"][i].GetFloat();
+    }
+  } else {
+    throw std::runtime_error(std::string("ERROR")+OutputName+std::string(": Frequency not specified in configuration."));
+  }
+  if (Config.HasMember("Phase")) {
+    config_.Phase.resize(Config["Phase"].Size(),1);
+    for (size_t i=0; i < Config["Phase"].Size(); i++) {
+      config_.Phase(i,0) = Config["Phase"][i].GetFloat();
+    }
+  } else {
+    throw std::runtime_error(std::string("ERROR")+OutputName+std::string(": Phase not specified in configuration."));
+  }
+  if ((Config["Amplitude"].Size() != Config["Frequency"].Size())||(Config["Amplitude"].Size() != Config["Phase"].Size())) {
+    throw std::runtime_error(std::string("ERROR")+OutputName+std::string(": Amplitude, frequency, and phase arrays are not the same length."));
+  }
+}
+
+void MultiSine::Initialize() {}
+bool MultiSine::Initialized() {return true;}
+
+void MultiSine::Run(Mode mode) {
+  if (mode == kEngage) {
+    // initialize the time when first called
+    if (!TimeLatch) {
+      Time0_us = *config_.Time_us;
+      TimeLatch = true;
+    }
+    ElapsedTime_us = (float)(*config_.Time_us-Time0_us);
+    // multisine logic
+    if (ElapsedTime_us < (config_.StartTime_s)*1e6){
+      // do nothing
+      data_.Excitation = 0;
+    } else if (ElapsedTime_us < config_.Duration_s*1e6) {
+      // Scale the waveform to preserve unity
+      float scale = sqrtf(1.0f/((float)config_.Amplitude.size()));
+      // Compute the Waveform - scale * sum(amp .* cos(freq * t + phase))
+      data_.Excitation=scale*(config_.Amplitude*(config_.Frequency*(ElapsedTime_us/1e6)+config_.Phase).cos()).sum();
+    } else {
+      // do nothing
+      data_.Excitation = 0;
+    }
+  } else {
+    // reset the time latch
+    TimeLatch = false;
+    // do nothing
+    data_.Excitation = 0;
+  }
+  data_.Excitation = data_.Excitation * config_.Scale;
+  data_.Mode = (uint8_t)mode;
+  *config_.Signal = *config_.Signal + data_.Excitation;
+}
+
+void MultiSine::Clear(DefinitionTree *DefinitionTreePtr) {
+  config_.Scale = 1.0f;
+  config_.Amplitude.resize(0,1);
+  config_.Frequency.resize(0,1);
+  config_.Phase.resize(0,1);
+  config_.StartTime_s = 0.0f;
+  config_.Duration_s = 0.0f;
+  data_.Mode = kStandby;
+  data_.Excitation = 0.0f;
+  Time0_us = 0;
+  ElapsedTime_us = 0;
+  TimeLatch = false;
+  DefinitionTreePtr->Erase(ModeKey_);
+  DefinitionTreePtr->Erase(OutputKey_);
+  ModeKey_.clear();
+  OutputKey_.clear();
+}

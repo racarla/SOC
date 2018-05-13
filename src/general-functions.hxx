@@ -31,6 +31,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SO
 Constant Class - Outputs a constant value.
 Example JSON configuration:
 {
+  "Type": "Constant",
   "Output": "OutputName",
   "Constant": X
 }
@@ -63,6 +64,7 @@ class ConstantClass: public GenericFunction {
 Gain Class - Multiplies an input by a gain
 Example JSON configuration:
 {
+  "Type": "Gain",
   "Output": "OutputName",
   "Input": "InputName",
   "Gain": X,
@@ -106,6 +108,7 @@ class GainClass: public GenericFunction {
 Sum Class - Sums all inputs
 Example JSON configuration:
 {
+  "Type": "Sum",
   "Output": "OutputName",
   "Inputs": ["InputName1","InputName2",...],
   "Limits": {
