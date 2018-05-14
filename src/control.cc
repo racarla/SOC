@@ -30,7 +30,7 @@ void ControlLaws::Configure(const rapidjson::Value& Config, DefinitionTree *Defi
     for (size_t i=0; i < ResearchConfig.Size(); i++) {
       if (Config.HasMember(ResearchConfig[i].GetString())) {
         ResearchGroupKeys_.push_back(ResearchConfig[i].GetString());
-        std::string PathName = RootPath_+"/"+"Research"+"/"+ResearchConfig[i].GetString();
+        std::string PathName = RootPath_+"/"+ResearchConfig[i].GetString();
         const rapidjson::Value& GroupDefinition = Config[ResearchConfig[i].GetString()];
         ResearchControlGroups_[ResearchGroupKeys_.back()].resize(GroupDefinition.Size());
         for (size_t j=0; j < GroupDefinition.Size(); j++) {
@@ -81,11 +81,12 @@ void ControlLaws::Configure(const rapidjson::Value& Config, DefinitionTree *Defi
       }
     }
   }
+
   // resize vectors
   OutputData_.resize(OutputKeys_.size());
   // map research data pointers to superset of output keys
   for (size_t i=0; i < ResearchGroupKeys_.size(); i++) {
-    std::string PathName = RootPath_ + "/" + ResearchGroupKeys_[i];
+    std::string PathName = RootPath_ +"/"+ ResearchGroupKeys_[i];
     ResearchDataPtr_[ResearchGroupKeys_[i]].resize(OutputKeys_.size());
     std::vector<std::string> ResearchKeys;
     DefinitionTreePtr->GetKeys(PathName,&ResearchKeys);
@@ -99,43 +100,43 @@ void ControlLaws::Configure(const rapidjson::Value& Config, DefinitionTree *Defi
         ResearchDataPtr_[ResearchGroupKeys_[i]][j] = TempDef.Value;
         if (DefinitionTreePtr->Size(MemberName)==0) {
           if (DefinitionTreePtr->GetValuePtr<uint64_t*>(ResearchKeys[j])) {
-            OutputData_[i] = *(DefinitionTreePtr->GetValuePtr<uint64_t*>(ResearchKeys[j]));
+            OutputData_[j] = *(DefinitionTreePtr->GetValuePtr<uint64_t*>(ResearchKeys[j]));
             DefinitionTreePtr->InitMember(MemberName,std::get_if<uint64_t>(&OutputData_[j]),TempDef.Description,true,false);
           }
           if (DefinitionTreePtr->GetValuePtr<uint32_t*>(ResearchKeys[j])) {
-            OutputData_[i] = *(DefinitionTreePtr->GetValuePtr<uint32_t*>(ResearchKeys[j]));
+            OutputData_[j] = *(DefinitionTreePtr->GetValuePtr<uint32_t*>(ResearchKeys[j]));
             DefinitionTreePtr->InitMember(MemberName,std::get_if<uint32_t>(&OutputData_[j]),TempDef.Description,true,false);
           }
           if (DefinitionTreePtr->GetValuePtr<uint16_t*>(ResearchKeys[j])) {
-            OutputData_[i] = *(DefinitionTreePtr->GetValuePtr<uint16_t*>(ResearchKeys[j]));
+            OutputData_[j] = *(DefinitionTreePtr->GetValuePtr<uint16_t*>(ResearchKeys[j]));
             DefinitionTreePtr->InitMember(MemberName,std::get_if<uint16_t>(&OutputData_[j]),TempDef.Description,true,false);
           }
           if (DefinitionTreePtr->GetValuePtr<uint8_t*>(ResearchKeys[j])) {
-            OutputData_[i] = *(DefinitionTreePtr->GetValuePtr<uint8_t*>(ResearchKeys[j]));
+            OutputData_[j] = *(DefinitionTreePtr->GetValuePtr<uint8_t*>(ResearchKeys[j]));
             DefinitionTreePtr->InitMember(MemberName,std::get_if<uint8_t>(&OutputData_[j]),TempDef.Description,true,false);
           }
           if (DefinitionTreePtr->GetValuePtr<int64_t*>(ResearchKeys[j])) {
-            OutputData_[i] = *(DefinitionTreePtr->GetValuePtr<int64_t*>(ResearchKeys[j]));
+            OutputData_[j] = *(DefinitionTreePtr->GetValuePtr<int64_t*>(ResearchKeys[j]));
             DefinitionTreePtr->InitMember(MemberName,std::get_if<int64_t>(&OutputData_[j]),TempDef.Description,true,false);
           }
           if (DefinitionTreePtr->GetValuePtr<int32_t*>(ResearchKeys[j])) {
-            OutputData_[i] = *(DefinitionTreePtr->GetValuePtr<int32_t*>(ResearchKeys[j]));
+            OutputData_[j] = *(DefinitionTreePtr->GetValuePtr<int32_t*>(ResearchKeys[j]));
             DefinitionTreePtr->InitMember(MemberName,std::get_if<int32_t>(&OutputData_[j]),TempDef.Description,true,false);
           }
           if (DefinitionTreePtr->GetValuePtr<int16_t*>(ResearchKeys[j])) {
-            OutputData_[i] = *(DefinitionTreePtr->GetValuePtr<int16_t*>(ResearchKeys[j]));
+            OutputData_[j] = *(DefinitionTreePtr->GetValuePtr<int16_t*>(ResearchKeys[j]));
             DefinitionTreePtr->InitMember(MemberName,std::get_if<int16_t>(&OutputData_[j]),TempDef.Description,true,false);
           }
           if (DefinitionTreePtr->GetValuePtr<int8_t*>(ResearchKeys[j])) {
-            OutputData_[i] = *(DefinitionTreePtr->GetValuePtr<int8_t*>(ResearchKeys[j]));
+            OutputData_[j] = *(DefinitionTreePtr->GetValuePtr<int8_t*>(ResearchKeys[j]));
             DefinitionTreePtr->InitMember(MemberName,std::get_if<int8_t>(&OutputData_[j]),TempDef.Description,true,false);
           }
           if (DefinitionTreePtr->GetValuePtr<float*>(ResearchKeys[j])) {
-            OutputData_[i] = *(DefinitionTreePtr->GetValuePtr<float*>(ResearchKeys[j]));
+            OutputData_[j] = *(DefinitionTreePtr->GetValuePtr<float*>(ResearchKeys[j]));
             DefinitionTreePtr->InitMember(MemberName,&(std::get<float>(OutputData_[j])),TempDef.Description,true,false);
           }
           if (DefinitionTreePtr->GetValuePtr<double*>(ResearchKeys[j])) {
-            OutputData_[i] = *(DefinitionTreePtr->GetValuePtr<double*>(ResearchKeys[j]));
+            OutputData_[j] = *(DefinitionTreePtr->GetValuePtr<double*>(ResearchKeys[j]));
             DefinitionTreePtr->InitMember(MemberName,std::get_if<double>(&OutputData_[j]),TempDef.Description,true,false);
           }
         }
@@ -226,9 +227,53 @@ void ControlLaws::RunEngaged(size_t ControlLevel) {
 
 /* computes control law data */
 void ControlLaws::RunArmed() {
-  for (size_t i=0; i < ResearchControlGroups_[ArmedGroup_].size(); i++) {
-    for (size_t j=0; j < ResearchControlGroups_[ArmedGroup_][i].size(); j++) {
-      ResearchControlGroups_[ArmedGroup_][i][j]->Run(GenericFunction::kArm);
+  if (EngagedGroup_ != ArmedGroup_) {
+    for (size_t i=0; i < ResearchGroupKeys_.size(); i++) {
+      for (size_t j=0; j < ResearchControlGroups_[ResearchGroupKeys_[i]].size(); j++) {
+        for (size_t k=0; k < ResearchControlGroups_[ResearchGroupKeys_[i]][j].size(); k++) {
+          if (ResearchGroupKeys_[i] == ArmedGroup_) {
+            ResearchControlGroups_[ResearchGroupKeys_[i]][j][k]->Run(GenericFunction::kArm);
+          } else {
+            ResearchControlGroups_[ResearchGroupKeys_[i]][j][k]->Run(GenericFunction::kStandby);
+          }
+        }
+      }
+    }
+  }
+  if (EngagedGroup_ == "Baseline") {
+    std::vector<std::variant<uint64_t*,uint32_t*,uint16_t*,uint8_t*,int64_t*,int32_t*,int16_t*,int8_t*,float*,double*>> ResearchPtr;
+    ResearchPtr = ResearchDataPtr_[ArmedGroup_];
+    for (size_t i=0; i < OutputData_.size(); i++) {
+      if (std::get_if<uint64_t*>(&ResearchPtr[i])) {
+        OutputData_[i] = **(std::get_if<uint64_t*>(&ResearchPtr[i]));
+      }
+      if (std::get_if<uint32_t*>(&ResearchPtr[i])) {
+        OutputData_[i] = **(std::get_if<uint32_t*>(&ResearchPtr[i]));
+      }
+      if (std::get_if<uint16_t*>(&ResearchPtr[i])) {
+        OutputData_[i] = **(std::get_if<uint16_t*>(&ResearchPtr[i]));
+      }
+      if (std::get_if<uint8_t*>(&ResearchPtr[i])) {
+        OutputData_[i] = **(std::get_if<uint8_t*>(&ResearchPtr[i]));
+      }
+      if (std::get_if<int64_t*>(&ResearchPtr[i])) {
+        OutputData_[i] = **(std::get_if<int64_t*>(&ResearchPtr[i]));
+      }
+      if (std::get_if<int32_t*>(&ResearchPtr[i])) {
+        OutputData_[i] = **(std::get_if<int32_t*>(&ResearchPtr[i]));
+      }
+      if (std::get_if<int16_t*>(&ResearchPtr[i])) {
+        OutputData_[i] = **(std::get_if<int16_t*>(&ResearchPtr[i]));
+      }
+      if (std::get_if<int8_t*>(&ResearchPtr[i])) {
+        OutputData_[i] = **(std::get_if<int8_t*>(&ResearchPtr[i]));
+      }
+      if (std::get_if<float*>(&ResearchPtr[i])) {
+        OutputData_[i] = **(std::get_if<float*>(&ResearchPtr[i]));
+      }
+      if (std::get_if<double*>(&ResearchPtr[i])) {
+        OutputData_[i] = **(std::get_if<double*>(&ResearchPtr[i]));
+      }
     }
   }
 }

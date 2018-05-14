@@ -367,43 +367,43 @@ void SensorProcessing::Configure(const rapidjson::Value& Config,DefinitionTree *
         ResearchDataPtr_[ResearchGroupKeys_[i]][j] = TempDef.Value;
         if (DefinitionTreePtr->Size(MemberName)==0) {
           if (DefinitionTreePtr->GetValuePtr<uint64_t*>(ResearchKeys[j])) {
-            OutputData_[i] = *(DefinitionTreePtr->GetValuePtr<uint64_t*>(ResearchKeys[j]));
+            OutputData_[j] = *(DefinitionTreePtr->GetValuePtr<uint64_t*>(ResearchKeys[j]));
             DefinitionTreePtr->InitMember(MemberName,std::get_if<uint64_t>(&OutputData_[j]),TempDef.Description,true,false);
           }
           if (DefinitionTreePtr->GetValuePtr<uint32_t*>(ResearchKeys[j])) {
-            OutputData_[i] = *(DefinitionTreePtr->GetValuePtr<uint32_t*>(ResearchKeys[j]));
+            OutputData_[j] = *(DefinitionTreePtr->GetValuePtr<uint32_t*>(ResearchKeys[j]));
             DefinitionTreePtr->InitMember(MemberName,std::get_if<uint32_t>(&OutputData_[j]),TempDef.Description,true,false);
           }
           if (DefinitionTreePtr->GetValuePtr<uint16_t*>(ResearchKeys[j])) {
-            OutputData_[i] = *(DefinitionTreePtr->GetValuePtr<uint16_t*>(ResearchKeys[j]));
+            OutputData_[j] = *(DefinitionTreePtr->GetValuePtr<uint16_t*>(ResearchKeys[j]));
             DefinitionTreePtr->InitMember(MemberName,std::get_if<uint16_t>(&OutputData_[j]),TempDef.Description,true,false);
           }
           if (DefinitionTreePtr->GetValuePtr<uint8_t*>(ResearchKeys[j])) {
-            OutputData_[i] = *(DefinitionTreePtr->GetValuePtr<uint8_t*>(ResearchKeys[j]));
+            OutputData_[j] = *(DefinitionTreePtr->GetValuePtr<uint8_t*>(ResearchKeys[j]));
             DefinitionTreePtr->InitMember(MemberName,std::get_if<uint8_t>(&OutputData_[j]),TempDef.Description,true,false);
           }
           if (DefinitionTreePtr->GetValuePtr<int64_t*>(ResearchKeys[j])) {
-            OutputData_[i] = *(DefinitionTreePtr->GetValuePtr<int64_t*>(ResearchKeys[j]));
+            OutputData_[j] = *(DefinitionTreePtr->GetValuePtr<int64_t*>(ResearchKeys[j]));
             DefinitionTreePtr->InitMember(MemberName,std::get_if<int64_t>(&OutputData_[j]),TempDef.Description,true,false);
           }
           if (DefinitionTreePtr->GetValuePtr<int32_t*>(ResearchKeys[j])) {
-            OutputData_[i] = *(DefinitionTreePtr->GetValuePtr<int32_t*>(ResearchKeys[j]));
+            OutputData_[j] = *(DefinitionTreePtr->GetValuePtr<int32_t*>(ResearchKeys[j]));
             DefinitionTreePtr->InitMember(MemberName,std::get_if<int32_t>(&OutputData_[j]),TempDef.Description,true,false);
           }
           if (DefinitionTreePtr->GetValuePtr<int16_t*>(ResearchKeys[j])) {
-            OutputData_[i] = *(DefinitionTreePtr->GetValuePtr<int16_t*>(ResearchKeys[j]));
+            OutputData_[j] = *(DefinitionTreePtr->GetValuePtr<int16_t*>(ResearchKeys[j]));
             DefinitionTreePtr->InitMember(MemberName,std::get_if<int16_t>(&OutputData_[j]),TempDef.Description,true,false);
           }
           if (DefinitionTreePtr->GetValuePtr<int8_t*>(ResearchKeys[j])) {
-            OutputData_[i] = *(DefinitionTreePtr->GetValuePtr<int8_t*>(ResearchKeys[j]));
+            OutputData_[j] = *(DefinitionTreePtr->GetValuePtr<int8_t*>(ResearchKeys[j]));
             DefinitionTreePtr->InitMember(MemberName,std::get_if<int8_t>(&OutputData_[j]),TempDef.Description,true,false);
           }
           if (DefinitionTreePtr->GetValuePtr<float*>(ResearchKeys[j])) {
-            OutputData_[i] = *(DefinitionTreePtr->GetValuePtr<float*>(ResearchKeys[j]));
+            OutputData_[j] = *(DefinitionTreePtr->GetValuePtr<float*>(ResearchKeys[j]));
             DefinitionTreePtr->InitMember(MemberName,&(std::get<float>(OutputData_[j])),TempDef.Description,true,false);
           }
           if (DefinitionTreePtr->GetValuePtr<double*>(ResearchKeys[j])) {
-            OutputData_[i] = *(DefinitionTreePtr->GetValuePtr<double*>(ResearchKeys[j]));
+            OutputData_[j] = *(DefinitionTreePtr->GetValuePtr<double*>(ResearchKeys[j]));
             DefinitionTreePtr->InitMember(MemberName,std::get_if<double>(&OutputData_[j]),TempDef.Description,true,false);
           }
         }

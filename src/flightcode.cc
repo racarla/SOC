@@ -106,12 +106,12 @@ int main(int argc, char* argv[]) {
         // run sensor processing
         SenProc.Run();
         if (Control.Configured()&&Mission.Configured()&&Effectors.Configured()) {
+          // get and set engaged and armed controllers
+          Control.SetEngagedController(Mission.GetEnagagedController());
+          Control.SetArmedController(Mission.GetArmedController());
+          // get and set engaged excitation
+          Excitation.SetEngagedExcitation(Mission.GetEnagagedExcitation());
           if (Mission.GetEnagagedController()!="Baseline") {
-            // get and set engaged and armed controllers
-            Control.SetEngagedController(Mission.GetEnagagedController());
-            Control.SetArmedController(Mission.GetArmedController());
-            // get and set engaged excitation
-            Excitation.SetEngagedExcitation(Mission.GetEnagagedExcitation());
             // loop through control levels running excitations and control laws
             for (size_t i=0; i < Control.ActiveControlLevels(); i++) {
               if (Excitation.Configured()) {
