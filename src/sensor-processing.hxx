@@ -44,56 +44,6 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SO
 #include <Eigen/Dense>
 #include <memory>
 
-// class SensorProcessingFunctionClass {
-//   public:
-//     enum Mode {
-//       kArm,
-//       kEngage
-//     };
-//     virtual void Configure(const rapidjson::Value& Config,std::string RootPath,DefinitionTree *DefinitionTreePtr);
-//     virtual bool Initialized();
-//     virtual void Run(Mode mode);
-// };
-
-// class IirFilterClass: public SensorProcessingFunctionClass {
-
-// };
-
-// class BaselineAirDataClass: public SensorProcessingFunctionClass {
-//   public:
-//     void Configure(const rapidjson::Value& Config,std::string RootPath,DefinitionTree *DefinitionTreePtr);
-//     bool Initialized();
-//     void Run(Mode mode);
-//   private:
-//     struct Config {
-//       uint64_t* TimeSourcePtr;
-//       std::vector<float*> StaticPressureSourcePtr;
-//       std::vector<float*> DifferentialPressureSourcePtr;
-//       std::vector<float> DifferentialPressureBiases;
-//       std::vector<float*> MslAltSourcePtr;
-//       std::vector<uint8_t*> MslAltFixPtr;
-//       float InitializationTime_s;
-//       float InitialPressureAlt_m;
-//       float InitialMSLAlt_m;
-//     };
-//     struct Data {
-//       float StaticPressure_Pa;
-//       float DifferentialPressure_Pa;
-//       float IAS_ms;
-//       float PressureAltitude_m;
-//       float AGL_m;
-//       float MSL_m;
-//       uint8_t Mode;
-//     };
-//     AirData airdata_;
-//     Config config_;
-//     Data data_;
-//     bool InitializedLatch_ = false;
-//     bool TimeLatch_ = false;
-//     uint64_t Time0_us_;
-//     float InitializationTimer_us_;
-// };
-
 class SensorProcessing {
   public:
     void Configure(const rapidjson::Value& Config,DefinitionTree *DefinitionTreePtr);
@@ -108,11 +58,12 @@ class SensorProcessing {
     std::string EngagedGroup_ = "Baseline";
     std::vector<std::shared_ptr<GenericFunction>> BaselineSensorProcessing_;
     std::map<std::string,std::vector<std::shared_ptr<GenericFunction>>> ResearchSensorProcessingGroups_;
+    std::vector<std::string> BaselineDataKeys_;
     std::vector<std::string> ResearchGroupKeys_;
-    std::map<std::string,std::string> OutputKeys_;
-    std::vector<std::variant<uint64_t,uint32_t,uint16_t,uint8_t,int64_t,int32_t,int16_t,int8_t,float, double>> OutputData_;
-    std::vector<std::variant<uint64_t*,uint32_t*,uint16_t*,uint8_t*,int64_t*,int32_t*,int16_t*,int8_t*,float*,double*>> BaselineDataPtr_;
-    std::map<std::string,std::vector<std::variant<uint64_t*,uint32_t*,uint16_t*,uint8_t*,int64_t*,int32_t*,int16_t*,int8_t*,float*,double*>>> ResearchDataPtr_;
+    std::map<std::string,std::vector<std::string>> ResearchDataKeys_;
+    std::map<std::string,std::variant<uint64_t,uint32_t,uint16_t,uint8_t,int64_t,int32_t,int16_t,int8_t,float, double>> OutputData_;
+    std::map<std::string,std::variant<uint64_t*,uint32_t*,uint16_t*,uint8_t*,int64_t*,int32_t*,int16_t*,int8_t*,float*,double*>> BaselineDataPtr_;
+    std::map<std::string,std::map<std::string,std::variant<uint64_t*,uint32_t*,uint16_t*,uint8_t*,int64_t*,int32_t*,int16_t*,int8_t*,float*,double*>>> ResearchDataPtr_;
 };
 
 #endif

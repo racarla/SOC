@@ -20,395 +20,203 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SO
 
 #include "sensor-processing.hxx"
 
-// /* base function class methods */
-// void SensorProcessingFunctionClass::Configure(const rapidjson::Value& Config,std::string RootPath,DefinitionTree *DefinitionTreePtr) {}
-// bool SensorProcessingFunctionClass::Initialized() {}
-// void SensorProcessingFunctionClass::Run(Mode mode) {}
-
-// /* configure baseline airdata from JSON and global data definition tree */
-// void BaselineAirDataClass::Configure(const rapidjson::Value& Config,std::string RootPath,DefinitionTree *DefinitionTreePtr) {
-//   std::string OutputName;
-//   // get output name
-//   if (Config.HasMember("Output")) {
-//     OutputName = RootPath + "/" + Config["Output"].GetString();
-//   } else {
-//     throw std::runtime_error(std::string("ERROR")+RootPath+std::string(": Output not specified in configuration."));
-//   }
-//   // get time source
-//   if (Config.HasMember("Time")) {
-//     if (DefinitionTreePtr->GetValuePtr<uint64_t*>(Config["Time"].GetString())) {
-//       config_.TimeSourcePtr = DefinitionTreePtr->GetValuePtr<uint64_t*>(Config["Time"].GetString());
-//     } else {
-//       throw std::runtime_error(std::string("ERROR")+OutputName+std::string(": Time source ")+Config["Time"].GetString()+std::string(" not found in global data."));
-//     }
-//   } else {
-//     throw std::runtime_error(std::string("ERROR")+OutputName+std::string(": Time source not specified in configuration."));
-//   }
-//   // get initialization time
-//   if (Config.HasMember("Initialization-Time")) {
-//     config_.InitializationTime_s = Config["Initialization-Time"].GetFloat();
-//   } else {
-//     throw std::runtime_error(std::string("ERROR")+OutputName+std::string(": Initialization time not specified in configuration."));
-//   }
-//   // get static pressure configuration
-//   if (Config.HasMember("Static-Pressure")) {
-//     const rapidjson::Value& StaticPressureSources = Config["Static-Pressure"];
-//     for (size_t i=0; i < StaticPressureSources.Size(); i++) {
-//       const rapidjson::Value& StaticPressureSource = StaticPressureSources[i];
-//       std::string source = StaticPressureSource.GetString() + std::string("/Pressure_Pa");
-//       if (DefinitionTreePtr->GetValuePtr<float*>(source)) {
-//         config_.StaticPressureSourcePtr.push_back(DefinitionTreePtr->GetValuePtr<float*>(source));
-//       } else {
-//         throw std::runtime_error(std::string("ERROR")+OutputName+std::string(": Static pressure source ")+source+std::string(" not found in global data."));
-//       }
-//     }
-//   }
-//   // get differential pressure configuration
-//   if (Config.HasMember("Differential-Pressure")) {
-//     const rapidjson::Value& DifferentialPressureSources = Config["Differential-Pressure"];
-//     for (size_t i=0; i < DifferentialPressureSources.Size(); i++) {
-//       const rapidjson::Value& DifferentialPressureSource = DifferentialPressureSources[i];
-//       std::string source = DifferentialPressureSource.GetString() + std::string("/Pressure_Pa");
-//       if (DefinitionTreePtr->GetValuePtr<float*>(source)) {
-//         config_.DifferentialPressureSourcePtr.push_back(DefinitionTreePtr->GetValuePtr<float*>(source));
-//       } else {
-//         throw std::runtime_error(std::string("ERROR")+OutputName+std::string(": Differential pressure source ")+source+std::string(" not found in global data."));
-//       }
-
-//     }
-//     config_.DifferentialPressureBiases.resize(DifferentialPressureSources.Size());
-//   }
-//   // get MSL altitude configuration
-//   if (Config.HasMember("MSL-Altitude")) {
-//     const rapidjson::Value& MslAltSources = Config["MSL-Altitude"];
-//     for (size_t i=0; i < MslAltSources.Size(); i++) {
-//       const rapidjson::Value& MslAltSource = MslAltSources[i];
-//       std::string source = MslAltSource.GetString() + std::string("/Altitude_m");
-//       std::string fix = MslAltSource.GetString() + std::string("/Fix");
-//       if (DefinitionTreePtr->GetValuePtr<float*>(source)) {
-//         config_.MslAltSourcePtr.push_back(DefinitionTreePtr->GetValuePtr<float*>(source));
-//       } else {
-//         throw std::runtime_error(std::string("ERROR")+OutputName+std::string(": MSL altitude source ")+source+std::string(" not found in global data."));
-//       }
-//       if (DefinitionTreePtr->GetValuePtr<uint8_t*>(fix)) {
-//         config_.MslAltFixPtr.push_back(DefinitionTreePtr->GetValuePtr<uint8_t*>(fix));
-//       } else {
-//         throw std::runtime_error(std::string("ERROR")+OutputName+std::string(": MSL altitude fix ")+fix+std::string(" not found in global data."));
-//       }
-//     }
-//   }
-//   // pointer to log run mode data
-//   DefinitionTreePtr->InitMember(OutputName+"/Mode",&data_.Mode,"Sensor processing mode",true,false);
-//   // if at least one static pressure source, register: pressure altitude and AGL altitude
-//   if (config_.StaticPressureSourcePtr.size() > 0) {
-//     DefinitionTreePtr->InitMember(OutputName+"/Pressure/Static_Pa",&data_.StaticPressure_Pa,"Static pressure, Pa",true,false);
-//     DefinitionTreePtr->InitMember(OutputName+"/Altitude/Pressure_m",&data_.PressureAltitude_m,"Pressure altitude, m",true,false);
-//     DefinitionTreePtr->InitMember(OutputName+"/Altitude/AGL_m",&data_.AGL_m,"AGL altitude, m",true,false);
-//   }
-//   // if at least one differential pressure source, register: indicated airspeed
-//   if (config_.DifferentialPressureSourcePtr.size() > 0) {
-//     DefinitionTreePtr->InitMember(OutputName+"/Pressure/Differential_Pa",&data_.DifferentialPressure_Pa,"Differential pressure, Pa",true,false);
-//     DefinitionTreePtr->InitMember(OutputName+"/Airspeed/Indicated_ms",&data_.IAS_ms,"Indicated airspeed, m/s",true,false);
-//   }
-//   // if at least one static pressure and one MSL altitude source, register: MSL altitude
-//   if ((config_.MslAltSourcePtr.size() > 0)&&(config_.StaticPressureSourcePtr.size() > 0)) {
-//     DefinitionTreePtr->InitMember(OutputName+"/Altitude/MSL_m",&data_.MSL_m,"MSL altitude, m",true,false);
-//   }
-// }
-
-// /* initializes air data */
-// bool BaselineAirDataClass::Initialized() {
-//   if (InitializedLatch_) {
-//     return true;
-//   } else {
-//     bool GpsFix = true;
-//     for (size_t i=0; i < config_.MslAltFixPtr.size(); i++) {
-//       if (!*config_.MslAltFixPtr[i]) {
-//         GpsFix = false;
-//       }
-//     }
-//     if ((config_.MslAltSourcePtr.size() == 0)||(GpsFix)) {
-//       if (!TimeLatch_) {
-//         Time0_us_ = *config_.TimeSourcePtr;
-//         TimeLatch_ = true;
-//       }
-//       InitializationTimer_us_ = (float)(*config_.TimeSourcePtr - Time0_us_);
-//       static size_t NumberSamples = 1;
-//       // if we have at least one static pressure source
-//       if (config_.StaticPressureSourcePtr.size() > 0) {
-//         float AvgPress = 0;
-//         for (size_t i=0; i < config_.StaticPressureSourcePtr.size(); i++) {
-//           AvgPress += *config_.StaticPressureSourcePtr[i]/config_.StaticPressureSourcePtr.size();
-//         }
-//         // get the initial pressure altitude
-//         config_.InitialPressureAlt_m = config_.InitialPressureAlt_m+(airdata_.getPressureAltitude(AvgPress)-config_.InitialPressureAlt_m)/((float)NumberSamples);
-//       }
-//       // if we have at least one differential pressure source
-//       if (config_.DifferentialPressureSourcePtr.size() > 0) {
-//         for (size_t i=0; i < config_.DifferentialPressureSourcePtr.size(); i++) {
-//           config_.DifferentialPressureBiases[i] = config_.DifferentialPressureBiases[i] + (*config_.DifferentialPressureSourcePtr[i]-config_.DifferentialPressureBiases[i])/((float)NumberSamples);
-//         }
-//       }
-//       // if at least one static pressure and one MSL altitude source
-//       if ((config_.MslAltSourcePtr.size() > 0)&&(config_.StaticPressureSourcePtr.size() > 0)) {
-//         float AvgMSL = 0;
-//         for (size_t i=0; i < config_.MslAltSourcePtr.size(); i++) {
-//           AvgMSL += *config_.MslAltSourcePtr[i]/config_.MslAltSourcePtr.size();
-//         }
-//         // get the initial MSL altitude
-//         config_.InitialMSLAlt_m = config_.InitialMSLAlt_m+(AvgMSL-config_.InitialMSLAlt_m)/((float)NumberSamples);
-//       }
-//       NumberSamples++;
-//       // if time > duration return true
-//       if (InitializationTimer_us_ > config_.InitializationTime_s*1e6) {
-//         InitializedLatch_ = true;
-//         return true;
-//       } else {
-//         return false;
-//       }
-//     } else {
-//       return false;
-//     }
-//   }
-// }
-
-// /* compute air data values */
-// void BaselineAirDataClass::Run(Mode mode) {
-//   data_.Mode = (uint8_t) mode;
-//   // if we have at least one static pressure source
-//   if (config_.StaticPressureSourcePtr.size() > 0) {
-//     // average all static pressure sources
-//     data_.StaticPressure_Pa = 0;
-//     for (size_t i=0; i < config_.StaticPressureSourcePtr.size(); i++) {
-//       data_.StaticPressure_Pa += *config_.StaticPressureSourcePtr[i]/config_.StaticPressureSourcePtr.size();
-//     }
-//     // compute pressure altitude
-//     data_.PressureAltitude_m = airdata_.getPressureAltitude(data_.StaticPressure_Pa);
-//     // compute AGL altitude
-//     data_.AGL_m = airdata_.getAGL(data_.StaticPressure_Pa,config_.InitialPressureAlt_m);
-//   }
-//   // if we have at least one differential pressure source
-//   if (config_.DifferentialPressureSourcePtr.size() > 0) {
-//     // remove all diff pressure biases and average
-//     data_.DifferentialPressure_Pa = 0;
-//     for (size_t i=0; i < config_.DifferentialPressureSourcePtr.size(); i++) {
-//       data_.DifferentialPressure_Pa += (*config_.DifferentialPressureSourcePtr[i]-config_.DifferentialPressureBiases[i])/config_.DifferentialPressureSourcePtr.size();
-//     }
-//     // compute indicated airspeed
-//     data_.IAS_ms = airdata_.getIAS(data_.DifferentialPressure_Pa);
-//   }
-//   // if at least one static pressure and one MSL altitude source
-//   if ((config_.MslAltSourcePtr.size() > 0)&&(config_.StaticPressureSourcePtr.size() > 0)) {
-//     // compute MSL altitude
-//     data_.MSL_m = airdata_.getMSL(data_.AGL_m,config_.InitialMSLAlt_m);
-//   }
-// }
-
 /* configures sensor processing given a JSON value and registers data with global defs */
 void SensorProcessing::Configure(const rapidjson::Value& Config,DefinitionTree *DefinitionTreePtr) {
+  std::map<std::string,std::string> OutputKeysMap;
   // configuring baseline sensor processing
   if (Config.HasMember("Baseline")) {
-    std::string PathName = RootPath_ + "/" + "Baseline";
+    // path for the baseline functions /Sensor-Processing/Baseline
+    std::string PathName = RootPath_+"/"+"Baseline";
+    // iterate over each and check the "Type" key to make the correct function pointer
     const rapidjson::Value& BaselineConfig = Config["Baseline"];
-    for (size_t i=0; i < BaselineConfig.Size(); i++) {
-      if (BaselineConfig[i].HasMember("Type")) {
-        if (BaselineConfig[i]["Type"] == "Constant") {
-          ConstantClass Temp;
-          BaselineSensorProcessing_.push_back(std::make_shared<ConstantClass>(Temp));
-          BaselineSensorProcessing_[i]->Configure(BaselineConfig[i],PathName,DefinitionTreePtr);
+    for (auto &Func : BaselineConfig.GetArray()) {
+      if (Func.HasMember("Type")) {
+        if (Func["Type"] == "Constant") {
+          BaselineSensorProcessing_.push_back(std::make_shared<ConstantClass>()); 
         }
-        if (BaselineConfig[i]["Type"] == "Gain") {
-          GainClass Temp;
-          BaselineSensorProcessing_.push_back(std::make_shared<GainClass>(Temp));
-          BaselineSensorProcessing_[i]->Configure(BaselineConfig[i],PathName,DefinitionTreePtr);
+        if (Func["Type"] == "Gain") {
+          BaselineSensorProcessing_.push_back(std::make_shared<GainClass>());
         }
-        if (BaselineConfig[i]["Type"] == "Sum") {
-          SumClass Temp;
-          BaselineSensorProcessing_.push_back(std::make_shared<SumClass>(Temp));
-          BaselineSensorProcessing_[i]->Configure(BaselineConfig[i],PathName,DefinitionTreePtr);
+        if (Func["Type"] == "Sum") {
+          BaselineSensorProcessing_.push_back(std::make_shared<SumClass>());
         }
-        if (BaselineConfig[i]["Type"] == "BaselineAirData") {
-          // BaselineAirDataClass Temp;
-          // BaselineSensorProcessing_.push_back(std::make_shared<BaselineAirDataClass>(Temp));
-          // BaselineSensorProcessing_[i]->Configure(BaselineConfig[i],PathName,DefinitionTreePtr);
-        }
+        // configure the function
+        BaselineSensorProcessing_.back()->Configure(Func,PathName,DefinitionTreePtr);
       } else {
         throw std::runtime_error(std::string("ERROR")+PathName+std::string(": Type not specified in configuration."));
       }
     }
     // getting a list of all baseline keys and adding to superset of output keys
-    std::vector<std::string> BaselineKeys;
-    DefinitionTreePtr->GetKeys(PathName,&BaselineKeys);
-    for (size_t i=0; i < BaselineKeys.size(); i++) {
-      std::string MemberName = RootPath_ + BaselineKeys[i].erase(0,PathName.size());
-      OutputKeys_[MemberName] = MemberName;
+    // modify the key to remove the intermediate path 
+    // (i.e. /Sensor-Processing/Baseline/Ias --> /Sensor-Processing/Ias)
+    DefinitionTreePtr->GetKeys(PathName,&BaselineDataKeys_);
+    for (auto Key : BaselineDataKeys_) {
+      std::string MemberName = RootPath_+Key.substr(Key.rfind("/"));
+      if (Key.substr(Key.rfind("/"))!="/Mode") {
+        OutputKeysMap[MemberName] = MemberName;
+      }
     }
   } else {
     throw std::runtime_error(std::string("ERROR")+RootPath_+std::string(": Baseline not specified in configuration."));
   }
+  
   // configuring research sensor processing groups
   if (Config.HasMember("Research")) {
     const rapidjson::Value& ResearchConfig = Config["Research"];
-    for (size_t i=0; i < ResearchConfig.Size(); i++) {
-      if (ResearchConfig[i].HasMember("Group-Name")&&ResearchConfig[i].HasMember("Components")) {
-        ResearchGroupKeys_.push_back(ResearchConfig[i]["Group-Name"].GetString());
-        std::string PathName = RootPath_ + "/" + ResearchConfig[i]["Group-Name"].GetString();
-        for (size_t j=0; j < ResearchConfig[i]["Components"].Size(); j++) {
-          if (ResearchConfig[i]["Components"][j].HasMember("Type")) {
-            if (ResearchConfig[i]["Components"][j]["Type"] == "Constant") {
-              ConstantClass Temp;
-              ResearchSensorProcessingGroups_[ResearchConfig[i]["Group-Name"].GetString()].push_back(std::make_shared<ConstantClass>(Temp));
-              ResearchSensorProcessingGroups_[ResearchConfig[i]["Group-Name"].GetString()][j]->Configure(ResearchConfig[i]["Components"][j],PathName,DefinitionTreePtr);
+    for (auto &Group : ResearchConfig.GetArray()) {
+      if (Group.HasMember("Group-Name")&&Group.HasMember("Components")) {
+        // vector of group names
+        ResearchGroupKeys_.push_back(Group["Group-Name"].GetString());
+        // path for the research functions /Sensor-Processing/"Group-Name"
+        std::string PathName = RootPath_+"/"+Group["Group-Name"].GetString();
+        for (auto &Func : Group["Components"].GetArray()) {
+          if (Func.HasMember("Type")) {
+            if (Func["Type"] == "Constant") {
+              ResearchSensorProcessingGroups_[ResearchGroupKeys_.back()].push_back(std::make_shared<ConstantClass>()); 
             }
-            if (ResearchConfig[i]["Components"][j]["Type"] == "Gain") {
-              GainClass Temp;
-              ResearchSensorProcessingGroups_[ResearchConfig[i]["Group-Name"].GetString()].push_back(std::make_shared<GainClass>(Temp));
-              ResearchSensorProcessingGroups_[ResearchConfig[i]["Group-Name"].GetString()][j]->Configure(ResearchConfig[i]["Components"][j],PathName,DefinitionTreePtr);
+            if (Func["Type"] == "Gain") {
+              ResearchSensorProcessingGroups_[ResearchGroupKeys_.back()].push_back(std::make_shared<GainClass>());
             }
-            if (ResearchConfig[i]["Components"][j]["Type"] == "Sum") {
-              SumClass Temp;
-              ResearchSensorProcessingGroups_[ResearchConfig[i]["Group-Name"].GetString()].push_back(std::make_shared<SumClass>(Temp));
-              ResearchSensorProcessingGroups_[ResearchConfig[i]["Group-Name"].GetString()][j]->Configure(ResearchConfig[i]["Components"][j],PathName,DefinitionTreePtr);
+            if (Func["Type"] == "Sum") {
+              ResearchSensorProcessingGroups_[ResearchGroupKeys_.back()].push_back(std::make_shared<SumClass>());
             }
-            if (ResearchConfig[i]["Components"][j]["Type"] == "BaselineAirData") {
-              // BaselineAirDataClass Temp;
-              // ResearchSensorProcessingGroups_[ResearchConfig[i]["Group-Name"].GetString()].push_back(std::make_shared<BaselineAirDataClass>(Temp));
-              // ResearchSensorProcessingGroups_[ResearchConfig[i]["Group-Name"].GetString()][j]->Configure(ResearchConfig[i]["Components"][j],PathName,DefinitionTreePtr);
-            }
+            // configure the function
+            ResearchSensorProcessingGroups_[ResearchGroupKeys_.back()].back()->Configure(Func,PathName,DefinitionTreePtr);
           } else {
             throw std::runtime_error(std::string("ERROR")+PathName+std::string(": Type not specified in configuration."));
-          }
+          }          
         }
-        // getting a list of all keys and adding to superset of output keys
-        std::vector<std::string> ResearchKeys;
-        DefinitionTreePtr->GetKeys(PathName,&ResearchKeys);
-        for (size_t j=0; j < ResearchKeys.size(); j++) {
-          std::string MemberName = RootPath_ + ResearchKeys[j].erase(0,PathName.size());
-          OutputKeys_[MemberName] = MemberName;
+        // getting a list of all research keys and adding to superset of output keys
+        // modify the key to remove the intermediate path 
+        // (i.e. /Sensor-Processing/GroupName/Ias --> /Sensor-Processing/Ias)
+        DefinitionTreePtr->GetKeys(PathName,&ResearchDataKeys_[ResearchGroupKeys_.back()]);
+        for (auto Key : ResearchDataKeys_[ResearchGroupKeys_.back()]) {
+          std::string MemberName = RootPath_+Key.substr(Key.rfind("/"));
+          if (Key.substr(Key.rfind("/"))!="/Mode") {
+            OutputKeysMap[MemberName] = MemberName;
+          }
         }
       } else {
         throw std::runtime_error(std::string("ERROR")+RootPath_+std::string(": Group name or components not specified in configuration."));
       }
     }
   }
-  // resize vectors
-  BaselineDataPtr_.resize(OutputKeys_.size());
-  OutputData_.resize(OutputKeys_.size());
-  // map baseline data pointers to superset of output keys
-  std::string PathName = RootPath_ + "/" + "Baseline";
-  std::vector<std::string> BaselineKeys;
-  DefinitionTreePtr->GetKeys(PathName,&BaselineKeys);
-  size_t i=0;
-  for (auto const& element : OutputKeys_) {
-    std::string MemberName;
-    DefinitionTree::VariableDefinition TempDef;
-    MemberName = RootPath_ + BaselineKeys[i].substr(PathName.size());
-    if (MemberName == element.second) {
-      DefinitionTreePtr->GetMember(BaselineKeys[i],&TempDef);
-      BaselineDataPtr_[i] = TempDef.Value;
-      if (DefinitionTreePtr->Size(MemberName)==0) {
-        if (DefinitionTreePtr->GetValuePtr<uint64_t*>(BaselineKeys[i])) {
-          OutputData_[i] = *(DefinitionTreePtr->GetValuePtr<uint64_t*>(BaselineKeys[i]));
-          DefinitionTreePtr->InitMember(MemberName,std::get_if<uint64_t>(&OutputData_[i]),TempDef.Description,true,false);
-        }
-        if (DefinitionTreePtr->GetValuePtr<uint32_t*>(BaselineKeys[i])) {
-          OutputData_[i] = *(DefinitionTreePtr->GetValuePtr<uint32_t*>(BaselineKeys[i]));
-          DefinitionTreePtr->InitMember(MemberName,std::get_if<uint32_t>(&OutputData_[i]),TempDef.Description,true,false);
-        }
-        if (DefinitionTreePtr->GetValuePtr<uint16_t*>(BaselineKeys[i])) {
-          OutputData_[i] = *(DefinitionTreePtr->GetValuePtr<uint16_t*>(BaselineKeys[i]));
-          DefinitionTreePtr->InitMember(MemberName,std::get_if<uint16_t>(&OutputData_[i]),TempDef.Description,true,false);
-        }
-        if (DefinitionTreePtr->GetValuePtr<uint8_t*>(BaselineKeys[i])) {
-          OutputData_[i] = *(DefinitionTreePtr->GetValuePtr<uint8_t*>(BaselineKeys[i]));
-          DefinitionTreePtr->InitMember(MemberName,std::get_if<uint8_t>(&OutputData_[i]),TempDef.Description,true,false);
-        }
-        if (DefinitionTreePtr->GetValuePtr<int64_t*>(BaselineKeys[i])) {
-          OutputData_[i] = *(DefinitionTreePtr->GetValuePtr<int64_t*>(BaselineKeys[i]));
-          DefinitionTreePtr->InitMember(MemberName,std::get_if<int64_t>(&OutputData_[i]),TempDef.Description,true,false);
-        }
-        if (DefinitionTreePtr->GetValuePtr<int32_t*>(BaselineKeys[i])) {
-          OutputData_[i] = *(DefinitionTreePtr->GetValuePtr<int32_t*>(BaselineKeys[i]));
-          DefinitionTreePtr->InitMember(MemberName,std::get_if<int32_t>(&OutputData_[i]),TempDef.Description,true,false);
-        }
-        if (DefinitionTreePtr->GetValuePtr<int16_t*>(BaselineKeys[i])) {
-          OutputData_[i] = *(DefinitionTreePtr->GetValuePtr<int16_t*>(BaselineKeys[i]));
-          DefinitionTreePtr->InitMember(MemberName,std::get_if<int16_t>(&OutputData_[i]),TempDef.Description,true,false);
-        }
-        if (DefinitionTreePtr->GetValuePtr<int8_t*>(BaselineKeys[i])) {
-          OutputData_[i] = *(DefinitionTreePtr->GetValuePtr<int8_t*>(BaselineKeys[i]));
-          DefinitionTreePtr->InitMember(MemberName,std::get_if<int8_t>(&OutputData_[i]),TempDef.Description,true,false);
-        }
-        if (DefinitionTreePtr->GetValuePtr<float*>(BaselineKeys[i])) {
-          OutputData_[i] = *(DefinitionTreePtr->GetValuePtr<float*>(BaselineKeys[i]));
-          DefinitionTreePtr->InitMember(MemberName,std::get_if<float>(&OutputData_[i]),TempDef.Description,true,false);
-        }
-        if (DefinitionTreePtr->GetValuePtr<double*>(BaselineKeys[i])) {
-          OutputData_[i] = *(DefinitionTreePtr->GetValuePtr<double*>(BaselineKeys[i]));
-          DefinitionTreePtr->InitMember(MemberName,std::get_if<double>(&OutputData_[i]),TempDef.Description,true,false);
+  /* map baseline and research outputs to superset of outputs */
+  // iterate through output keys and check for matching keys in baseline or research
+  for (auto OutputElem : OutputKeysMap) {
+    // current output key
+    std::string OutputKey = OutputElem.second;
+    // iterate through baseline keys
+    for (auto BaselineKey : BaselineDataKeys_) {
+      // check for a match with output keys
+      if (BaselineKey.substr(BaselineKey.rfind("/"))==OutputKey.substr(OutputKey.rfind("/"))) {
+        std::string KeyName = BaselineKey.substr(BaselineKey.rfind("/"));
+        // setup baseline data pointer
+        DefinitionTree::VariableDefinition TempDef;
+        DefinitionTreePtr->GetMember(BaselineKey,&TempDef);
+        BaselineDataPtr_[KeyName] = TempDef.Value;
+        // check to see if output key has already been registered
+        if (DefinitionTreePtr->Size(OutputKey)==0) {
+          // register output if it has not already been
+          if (DefinitionTreePtr->GetValuePtr<uint64_t*>(BaselineKey)) {
+            OutputData_[KeyName] = *(DefinitionTreePtr->GetValuePtr<uint64_t*>(BaselineKey));
+            DefinitionTreePtr->InitMember(OutputKey,std::get_if<uint64_t>(&OutputData_[KeyName]),TempDef.Description,true,false);
+          }
+          if (DefinitionTreePtr->GetValuePtr<uint32_t*>(BaselineKey)) {
+            OutputData_[KeyName] = *(DefinitionTreePtr->GetValuePtr<uint32_t*>(BaselineKey));
+            DefinitionTreePtr->InitMember(OutputKey,std::get_if<uint32_t>(&OutputData_[KeyName]),TempDef.Description,true,false);
+          }
+          if (DefinitionTreePtr->GetValuePtr<uint16_t*>(BaselineKey)) {
+            OutputData_[KeyName] = *(DefinitionTreePtr->GetValuePtr<uint16_t*>(BaselineKey));
+            DefinitionTreePtr->InitMember(OutputKey,std::get_if<uint16_t>(&OutputData_[KeyName]),TempDef.Description,true,false);
+          }
+          if (DefinitionTreePtr->GetValuePtr<uint8_t*>(BaselineKey)) {
+            OutputData_[KeyName] = *(DefinitionTreePtr->GetValuePtr<uint8_t*>(BaselineKey));
+            DefinitionTreePtr->InitMember(OutputKey,std::get_if<uint8_t>(&OutputData_[KeyName]),TempDef.Description,true,false);
+          }
+          if (DefinitionTreePtr->GetValuePtr<int64_t*>(BaselineKey)) {
+            OutputData_[KeyName] = *(DefinitionTreePtr->GetValuePtr<int64_t*>(BaselineKey));
+            DefinitionTreePtr->InitMember(OutputKey,std::get_if<int64_t>(&OutputData_[KeyName]),TempDef.Description,true,false);
+          }
+          if (DefinitionTreePtr->GetValuePtr<int32_t*>(BaselineKey)) {
+            OutputData_[KeyName] = *(DefinitionTreePtr->GetValuePtr<int32_t*>(BaselineKey));
+            DefinitionTreePtr->InitMember(OutputKey,std::get_if<int32_t>(&OutputData_[KeyName]),TempDef.Description,true,false);
+          }
+          if (DefinitionTreePtr->GetValuePtr<int16_t*>(BaselineKey)) {
+            OutputData_[KeyName] = *(DefinitionTreePtr->GetValuePtr<int16_t*>(BaselineKey));
+            DefinitionTreePtr->InitMember(OutputKey,std::get_if<int16_t>(&OutputData_[KeyName]),TempDef.Description,true,false);
+          }
+          if (DefinitionTreePtr->GetValuePtr<int8_t*>(BaselineKey)) {
+            OutputData_[KeyName] = *(DefinitionTreePtr->GetValuePtr<int8_t*>(BaselineKey));
+            DefinitionTreePtr->InitMember(OutputKey,std::get_if<int8_t>(&OutputData_[KeyName]),TempDef.Description,true,false);
+          }
+          if (DefinitionTreePtr->GetValuePtr<float*>(BaselineKey)) {
+            OutputData_[KeyName] = *(DefinitionTreePtr->GetValuePtr<float*>(BaselineKey));
+            DefinitionTreePtr->InitMember(OutputKey,std::get_if<float>(&OutputData_[KeyName]),TempDef.Description,true,false);
+          }
+          if (DefinitionTreePtr->GetValuePtr<double*>(BaselineKey)) {
+            OutputData_[KeyName] = *(DefinitionTreePtr->GetValuePtr<double*>(BaselineKey));
+            DefinitionTreePtr->InitMember(OutputKey,std::get_if<double>(&OutputData_[KeyName]),TempDef.Description,true,false);
+          }
         }
       }
     }
-    i++;
-  }
-  // map research data pointers to superset of output keys
-  for (size_t i=0; i < ResearchGroupKeys_.size(); i++) {
-    std::string PathName = RootPath_ + "/" + ResearchGroupKeys_[i];
-    ResearchDataPtr_[ResearchGroupKeys_[i]].resize(OutputKeys_.size());
-    std::vector<std::string> ResearchKeys;
-    DefinitionTreePtr->GetKeys(PathName,&ResearchKeys);
-    size_t j=0;
-    for (auto const& element : OutputKeys_) {
-      std::string MemberName;
-      DefinitionTree::VariableDefinition TempDef;
-      MemberName = RootPath_ + ResearchKeys[j].substr(PathName.size());
-      if (MemberName == element.second) {
-        DefinitionTreePtr->GetMember(ResearchKeys[j],&TempDef);
-        ResearchDataPtr_[ResearchGroupKeys_[i]][j] = TempDef.Value;
-        if (DefinitionTreePtr->Size(MemberName)==0) {
-          if (DefinitionTreePtr->GetValuePtr<uint64_t*>(ResearchKeys[j])) {
-            OutputData_[j] = *(DefinitionTreePtr->GetValuePtr<uint64_t*>(ResearchKeys[j]));
-            DefinitionTreePtr->InitMember(MemberName,std::get_if<uint64_t>(&OutputData_[j]),TempDef.Description,true,false);
-          }
-          if (DefinitionTreePtr->GetValuePtr<uint32_t*>(ResearchKeys[j])) {
-            OutputData_[j] = *(DefinitionTreePtr->GetValuePtr<uint32_t*>(ResearchKeys[j]));
-            DefinitionTreePtr->InitMember(MemberName,std::get_if<uint32_t>(&OutputData_[j]),TempDef.Description,true,false);
-          }
-          if (DefinitionTreePtr->GetValuePtr<uint16_t*>(ResearchKeys[j])) {
-            OutputData_[j] = *(DefinitionTreePtr->GetValuePtr<uint16_t*>(ResearchKeys[j]));
-            DefinitionTreePtr->InitMember(MemberName,std::get_if<uint16_t>(&OutputData_[j]),TempDef.Description,true,false);
-          }
-          if (DefinitionTreePtr->GetValuePtr<uint8_t*>(ResearchKeys[j])) {
-            OutputData_[j] = *(DefinitionTreePtr->GetValuePtr<uint8_t*>(ResearchKeys[j]));
-            DefinitionTreePtr->InitMember(MemberName,std::get_if<uint8_t>(&OutputData_[j]),TempDef.Description,true,false);
-          }
-          if (DefinitionTreePtr->GetValuePtr<int64_t*>(ResearchKeys[j])) {
-            OutputData_[j] = *(DefinitionTreePtr->GetValuePtr<int64_t*>(ResearchKeys[j]));
-            DefinitionTreePtr->InitMember(MemberName,std::get_if<int64_t>(&OutputData_[j]),TempDef.Description,true,false);
-          }
-          if (DefinitionTreePtr->GetValuePtr<int32_t*>(ResearchKeys[j])) {
-            OutputData_[j] = *(DefinitionTreePtr->GetValuePtr<int32_t*>(ResearchKeys[j]));
-            DefinitionTreePtr->InitMember(MemberName,std::get_if<int32_t>(&OutputData_[j]),TempDef.Description,true,false);
-          }
-          if (DefinitionTreePtr->GetValuePtr<int16_t*>(ResearchKeys[j])) {
-            OutputData_[j] = *(DefinitionTreePtr->GetValuePtr<int16_t*>(ResearchKeys[j]));
-            DefinitionTreePtr->InitMember(MemberName,std::get_if<int16_t>(&OutputData_[j]),TempDef.Description,true,false);
-          }
-          if (DefinitionTreePtr->GetValuePtr<int8_t*>(ResearchKeys[j])) {
-            OutputData_[j] = *(DefinitionTreePtr->GetValuePtr<int8_t*>(ResearchKeys[j]));
-            DefinitionTreePtr->InitMember(MemberName,std::get_if<int8_t>(&OutputData_[j]),TempDef.Description,true,false);
-          }
-          if (DefinitionTreePtr->GetValuePtr<float*>(ResearchKeys[j])) {
-            OutputData_[j] = *(DefinitionTreePtr->GetValuePtr<float*>(ResearchKeys[j]));
-            DefinitionTreePtr->InitMember(MemberName,&(std::get<float>(OutputData_[j])),TempDef.Description,true,false);
-          }
-          if (DefinitionTreePtr->GetValuePtr<double*>(ResearchKeys[j])) {
-            OutputData_[j] = *(DefinitionTreePtr->GetValuePtr<double*>(ResearchKeys[j]));
-            DefinitionTreePtr->InitMember(MemberName,std::get_if<double>(&OutputData_[j]),TempDef.Description,true,false);
+    // iterate through research keys
+    for (auto GroupKey : ResearchGroupKeys_) {
+      for (auto ResearchKey : ResearchDataKeys_[GroupKey]) {
+        // check for a match with output keys
+        if (ResearchKey.substr(ResearchKey.rfind("/"))==OutputKey.substr(OutputKey.rfind("/"))) {
+          std::string KeyName = ResearchKey.substr(ResearchKey.rfind("/"));
+          // setup research data pointer
+          DefinitionTree::VariableDefinition TempDef;
+          DefinitionTreePtr->GetMember(ResearchKey,&TempDef);
+          ResearchDataPtr_[GroupKey][KeyName] = TempDef.Value;
+          // check to see if output key has already been registered
+          if (DefinitionTreePtr->Size(OutputKey)==0) {
+            // register output if it has not already been
+            if (DefinitionTreePtr->GetValuePtr<uint64_t*>(ResearchKey)) {
+              OutputData_[KeyName] = *(DefinitionTreePtr->GetValuePtr<uint64_t*>(ResearchKey));
+              DefinitionTreePtr->InitMember(OutputKey,std::get_if<uint64_t>(&OutputData_[KeyName]),TempDef.Description,true,false);
+            }
+            if (DefinitionTreePtr->GetValuePtr<uint32_t*>(ResearchKey)) {
+              OutputData_[KeyName] = *(DefinitionTreePtr->GetValuePtr<uint32_t*>(ResearchKey));
+              DefinitionTreePtr->InitMember(OutputKey,std::get_if<uint32_t>(&OutputData_[KeyName]),TempDef.Description,true,false);
+            }
+            if (DefinitionTreePtr->GetValuePtr<uint16_t*>(ResearchKey)) {
+              OutputData_[KeyName] = *(DefinitionTreePtr->GetValuePtr<uint16_t*>(ResearchKey));
+              DefinitionTreePtr->InitMember(OutputKey,std::get_if<uint16_t>(&OutputData_[KeyName]),TempDef.Description,true,false);
+            }
+            if (DefinitionTreePtr->GetValuePtr<uint8_t*>(ResearchKey)) {
+              OutputData_[KeyName] = *(DefinitionTreePtr->GetValuePtr<uint8_t*>(ResearchKey));
+              DefinitionTreePtr->InitMember(OutputKey,std::get_if<uint8_t>(&OutputData_[KeyName]),TempDef.Description,true,false);
+            }
+            if (DefinitionTreePtr->GetValuePtr<int64_t*>(ResearchKey)) {
+              OutputData_[KeyName] = *(DefinitionTreePtr->GetValuePtr<int64_t*>(ResearchKey));
+              DefinitionTreePtr->InitMember(OutputKey,std::get_if<int64_t>(&OutputData_[KeyName]),TempDef.Description,true,false);
+            }
+            if (DefinitionTreePtr->GetValuePtr<int32_t*>(ResearchKey)) {
+              OutputData_[KeyName] = *(DefinitionTreePtr->GetValuePtr<int32_t*>(ResearchKey));
+              DefinitionTreePtr->InitMember(OutputKey,std::get_if<int32_t>(&OutputData_[KeyName]),TempDef.Description,true,false);
+            }
+            if (DefinitionTreePtr->GetValuePtr<int16_t*>(ResearchKey)) {
+              OutputData_[KeyName] = *(DefinitionTreePtr->GetValuePtr<int16_t*>(ResearchKey));
+              DefinitionTreePtr->InitMember(OutputKey,std::get_if<int16_t>(&OutputData_[KeyName]),TempDef.Description,true,false);
+            }
+            if (DefinitionTreePtr->GetValuePtr<int8_t*>(ResearchKey)) {
+              OutputData_[KeyName] = *(DefinitionTreePtr->GetValuePtr<int8_t*>(ResearchKey));
+              DefinitionTreePtr->InitMember(OutputKey,std::get_if<int8_t>(&OutputData_[KeyName]),TempDef.Description,true,false);
+            }
+            if (DefinitionTreePtr->GetValuePtr<float*>(ResearchKey)) {
+              OutputData_[KeyName] = *(DefinitionTreePtr->GetValuePtr<float*>(ResearchKey));
+              DefinitionTreePtr->InitMember(OutputKey,std::get_if<float>(&OutputData_[KeyName]),TempDef.Description,true,false);
+            }
+            if (DefinitionTreePtr->GetValuePtr<double*>(ResearchKey)) {
+              OutputData_[KeyName] = *(DefinitionTreePtr->GetValuePtr<double*>(ResearchKey));
+              DefinitionTreePtr->InitMember(OutputKey,std::get_if<double>(&OutputData_[KeyName]),TempDef.Description,true,false);
+            }
           }
         }
       }
-      j++;
     }
   }
   Configured_ = true;
@@ -426,15 +234,15 @@ bool SensorProcessing::Initialized() {
   } else {
     bool initialized = true;
     // initializing baseline sensor processing
-    for (size_t i=0; i < BaselineSensorProcessing_.size(); i++) {
-      if (!BaselineSensorProcessing_[i]->Initialized()) {
+    for (auto Func : BaselineSensorProcessing_) {
+      if (!Func->Initialized()) {
         initialized = false;
       }
     }
     // initializing research sensor processing
-    for (size_t i=0; i < ResearchGroupKeys_.size(); i++) {
-      for (size_t j=0; j < ResearchSensorProcessingGroups_[ResearchGroupKeys_[i]].size(); j++) {
-        if (!ResearchSensorProcessingGroups_[ResearchGroupKeys_[i]][j]->Initialized()) {
+    for (auto Group : ResearchGroupKeys_) {
+      for (auto Func : ResearchSensorProcessingGroups_[Group]) {
+        if (!Func->Initialized()) {
           initialized = false;
         }
       }
@@ -455,96 +263,100 @@ void SensorProcessing::SetEngagedSensorProcessing(std::string EngagedSensorProce
 void SensorProcessing::Run() {
   if (EngagedGroup_ == "Baseline") {
     // running baseline sensor processing
-    for (size_t i=0; i < BaselineSensorProcessing_.size(); i++) {
-      BaselineSensorProcessing_[i]->Run(GenericFunction::kEngage);
+    for (auto Func : BaselineSensorProcessing_) {
+      Func->Run(GenericFunction::kEngage);
     }
     // running research sensor processing
-    for (size_t i=0; i < ResearchGroupKeys_.size(); i++) {
-      for (size_t j=0; j < ResearchSensorProcessingGroups_[ResearchGroupKeys_[i]].size(); j++) {
-        ResearchSensorProcessingGroups_[ResearchGroupKeys_[i]][j]->Run(GenericFunction::kArm);
+    for (auto Group : ResearchGroupKeys_) {
+      for (auto Func : ResearchSensorProcessingGroups_[Group]) {
+        Func->Run(GenericFunction::kArm);
       }
     }
-    for (size_t i=0; i < OutputData_.size(); i++) {
-      if (std::get_if<uint64_t*>(&BaselineDataPtr_[i])) {
-        OutputData_[i] = **(std::get_if<uint64_t*>(&BaselineDataPtr_[i]));
-      }
-      if (std::get_if<uint32_t*>(&BaselineDataPtr_[i])) {
-        OutputData_[i] = **(std::get_if<uint32_t*>(&BaselineDataPtr_[i]));
-      }
-      if (std::get_if<uint16_t*>(&BaselineDataPtr_[i])) {
-        OutputData_[i] = **(std::get_if<uint16_t*>(&BaselineDataPtr_[i]));
-      }
-      if (std::get_if<uint8_t*>(&BaselineDataPtr_[i])) {
-        OutputData_[i] = **(std::get_if<uint8_t*>(&BaselineDataPtr_[i]));
-      }
-      if (std::get_if<int64_t*>(&BaselineDataPtr_[i])) {
-        OutputData_[i] = **(std::get_if<int64_t*>(&BaselineDataPtr_[i]));
-      }
-      if (std::get_if<int32_t*>(&BaselineDataPtr_[i])) {
-        OutputData_[i] = **(std::get_if<int32_t*>(&BaselineDataPtr_[i]));
-      }
-      if (std::get_if<int16_t*>(&BaselineDataPtr_[i])) {
-        OutputData_[i] = **(std::get_if<int16_t*>(&BaselineDataPtr_[i]));
-      }
-      if (std::get_if<int8_t*>(&BaselineDataPtr_[i])) {
-        OutputData_[i] = **(std::get_if<int8_t*>(&BaselineDataPtr_[i]));
-      }
-      if (std::get_if<float*>(&BaselineDataPtr_[i])) {
-        OutputData_[i] = **(std::get_if<float*>(&BaselineDataPtr_[i]));
-      }
-      if (std::get_if<double*>(&BaselineDataPtr_[i])) {
-        OutputData_[i] = **(std::get_if<double*>(&BaselineDataPtr_[i]));
+    // setting the output
+    for (auto Key : BaselineDataKeys_) {
+      std::string KeyName = Key.substr(Key.rfind("/"));
+      if (KeyName!="/Mode") {
+        if (std::get_if<uint64_t*>(&BaselineDataPtr_[KeyName])) {
+          OutputData_[KeyName] = **(std::get_if<uint64_t*>(&BaselineDataPtr_[KeyName]));
+        }
+        if (std::get_if<uint32_t*>(&BaselineDataPtr_[KeyName])) {
+          OutputData_[KeyName] = **(std::get_if<uint32_t*>(&BaselineDataPtr_[KeyName]));
+        }
+        if (std::get_if<uint16_t*>(&BaselineDataPtr_[KeyName])) {
+          OutputData_[KeyName] = **(std::get_if<uint16_t*>(&BaselineDataPtr_[KeyName]));
+        }
+        if (std::get_if<uint8_t*>(&BaselineDataPtr_[KeyName])) {
+          OutputData_[KeyName] = **(std::get_if<uint8_t*>(&BaselineDataPtr_[KeyName]));
+        }
+        if (std::get_if<int64_t*>(&BaselineDataPtr_[KeyName])) {
+          OutputData_[KeyName] = **(std::get_if<int64_t*>(&BaselineDataPtr_[KeyName]));
+        }
+        if (std::get_if<int32_t*>(&BaselineDataPtr_[KeyName])) {
+          OutputData_[KeyName] = **(std::get_if<int32_t*>(&BaselineDataPtr_[KeyName]));
+        }
+        if (std::get_if<int16_t*>(&BaselineDataPtr_[KeyName])) {
+          OutputData_[KeyName] = **(std::get_if<int16_t*>(&BaselineDataPtr_[KeyName]));
+        }
+        if (std::get_if<int8_t*>(&BaselineDataPtr_[KeyName])) {
+          OutputData_[KeyName] = **(std::get_if<int8_t*>(&BaselineDataPtr_[KeyName]));
+        }
+        if (std::get_if<float*>(&BaselineDataPtr_[KeyName])) {
+          OutputData_[KeyName] = **(std::get_if<float*>(&BaselineDataPtr_[KeyName]));
+        }
+        if (std::get_if<double*>(&BaselineDataPtr_[KeyName])) {
+          OutputData_[KeyName] = **(std::get_if<double*>(&BaselineDataPtr_[KeyName]));
+        }
       }
     }
   } else {
     // running baseline sensor processing
-    for (size_t i=0; i < BaselineSensorProcessing_.size(); i++) {
-      BaselineSensorProcessing_[i]->Run(GenericFunction::kArm);
+    for (auto Func : BaselineSensorProcessing_) {
+      Func->Run(GenericFunction::kArm);
     }
     // running research sensor processing
-    for (size_t i=0; i < ResearchGroupKeys_.size(); i++) {
-      if (ResearchGroupKeys_[i] == EngagedGroup_) {
-        for (size_t j=0; j < ResearchSensorProcessingGroups_[ResearchGroupKeys_[i]].size(); j++) {
-          ResearchSensorProcessingGroups_[ResearchGroupKeys_[i]][j]->Run(GenericFunction::kEngage);
-        }
-      } else {
-        for (size_t j=0; j < ResearchSensorProcessingGroups_[ResearchGroupKeys_[i]].size(); j++) {
-          ResearchSensorProcessingGroups_[ResearchGroupKeys_[i]][j]->Run(GenericFunction::kArm);
+    for (auto Group : ResearchGroupKeys_) {
+      for (auto Func : ResearchSensorProcessingGroups_[Group]) {
+        if (Group == EngagedGroup_) {
+          Func->Run(GenericFunction::kEngage);
+        } else {
+          Func->Run(GenericFunction::kArm);
         }
       }
     }
-    std::vector<std::variant<uint64_t*,uint32_t*,uint16_t*,uint8_t*,int64_t*,int32_t*,int16_t*,int8_t*,float*,double*>> ResearchPtr;
-    ResearchPtr = ResearchDataPtr_[EngagedGroup_];
-    for (size_t i=0; i < OutputData_.size(); i++) {
-      if (std::get_if<uint64_t*>(&ResearchPtr[i])) {
-        OutputData_[i] = **(std::get_if<uint64_t*>(&ResearchPtr[i]));
-      }
-      if (std::get_if<uint32_t*>(&ResearchPtr[i])) {
-        OutputData_[i] = **(std::get_if<uint32_t*>(&ResearchPtr[i]));
-      }
-      if (std::get_if<uint16_t*>(&ResearchPtr[i])) {
-        OutputData_[i] = **(std::get_if<uint16_t*>(&ResearchPtr[i]));
-      }
-      if (std::get_if<uint8_t*>(&ResearchPtr[i])) {
-        OutputData_[i] = **(std::get_if<uint8_t*>(&ResearchPtr[i]));
-      }
-      if (std::get_if<int64_t*>(&ResearchPtr[i])) {
-        OutputData_[i] = **(std::get_if<int64_t*>(&ResearchPtr[i]));
-      }
-      if (std::get_if<int32_t*>(&ResearchPtr[i])) {
-        OutputData_[i] = **(std::get_if<int32_t*>(&ResearchPtr[i]));
-      }
-      if (std::get_if<int16_t*>(&ResearchPtr[i])) {
-        OutputData_[i] = **(std::get_if<int16_t*>(&ResearchPtr[i]));
-      }
-      if (std::get_if<int8_t*>(&ResearchPtr[i])) {
-        OutputData_[i] = **(std::get_if<int8_t*>(&ResearchPtr[i]));
-      }
-      if (std::get_if<float*>(&ResearchPtr[i])) {
-        OutputData_[i] = **(std::get_if<float*>(&ResearchPtr[i]));
-      }
-      if (std::get_if<double*>(&ResearchPtr[i])) {
-        OutputData_[i] = **(std::get_if<double*>(&ResearchPtr[i]));
+    // setting the output
+    for (auto Key : ResearchDataKeys_[EngagedGroup_]) {
+      std::string KeyName = Key.substr(Key.rfind("/"));
+      if (KeyName!="/Mode") {
+        if (std::get_if<uint64_t*>(&ResearchDataPtr_[EngagedGroup_][KeyName])) {
+          OutputData_[KeyName] = **(std::get_if<uint64_t*>(&ResearchDataPtr_[EngagedGroup_][KeyName]));
+        }
+        if (std::get_if<uint32_t*>(&ResearchDataPtr_[EngagedGroup_][KeyName])) {
+          OutputData_[KeyName] = **(std::get_if<uint32_t*>(&ResearchDataPtr_[EngagedGroup_][KeyName]));
+        }
+        if (std::get_if<uint16_t*>(&ResearchDataPtr_[EngagedGroup_][KeyName])) {
+          OutputData_[KeyName] = **(std::get_if<uint16_t*>(&ResearchDataPtr_[EngagedGroup_][KeyName]));
+        }
+        if (std::get_if<uint8_t*>(&ResearchDataPtr_[EngagedGroup_][KeyName])) {
+          OutputData_[KeyName] = **(std::get_if<uint8_t*>(&ResearchDataPtr_[EngagedGroup_][KeyName]));
+        }
+        if (std::get_if<int64_t*>(&ResearchDataPtr_[EngagedGroup_][KeyName])) {
+          OutputData_[KeyName] = **(std::get_if<int64_t*>(&ResearchDataPtr_[EngagedGroup_][KeyName]));
+        }
+        if (std::get_if<int32_t*>(&ResearchDataPtr_[EngagedGroup_][KeyName])) {
+          OutputData_[KeyName] = **(std::get_if<int32_t*>(&ResearchDataPtr_[EngagedGroup_][KeyName]));
+        }
+        if (std::get_if<int16_t*>(&ResearchDataPtr_[EngagedGroup_][KeyName])) {
+          OutputData_[KeyName] = **(std::get_if<int16_t*>(&ResearchDataPtr_[EngagedGroup_][KeyName]));
+        }
+        if (std::get_if<int8_t*>(&ResearchDataPtr_[EngagedGroup_][KeyName])) {
+          OutputData_[KeyName] = **(std::get_if<int8_t*>(&ResearchDataPtr_[EngagedGroup_][KeyName]));
+        }
+        if (std::get_if<float*>(&ResearchDataPtr_[EngagedGroup_][KeyName])) {
+          OutputData_[KeyName] = **(std::get_if<float*>(&ResearchDataPtr_[EngagedGroup_][KeyName]));
+        }
+        if (std::get_if<double*>(&ResearchDataPtr_[EngagedGroup_][KeyName])) {
+          OutputData_[KeyName] = **(std::get_if<double*>(&ResearchDataPtr_[EngagedGroup_][KeyName]));
+        }
       }
     }
   }
