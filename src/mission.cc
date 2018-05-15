@@ -40,24 +40,22 @@ void MissionManager::Configure(const rapidjson::Value& Config, DefinitionTree *D
     if (EngageSwitch.HasMember("Gain")) {
       config_.EngageSwitch.Gain = EngageSwitch["Gain"].GetFloat();
     }
-  }
+    EngageSwitchDefined_ = true;
+  } 
   // build a map of the test point data
   if (Config.HasMember("Test-Points")) {
     const rapidjson::Value& TestPoints = Config["Test-Points"];
     NumberOfTestPoints_ = TestPoints.Size();
-    for (size_t i=0; i < TestPoints.Size(); i++) {
-      const rapidjson::Value& TestPoint = TestPoints[i];
+    for (auto &TestPoint : TestPoints.GetArray()) {
       if (TestPoint.HasMember("Test-ID")&&TestPoint.HasMember("Sensor-Processing")&&TestPoint.HasMember("Control")&&TestPoint.HasMember("Excitation")) {
-        TestPointDefinition Temp;
-        Temp.SensorProcessing = TestPoint["Sensor-Processing"].GetString();
-        Temp.Control = TestPoint["Control"].GetString();
-        Temp.Excitation = TestPoint["Excitation"].GetString();
-        TestPoints_[TestPoint["Test-ID"].GetString()] = Temp;
+        TestPoints_[TestPoint["Test-ID"].GetString()].SensorProcessing = TestPoint["Sensor-Processing"].GetString();
+        TestPoints_[TestPoint["Test-ID"].GetString()].Control = TestPoint["Control"].GetString();
+        TestPoints_[TestPoint["Test-ID"].GetString()].Excitation = TestPoint["Excitation"].GetString();
       } else {
-        throw std::runtime_error(std::string("ERROR")+RootPath_+std::string(": Test-ID, Sensor-Processing, or Control not included in test point definition."));
+        throw std::runtime_error(std::string("ERROR")+RootPath_+std::string(": Test-ID, Sensor-Processing, Control, or Excitation not included in test point definition."));
       }
     }
-  }
+  } 
   Configured_ = true;
 }
 
@@ -71,32 +69,34 @@ void MissionManager::Run() {
   // determine if the research control law is engaged
   // check the engage switch state and use a persistence counter to filter
   // out noise
-  if (*config_.EngageSwitch.SourcePtr*config_.EngageSwitch.Gain > config_.EngageSwitch.Threshold) {
-    PersistenceCounter_++;
-  } else {
-    PersistenceCounter_ = 0;
-  }
-  // run research control law
-  if (PersistenceCounter_ > PersistenceThreshold_) {
-    if (!TestPointIndexLatch_) {
-      EngagedSensorProcessing_ = TestPoints_[std::to_string(TestPointIndex_)].SensorProcessing;
-      EnagagedController_ = TestPoints_[std::to_string(TestPointIndex_)].Control;
-      EnagagedExcitation_ = TestPoints_[std::to_string(TestPointIndex_)].Excitation;
-      TestPointIndexLatch_ = true;
-      TestPointIndex_++;
-      if (TestPointIndex_>=NumberOfTestPoints_) {
-        TestPointIndex_ = 0;
-      }
+  if ((EngageSwitchDefined_)&&(NumberOfTestPoints_ > 0)) {
+    if (*config_.EngageSwitch.SourcePtr*config_.EngageSwitch.Gain > config_.EngageSwitch.Threshold) {
+      PersistenceCounter_++;
+    } else {
+      PersistenceCounter_ = 0;
     }
-  // else engage baseline
-  } else {
-    EngagedSensorProcessing_ = "Baseline";
-    EnagagedController_ = "Baseline";
-    EnagagedExcitation_ = "None";
-    TestPointIndexLatch_ = false;
+    // run research control law
+    if (PersistenceCounter_ > PersistenceThreshold_) {
+      if (!TestPointIndexLatch_) {
+        EngagedSensorProcessing_ = TestPoints_[std::to_string(TestPointIndex_)].SensorProcessing;
+        EnagagedController_ = TestPoints_[std::to_string(TestPointIndex_)].Control;
+        EnagagedExcitation_ = TestPoints_[std::to_string(TestPointIndex_)].Excitation;
+        TestPointIndexLatch_ = true;
+        TestPointIndex_++;
+        if (TestPointIndex_>=NumberOfTestPoints_) {
+          TestPointIndex_ = 0;
+        }
+      }
+    // else engage baseline
+    } else {
+      EngagedSensorProcessing_ = "Baseline";
+      EnagagedController_ = "Baseline";
+      EnagagedExcitation_ = "None";
+      TestPointIndexLatch_ = false;
+    }
+    // arm the next control law
+    ArmedController_ = TestPoints_[std::to_string(TestPointIndex_)].Control;
   }
-  // arm the next control law
-  ArmedController_ = TestPoints_[std::to_string(TestPointIndex_)].Control;
 }
 
 /* returns the string of the sensor processing group that is engaged */
