@@ -102,12 +102,12 @@ class ControlLaws {
     bool Configured_ = false;
     std::string EngagedGroup_;
     std::string ArmedGroup_;
-    std::vector<std::string> ResearchGroupKeys_;
-    std::map<std::string,std::string> OutputKeys_;
-    std::map<std::string,std::vector<std::string>> ResearchLevelNames_;
     std::map<std::string,std::vector<std::vector<std::shared_ptr<GenericFunction>>>> ResearchControlGroups_;
-    std::vector<std::variant<uint64_t,uint32_t,uint16_t,uint8_t,int64_t,int32_t,int16_t,int8_t,float, double>> OutputData_;
-    std::map<std::string,std::vector<std::variant<uint64_t*,uint32_t*,uint16_t*,uint8_t*,int64_t*,int32_t*,int16_t*,int8_t*,float*,double*>>> ResearchDataPtr_;
+    std::vector<std::string> ResearchGroupKeys_;
+    std::map<std::string,std::vector<std::string>> ResearchLevelNames_;
+    std::map<std::string,std::vector<std::string>> ResearchDataKeys_;
+    std::map<std::string,std::variant<uint64_t,uint32_t,uint16_t,uint8_t,int64_t,int32_t,int16_t,int8_t,float, double>> OutputData_;
+    std::map<std::string,std::map<std::string,std::variant<uint64_t*,uint32_t*,uint16_t*,uint8_t*,int64_t*,int32_t*,int16_t*,int8_t*,float*,double*>>> ResearchDataPtr_;
 };
 
 #endif
