@@ -37,7 +37,7 @@ void ConstantClass::Configure(const rapidjson::Value& Config,std::string RootPat
   ModeKey_ = OutputName+"/Mode";
   DefinitionTreePtr->InitMember(ModeKey_,&data_.Mode,"Control law mode",true,false);
   // pointer to log command data
-  OutputKey_ = OutputName+"/Output";
+  OutputKey_ = OutputName+"/"+Config["Output"].GetString();
   DefinitionTreePtr->InitMember(OutputKey_,&data_.Output,"Control law output",true,false);
 }
 
@@ -99,7 +99,7 @@ void GainClass::Configure(const rapidjson::Value& Config,std::string RootPath,De
   ModeKey_ = OutputName+"/Mode";
   DefinitionTreePtr->InitMember(ModeKey_,&data_.Mode,"Control law mode",true,false);
   // pointer to log command data
-  OutputKey_ = OutputName+"/Output";
+  OutputKey_ = OutputName+"/"+Config["Output"].GetString();
   DefinitionTreePtr->InitMember(OutputKey_,&data_.Output,"Control law output",true,false);
 }
 
@@ -177,7 +177,7 @@ void SumClass::Configure(const rapidjson::Value& Config,std::string RootPath,Def
   ModeKey_ = OutputName+"/Mode";
   DefinitionTreePtr->InitMember(ModeKey_,&data_.Mode,"Run mode",true,false);
   // pointer to log command data
-  OutputKey_ = OutputName+"/Output";
+  OutputKey_ = OutputName+"/"+Config["Output"].GetString();
   DefinitionTreePtr->InitMember(OutputKey_,&data_.Output,"Control law output",true,false);
 }
 
