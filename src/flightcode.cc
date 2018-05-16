@@ -105,24 +105,30 @@ int main(int argc, char* argv[]) {
         }
         // run sensor processing
         SenProc.Run();
-        if (Control.Configured()&&Mission.Configured()&&Effectors.Configured()) {
+        if (Control.Configured()&&Mission.Configured()) {
           // get and set engaged and armed controllers
           Control.SetEngagedController(Mission.GetEnagagedController());
           Control.SetArmedController(Mission.GetArmedController());
           // get and set engaged excitation
-          Excitation.SetEngagedExcitation(Mission.GetEnagagedExcitation());
+          if (Excitation.Configured()) {
+            Excitation.SetEngagedExcitation(Mission.GetEnagagedExcitation());
+          }
           if (Mission.GetEnagagedController()!="Baseline") {
             // loop through control levels running excitations and control laws
             for (size_t i=0; i < Control.ActiveControlLevels(); i++) {
               if (Excitation.Configured()) {
                 // run excitation
-                Excitation.Run(Control.GetActiveLevel(i));
+                Excitation.RunEngaged(Control.GetActiveLevel(i));
               }
               // run control
               Control.RunEngaged(i);
             }
             // send effector commands to FMU
             Fmu.SendEffectorCommands(Effectors.Run());
+          }
+          if (Excitation.Configured()) {
+            // run armed excitations
+            Excitation.RunArmed();
           }
           // run armed control laws
           Control.RunArmed();
