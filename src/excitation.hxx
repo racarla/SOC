@@ -82,13 +82,14 @@ class ExcitationSystem {
     void Configure(const rapidjson::Value& Config, DefinitionTree *DefinitionTreePtr);
     bool Configured();
     void SetEngagedExcitation(std::string ExcitationGroupName);
-    void Run(std::string ControlLevel);
+    void RunEngaged(std::string ControlLevel);
+    void RunArmed();
   private:
     std::string RootPath_ = "/Excitation";
     bool Configured_ = false;
     std::string EngagedGroup_ = "None";
     std::vector<std::string> ExcitationGroupKeys_;
-    std::vector<std::string> ExcitationGroupLevels_;
+    std::vector<std::vector<std::string>> ExcitationGroupLevels_;
     std::vector<std::vector<std::vector<std::shared_ptr<GenericFunction>>>> ExcitationGroups_;
 };
 
