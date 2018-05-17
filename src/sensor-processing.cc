@@ -40,6 +40,12 @@ void SensorProcessing::Configure(const rapidjson::Value& Config,DefinitionTree *
         if (Func["Type"] == "Sum") {
           BaselineSensorProcessing_.push_back(std::make_shared<SumClass>());
         }
+        if (Func["Type"] == "IAS") {
+          BaselineSensorProcessing_.push_back(std::make_shared<IndicatedAirspeed>());
+        }
+        if (Func["Type"] == "AGL") {
+          BaselineSensorProcessing_.push_back(std::make_shared<AglAltitude>());
+        }
         // configure the function
         BaselineSensorProcessing_.back()->Configure(Func,PathName,DefinitionTreePtr);
       } else {
@@ -235,6 +241,7 @@ bool SensorProcessing::Initialized() {
     bool initialized = true;
     // initializing baseline sensor processing
     for (auto Func : BaselineSensorProcessing_) {
+      Func->Initialize();
       if (!Func->Initialized()) {
         initialized = false;
       }
@@ -242,6 +249,7 @@ bool SensorProcessing::Initialized() {
     // initializing research sensor processing
     for (auto Group : ResearchGroupKeys_) {
       for (auto Func : ResearchSensorProcessingGroups_[Group]) {
+        Func->Initialize();
         if (!Func->Initialized()) {
           initialized = false;
         }

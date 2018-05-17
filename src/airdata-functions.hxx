@@ -21,54 +21,106 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SO
 #ifndef AIRDATA_FUNCTIONS_HXX_
 #define AIRDATA_FUNCTIONS_HXX_
 
-// class SensorProcessingFunctionClass {
-//   public:
-//     enum Mode {
-//       kArm,
-//       kEngage
-//     };
-//     virtual void Configure(const rapidjson::Value& Config,std::string RootPath,DefinitionTree *DefinitionTreePtr);
-//     virtual bool Initialized();
-//     virtual void Run(Mode mode);
-// };
+#include "AirData.h"
+#include "rapidjson/document.h"
+#include "rapidjson/stringbuffer.h"
+#include "rapidjson/writer.h"
+#include "definition-tree.hxx"
+#include "generic-function.hxx"
+#include <sys/time.h>
 
-// class IirFilterClass: public SensorProcessingFunctionClass {
+/* 
+Indicated Airspeed Class - Computes indicated airspeed from differential pressure.
+Example JSON configuration:
+{
+  "Type": "IAS",
+  "Output": "OutputName",
+  "Differential-Pressure": [X]
+  "Initialization-Time": X
+}
+Where: 
+   * Output gives a convenient name for the block (i.e. Ias_ms).
+   * Differential pressure is a vector of all differential pressure sources.
+     Data from all sources will be averaged and used.
+   * Initialization time is the amount of time used during initialization for
+     bias estimation.
+Pressures are expected to be in Pa and airspeed is in m/s
+*/
+class IndicatedAirspeed: public GenericFunction {
+  public:
+    void Configure(const rapidjson::Value& Config,std::string RootPath,DefinitionTree *DefinitionTreePtr);
+    void Initialize();
+    bool Initialized();
+    void Run(Mode mode);
+    void Clear(DefinitionTree *DefinitionTreePtr);
+  private:
+    struct Config {
+      std::vector<float*> DifferentialPressure;
+      float InitTime = 0.0f;
+    };
+    struct Data {
+      std::vector<float> DifferentialPressureBias;
+      float AvgDifferentialPressure = 0.0f;
+      uint8_t Mode = kStandby;
+      float Ias_ms = 0.0f;
+    };
+    Config config_;
+    Data data_;
+    std::vector<std::string> DifferentialPressureKeys_;
+    std::string ModeKey_,OutputKey_;
+    bool TimeLatch_ = false;
+    bool Initialized_ = false;
+    uint64_t T0_us_ = 0;
+    size_t NumberSamples_ = 1;
+    uint64_t micros();
+    AirData AirData_;
+};
 
-// };
-
-// class BaselineAirDataClass: public SensorProcessingFunctionClass {
-//   public:
-//     void Configure(const rapidjson::Value& Config,std::string RootPath,DefinitionTree *DefinitionTreePtr);
-//     bool Initialized();
-//     void Run(Mode mode);
-//   private:
-//     struct Config {
-//       uint64_t* TimeSourcePtr;
-//       std::vector<float*> StaticPressureSourcePtr;
-//       std::vector<float*> DifferentialPressureSourcePtr;
-//       std::vector<float> DifferentialPressureBiases;
-//       std::vector<float*> MslAltSourcePtr;
-//       std::vector<uint8_t*> MslAltFixPtr;
-//       float InitializationTime_s;
-//       float InitialPressureAlt_m;
-//       float InitialMSLAlt_m;
-//     };
-//     struct Data {
-//       float StaticPressure_Pa;
-//       float DifferentialPressure_Pa;
-//       float IAS_ms;
-//       float PressureAltitude_m;
-//       float AGL_m;
-//       float MSL_m;
-//       uint8_t Mode;
-//     };
-//     AirData airdata_;
-//     Config config_;
-//     Data data_;
-//     bool InitializedLatch_ = false;
-//     bool TimeLatch_ = false;
-//     uint64_t Time0_us_;
-//     float InitializationTimer_us_;
-// };
+/* 
+AGL Altitude Class - Computes altitude above ground level from static pressure
+Example JSON configuration:
+{
+  "Type": "AGL",
+  "Output": "OutputName",
+  "Static-Pressure": [X]
+  "Initialization-Time": X
+}
+Where: 
+   * Output gives a convenient name for the block (i.e. Agl_m).
+   * Static pressure is a vector of all static pressure sources.
+     Data from all sources will be averaged and used.
+   * Initialization time is the amount of time used during initialization for
+     bias estimation.
+Pressures are expected to be in Pa and altitude is in m
+*/
+class AglAltitude: public GenericFunction {
+  public:
+    void Configure(const rapidjson::Value& Config,std::string RootPath,DefinitionTree *DefinitionTreePtr);
+    void Initialize();
+    bool Initialized();
+    void Run(Mode mode);
+    void Clear(DefinitionTree *DefinitionTreePtr);
+  private:
+    struct Config {
+      std::vector<float*> StaticPressure;
+      float InitTime = 0.0f;
+    };
+    struct Data {
+      float PressAlt0 = 0.0f;
+      float AvgStaticPressure = 0.0f;
+      uint8_t Mode = kStandby;
+      float Agl_m = 0.0f;
+    };
+    Config config_;
+    Data data_;
+    std::vector<std::string> StaticPressureKeys_;
+    std::string ModeKey_,OutputKey_;
+    bool TimeLatch_ = false;
+    bool Initialized_ = false;
+    uint64_t T0_us_ = 0;
+    size_t NumberSamples_ = 1;
+    uint64_t micros();
+    AirData AirData_;
+};
 
 #endif

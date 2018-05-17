@@ -21,7 +21,6 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SO
 #ifndef SENSOR_PROCESSING_HXX_
 #define SENSOR_PROCESSING_HXX_
 
-#include "AirData.h"
 #include "hardware-defs.hxx"
 #include "definition-tree.hxx"
 #include "rapidjson/document.h"
