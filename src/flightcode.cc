@@ -97,15 +97,13 @@ int main(int argc, char* argv[]) {
   while(1) {
     if (Fmu.ReceiveSensorData()) {
       if (SenProc.Configured()&&SenProc.Initialized()) {
-        if (Mission.Configured()) {
-          // run mission
-          Mission.Run();
-          // get and set engaged sensor processing
-          SenProc.SetEngagedSensorProcessing(Mission.GetEnagagedSensorProcessing());
-        }
+        // run mission
+        Mission.Run();
+        // get and set engaged sensor processing
+        SenProc.SetEngagedSensorProcessing(Mission.GetEnagagedSensorProcessing());
         // run sensor processing
         SenProc.Run();
-        if (Control.Configured()&&Mission.Configured()) {
+        if (Control.Configured()) {
           // get and set engaged and armed controllers
           Control.SetEngagedController(Mission.GetEnagagedController());
           Control.SetArmedController(Mission.GetArmedController());

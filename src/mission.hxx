@@ -46,7 +46,6 @@ class MissionManager {
       std::string Excitation;
     };
     void Configure(const rapidjson::Value& Config, DefinitionTree *DefinitionTreePtr);
-    bool Configured();
     void Run();
     std::string GetEnagagedSensorProcessing();
     std::string GetEnagagedController();
@@ -63,8 +62,6 @@ class MissionManager {
     Configuration config_;
     std::string RootPath_ = "/Mission-Manager";
     bool EngageSwitchDefined_ = false;
-    bool Configured_ = false;
-    bool InitializedLatch_ = false;
     size_t PersistenceCounter_ = 0;
     const size_t PersistenceThreshold_ = 5;
     size_t NumberOfTestPoints_ = 0;

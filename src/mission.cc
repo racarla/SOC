@@ -56,12 +56,6 @@ void MissionManager::Configure(const rapidjson::Value& Config, DefinitionTree *D
       }
     }
   } 
-  Configured_ = true;
-}
-
-/* returns whether mission manager has been configured */
-bool MissionManager::Configured() {
-  return Configured_;
 }
 
 /* runs the mission manager */
