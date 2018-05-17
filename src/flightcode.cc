@@ -103,28 +103,26 @@ int main(int argc, char* argv[]) {
         SenProc.SetEngagedSensorProcessing(Mission.GetEnagagedSensorProcessing());
         // run sensor processing
         SenProc.Run();
-        if (Control.Configured()) {
-          // get and set engaged and armed controllers
-          Control.SetEngagedController(Mission.GetEnagagedController());
-          Control.SetArmedController(Mission.GetArmedController());
-          // get and set engaged excitation
-          Excitation.SetEngagedExcitation(Mission.GetEnagagedExcitation());
-          if (Mission.GetEnagagedController()!="Baseline") {
-            // loop through control levels running excitations and control laws
-            for (size_t i=0; i < Control.ActiveControlLevels(); i++) {
-              // run excitation
-              Excitation.RunEngaged(Control.GetActiveLevel(i));
-              // run control
-              Control.RunEngaged(i);
-            }
-            // send effector commands to FMU
-            Fmu.SendEffectorCommands(Effectors.Run());
+        // get and set engaged and armed controllers
+        Control.SetEngagedController(Mission.GetEnagagedController());
+        Control.SetArmedController(Mission.GetArmedController());
+        // get and set engaged excitation
+        Excitation.SetEngagedExcitation(Mission.GetEnagagedExcitation());
+        if (Mission.GetEnagagedController()!="Baseline") {
+          // loop through control levels running excitations and control laws
+          for (size_t i=0; i < Control.ActiveControlLevels(); i++) {
+            // run excitation
+            Excitation.RunEngaged(Control.GetActiveLevel(i));
+            // run control
+            Control.RunEngaged(i);
           }
-          // run armed excitations
-          Excitation.RunArmed();
-          // run armed control laws
-          Control.RunArmed();
+          // send effector commands to FMU
+          Fmu.SendEffectorCommands(Effectors.Run());
         }
+        // run armed excitations
+        Excitation.RunArmed();
+        // run armed control laws
+        Control.RunArmed();
         // run telemetry
       }
       // run datalog

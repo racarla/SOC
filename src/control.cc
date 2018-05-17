@@ -154,12 +154,6 @@ void ControlLaws::Configure(const rapidjson::Value& Config, DefinitionTree *Defi
       }
     }
   }
-  Configured_ = true;
-}
-
-/* returns whether control has been configured */
-bool ControlLaws::Configured() {
-  return Configured_;
 }
 
 /* sets the control law that is engaged and currently output */

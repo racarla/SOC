@@ -90,7 +90,6 @@ Where:
 class ControlLaws {
   public:
     void Configure(const rapidjson::Value& Config, DefinitionTree *DefinitionTreePtr);
-    bool Configured();
     void SetEngagedController(std::string ControlGroupName);
     void SetArmedController(std::string ControlGroupName);
     size_t ActiveControlLevels();
@@ -99,9 +98,8 @@ class ControlLaws {
     void RunArmed();
   private:
     std::string RootPath_ = "/Control";
-    bool Configured_ = false;
-    std::string EngagedGroup_;
-    std::string ArmedGroup_;
+    std::string EngagedGroup_ = "Baseline";
+    std::string ArmedGroup_ = "Baseline";
     std::map<std::string,std::vector<std::vector<std::shared_ptr<GenericFunction>>>> ResearchControlGroups_;
     std::vector<std::string> ResearchGroupKeys_;
     std::map<std::string,std::vector<std::string>> ResearchLevelNames_;
