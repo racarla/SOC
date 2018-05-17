@@ -27,7 +27,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SO
 #include <iostream>
 
 // Software version number
-const std::string SoftwareVersion = "0.2.0";
+const std::string SoftwareVersion = "0.8.0";
 
 // FMU port, baud, and maximum buffer size
 const char FmuPort[] = "/dev/ttyO4";
