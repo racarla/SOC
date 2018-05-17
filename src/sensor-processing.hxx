@@ -30,6 +30,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SO
 #include "general-functions.hxx"
 #include "filter-functions.hxx"
 #include "airdata-functions.hxx"
+#include "ins-functions.hxx"
 #include <stdio.h>
 #include <fcntl.h>
 #include <unistd.h>
