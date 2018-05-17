@@ -110,12 +110,6 @@ void ExcitationSystem::Configure(const rapidjson::Value& Config, DefinitionTree 
       }
     }
   }
-  Configured_ = true;
-}
-
-/* return whether the excitation system has been configured */
-bool ExcitationSystem::Configured() {
-  return Configured_;
 }
 
 /* sets the engaged excitation group */
