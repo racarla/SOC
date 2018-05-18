@@ -21,4 +21,69 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SO
 #ifndef ALLOCATION_FUNCTIONS_HXX_
 #define ALLOCATION_FUNCTIONS_HXX_
 
+#include "rapidjson/document.h"
+#include "rapidjson/stringbuffer.h"
+#include "rapidjson/writer.h"
+#include "definition-tree.hxx"
+#include "generic-function.hxx"
+#include <Eigen/Dense>
+
+/* 
+Pseudo Inverse Allocation - Implements a pseudo inverse control allocation
+
+Example JSON configuration:
+{
+  "Type": "PseudoInverse",
+  "Inputs": [N],
+  "Outputs": [M],
+  "Effectiveness": [[N],[N],...],
+  "Limits": {
+    "Lower": [M],
+    "Upper": [M]
+  }
+}
+Where: 
+   * Input gives the full path of the allocator inputs / objectives (i.e. /Control/PitchMomentCmd)
+   * Output gives the relative path of the allocator outputs / effector commands (i.e Elevator)
+   * Effectiveness gives the control effectiveness (i.e. change in moment for a unit change in effector output)
+     The order is MxN where M is the number of outputs / effectors and N is the number of inputs / objectives. So,
+     for a situation with 3 objectives (i.e. pitch, roll, yaw moments) and 7 control surfaces, Effectiveness would
+     be given as:
+     "Effectiveness":[[PitchEff_Surf0,RollEff_Surf0,YawEff_Surf0],
+                      [PitchEff_Surf1,RollEff_Surf1,YawEff_Surf1],
+                      .
+                      .
+                      .
+                      [PitchEff_Surf6,RollEff_Surf6,YawEff_Surf6]]
+   * Limits gives the upper and lower limits for each output / effector command.
+*/
+
+class PseudoInverseAllocation: public GenericFunction {
+  public:
+    void Configure(const rapidjson::Value& Config,std::string RootPath,DefinitionTree *DefinitionTreePtr);
+    void Initialize();
+    bool Initialized();
+    void Run(Mode mode);
+    void Clear(DefinitionTree *DefinitionTreePtr);
+  private:
+    struct Config {
+      std::vector<float*> Inputs;
+      Eigen::MatrixXf Objectives;
+      Eigen::MatrixXf Effectiveness;
+      Eigen::MatrixXf LowerLimit;
+      Eigen::MatrixXf UpperLimit;
+    };
+    struct Data {
+      uint8_t Mode = kStandby;
+      Eigen::MatrixXf uCmd;
+      Eigen::MatrixXf Saturated;
+    };
+    Config config_;
+    Data data_;
+    std::vector<std::string> InputKeys_;
+    std::vector<std::string> OutputKeys_;
+    std::vector<std::string> SaturatedKeys_;
+    std::vector<std::string> ModeKeys_;
+};
+
 #endif

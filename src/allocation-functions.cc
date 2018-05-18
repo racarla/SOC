@@ -19,3 +19,113 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SO
 */
 
 #include "allocation-functions.hxx"
+
+void PseudoInverseAllocation::Configure(const rapidjson::Value& Config,std::string RootPath,DefinitionTree *DefinitionTreePtr) {
+  // grab inputs
+  if (Config.HasMember("Inputs")) {
+    for (size_t i=0; i < Config["Inputs"].Size(); i++) {
+      const rapidjson::Value& Input = Config["Inputs"][i];
+      InputKeys_.push_back(Input.GetString());
+      if (DefinitionTreePtr->GetValuePtr<float*>(InputKeys_.back())) {
+        config_.Inputs.push_back(DefinitionTreePtr->GetValuePtr<float*>(InputKeys_.back()));
+      } else {
+        throw std::runtime_error(std::string("ERROR")+RootPath+std::string(": Input ")+InputKeys_.back()+std::string(" not found in global data."));
+      }
+    }
+  } else {
+    throw std::runtime_error(std::string("ERROR")+RootPath+std::string(": Inputs not specified in configuration."));
+  }
+  // resize objective matrix
+  config_.Objectives.resize(config_.Inputs.size(),1);
+  // grab outputs
+  if (Config.HasMember("Outputs")) {
+    // resize output matrix
+    data_.uCmd.resize(Config["Outputs"].Size(),1);
+    data_.Saturated.resize(Config["Outputs"].Size(),1);
+    for (size_t i=0; i < Config["Outputs"].Size(); i++) {
+      const rapidjson::Value& Output = Config["Outputs"][i];
+      std::string OutputName = Output.GetString();
+      // pointer to log run mode data
+      ModeKeys_.push_back(RootPath +"/"+OutputName+"/Mode");
+      DefinitionTreePtr->InitMember(ModeKeys_.back(),&data_.Mode,"Run mode",true,false);
+      // pointer to log saturation data
+      SaturatedKeys_.push_back(RootPath +"/"+OutputName+"/Saturated");
+      DefinitionTreePtr->InitMember(SaturatedKeys_.back(),&data_.Saturated(i,0),"Allocation saturation, 0 if not saturated, 1 if saturated on the upper limit, and -1 if saturated on the lower limit",true,false);
+      // pointer to log output
+      OutputKeys_.push_back(RootPath +"/"+OutputName+"/"+OutputName);
+      DefinitionTreePtr->InitMember(OutputKeys_.back(),&data_.uCmd(i,0),"Allocator output",true,false);
+    }
+  } else {
+    throw std::runtime_error(std::string("ERROR")+RootPath+std::string(": Outputs not specified in configuration."));
+  }
+  // grab effectiveness
+  if (Config.HasMember("Effectiveness")) {
+    // resize effectiveness matrix
+    config_.Effectiveness.resize(Config["Effectiveness"].Size(),Config["Effectiveness"][0].Size());
+    for (size_t m=0; m < Config["Effectiveness"].Size(); m++) {
+      for (size_t n=0; n < Config["Effectiveness"][m].Size(); n++) {
+        config_.Effectiveness(m,n) = Config["Effectiveness"][m][n].GetFloat();
+      }
+    }
+  } else {
+    throw std::runtime_error(std::string("ERROR")+RootPath+std::string(": Effectiveness not specified in configuration."));
+  }
+  // grab limits
+  if (Config.HasMember("Limits")) {
+    if (Config["Limits"].HasMember("Lower")&&Config["Limits"].HasMember("Upper")) {
+      // resize limit vectors
+      config_.LowerLimit.resize(Config["Limits"]["Lower"].Size(),1);
+      config_.UpperLimit.resize(Config["Limits"]["Upper"].Size(),1);
+      for (size_t i=0; i < Config["Limits"]["Lower"].Size(); i++) {
+        config_.LowerLimit(i,0) = Config["Limits"]["Lower"][i].GetFloat();
+      }
+      for (size_t i=0; i < Config["Limits"]["Upper"].Size(); i++) {
+        config_.UpperLimit(i,0) = Config["Limits"]["Upper"][i].GetFloat();
+      }
+    } else {
+      throw std::runtime_error(std::string("ERROR")+RootPath+std::string(": Either upper or lower limit not specified in configuration."));
+    }
+  } else {
+    throw std::runtime_error(std::string("ERROR")+RootPath+std::string(": Limits not specified in configuration."));
+  }
+}
+
+void PseudoInverseAllocation::Initialize() {}
+bool PseudoInverseAllocation::Initialized() {return true;}
+
+void PseudoInverseAllocation::Run(Mode mode) {
+  data_.Mode = (uint8_t) mode;
+  // grab inputs
+  for (size_t i=0; i < config_.Inputs.size(); i++) {
+    config_.Objectives(i,0) = *config_.Inputs[i];
+  }
+  // Pseduo-Inverse solver using singular value decomposition
+  // SVD Decomposition based linear algebra solver
+  data_.uCmd = config_.Effectiveness.jacobiSvd(Eigen::ComputeThinU | Eigen::ComputeThinV).solve(config_.Objectives); // Jacobi SVD solver  
+  // saturate output
+  for (size_t i=0; i < data_.uCmd.rows(); i++) {
+    if (data_.uCmd(i,0) <= config_.LowerLimit(i,0)) {
+      data_.uCmd(i,0) = config_.LowerLimit(i,0);
+      data_.Saturated(i,0) = -1;
+    } else if (data_.uCmd(i,0) >= config_.UpperLimit(i,0)) {
+      data_.uCmd(i,0) = config_.UpperLimit(i,0);
+      data_.Saturated(i,0) = 1;
+    } else {
+      data_.Saturated(i,0) = 0;
+    }
+  }
+}
+
+void PseudoInverseAllocation::Clear(DefinitionTree *DefinitionTreePtr) {
+  config_.Objectives.resize(0,0);
+  config_.Effectiveness.resize(0,0);
+  config_.LowerLimit.resize(0,0);
+  config_.UpperLimit.resize(0,0);
+  data_.Mode = (uint8_t) kStandby;
+  data_.uCmd.resize(0,0);
+  data_.Saturated.resize(0,0);
+  InputKeys_.clear();
+  OutputKeys_.clear();
+  SaturatedKeys_.clear();
+  ModeKeys_.clear();
+}
