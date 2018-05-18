@@ -46,6 +46,9 @@ void SensorProcessing::Configure(const rapidjson::Value& Config,DefinitionTree *
         if (Func["Type"] == "AGL") {
           BaselineSensorProcessing_.push_back(std::make_shared<AglAltitude>());
         }
+        if (Func["Type"] == "EKF15StateINS") {
+          BaselineSensorProcessing_.push_back(std::make_shared<Ekf15StateIns>());
+        }
         // configure the function
         BaselineSensorProcessing_.back()->Configure(Func,PathName,DefinitionTreePtr);
       } else {
@@ -85,6 +88,15 @@ void SensorProcessing::Configure(const rapidjson::Value& Config,DefinitionTree *
             }
             if (Func["Type"] == "Sum") {
               ResearchSensorProcessingGroups_[ResearchGroupKeys_.back()].push_back(std::make_shared<SumClass>());
+            }
+            if (Func["Type"] == "IAS") {
+              ResearchSensorProcessingGroups_[ResearchGroupKeys_.back()].push_back(std::make_shared<IndicatedAirspeed>());
+            }
+            if (Func["Type"] == "AGL") {
+              ResearchSensorProcessingGroups_[ResearchGroupKeys_.back()].push_back(std::make_shared<AglAltitude>());
+            }
+            if (Func["Type"] == "EKF15StateINS") {
+              ResearchSensorProcessingGroups_[ResearchGroupKeys_.back()].push_back(std::make_shared<Ekf15StateIns>());
             }
             // configure the function
             ResearchSensorProcessingGroups_[ResearchGroupKeys_.back()].back()->Configure(Func,PathName,DefinitionTreePtr);

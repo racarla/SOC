@@ -40,6 +40,7 @@ excitation-waveforms.o \
 filter-functions.o \
 general-functions.o \
 generic-function.o \
+uNavINS.o \
 AirData.o \
 datalog.o \
 effector.o \

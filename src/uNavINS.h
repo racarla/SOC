@@ -44,46 +44,15 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SO
 #ifndef UNAVINS_H
 #define UNAVINS_H
 
-#if defined(ARDUINO)
-  #include "Arduino.h"
-  #include "Eigen.h"
-  #include <Eigen/Dense>
-#else
-  #include <sys/time.h>
-  #include <stdint.h>
-  #include <math.h>
-  #include <Eigen/Core>
-  #include <Eigen/Dense>
-
-  uint64_t micros();
-
-  class elapsedMicros
-  {
-  private:
-  	unsigned long us;
-  public:
-  	elapsedMicros(void) { us = micros(); }
-  	elapsedMicros(unsigned long val) { us = micros() - val; }
-  	elapsedMicros(const elapsedMicros &orig) { us = orig.us; }
-  	operator unsigned long () const { return micros() - us; }
-  	elapsedMicros & operator = (const elapsedMicros &rhs) { us = rhs.us; return *this; }
-  	elapsedMicros & operator = (unsigned long val) { us = micros() - val; return *this; }
-  	elapsedMicros & operator -= (unsigned long val)      { us += val ; return *this; }
-  	elapsedMicros & operator += (unsigned long val)      { us -= val ; return *this; }
-  	elapsedMicros operator - (int val) const           { elapsedMicros r(*this); r.us += val; return r; }
-  	elapsedMicros operator - (unsigned int val) const  { elapsedMicros r(*this); r.us += val; return r; }
-  	elapsedMicros operator - (long val) const          { elapsedMicros r(*this); r.us += val; return r; }
-  	elapsedMicros operator - (unsigned long val) const { elapsedMicros r(*this); r.us += val; return r; }
-  	elapsedMicros operator + (int val) const           { elapsedMicros r(*this); r.us -= val; return r; }
-  	elapsedMicros operator + (unsigned int val) const  { elapsedMicros r(*this); r.us -= val; return r; }
-  	elapsedMicros operator + (long val) const          { elapsedMicros r(*this); r.us -= val; return r; }
-  	elapsedMicros operator + (unsigned long val) const { elapsedMicros r(*this); r.us -= val; return r; }
-  };
-#endif
+#include <stdint.h>
+#include <math.h>
+#include <Eigen/Core>
+#include <Eigen/Dense>
 
 class uNavINS {
   public:
-    void update(unsigned long TOW,double vn,double ve,double vd,double lat,double lon,double alt,float p,float q,float r,float ax,float ay,float az,float hx,float hy, float hz);
+    void update(uint64_t time,unsigned long TOW,double vn,double ve,double vd,double lat,double lon,double alt,float p,float q,float r,float ax,float ay,float az,float hx,float hy,float hz);
+    bool initialized();
     float getPitch_rad();
     float getRoll_rad();
     float getYaw_rad();
@@ -136,9 +105,9 @@ class uNavINS {
     // earth semi-major axis radius (m)
     const double EARTH_RADIUS = 6378137.0;
     // initialized
-    bool initialized = false;
+    bool initialized_ = false;
     // timing
-    elapsedMicros _t;
+    uint64_t _tprev;
     float _dt;
     unsigned long previousTOW;
     // estimated attitude
