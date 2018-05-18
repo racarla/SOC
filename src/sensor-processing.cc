@@ -98,6 +98,9 @@ void SensorProcessing::Configure(const rapidjson::Value& Config,DefinitionTree *
             if (Func["Type"] == "EKF15StateINS") {
               ResearchSensorProcessingGroups_[ResearchGroupKeys_.back()].push_back(std::make_shared<Ekf15StateIns>());
             }
+            if (Func["Type"] == "Filter") {
+              ResearchSensorProcessingGroups_[ResearchGroupKeys_.back()].push_back(std::make_shared<GeneralFilter>());
+            }
             // configure the function
             ResearchSensorProcessingGroups_[ResearchGroupKeys_.back()].back()->Configure(Func,PathName,DefinitionTreePtr);
           } else {

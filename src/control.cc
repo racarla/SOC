@@ -65,6 +65,9 @@ void ControlLaws::Configure(const rapidjson::Value& Config, DefinitionTree *Defi
                 if (Func["Type"] == "PID") {
                   ResearchControlGroups_[ResearchGroupKeys_.back()][level].push_back(std::make_shared<PIDClass>());
                 }
+                if (Func["Type"] == "Filter") {
+                  ResearchControlGroups_[ResearchGroupKeys_.back()][level].push_back(std::make_shared<GeneralFilter>());
+                }
                 // configure the function
                 ResearchControlGroups_[ResearchGroupKeys_.back()][level].back()->Configure(Func,PathName,DefinitionTreePtr);
               } else {

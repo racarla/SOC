@@ -36,7 +36,7 @@ a[0]y[n] = b[0]x[n]+b[1]x[n-1]+b[2]x[n-2]+...-a[1]y[n-1]-a[2]y[n-2]-...
 
 Example JSON configuration:
 {
-  "Type": "GeneralFilter",
+  "Type": "Filter",
   "Input": "InputPath",
   "Output": "OutputName",
   "a": [X],
