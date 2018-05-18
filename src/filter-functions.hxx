@@ -21,32 +21,60 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SO
 #ifndef FILTER_FUNCTIONS_HXX_
 #define FILTER_FUNCTIONS_HXX_
 
-// class WashoutFilterClass: public ControlFunctionClass {
-//   public:
-//     void Configure(const rapidjson::Value& Config,std::string RootPath,DefinitionTree *DefinitionTreePtr);
-//     void SetPreviousOutput(std::string RootPath,DefinitionTree *DefinitionTreePtr);
-//     void Run(Mode mode);
-//   private:
-//     struct Config {
-//       std::string OutputName;
-//       float *Input;
-//       float *PreviousCommand;
-//       float *dt;
-//       float Tf;
-//     };
-//     struct Data {
-//       uint8_t Mode;
-//       float Command;
-//     };
-//     struct States {
-//       float Filter;
-//     };
-//     Config config_;
-//     Data data_;
-//     States states_;
-//     void InitializeState();
-//     void UpdateState();
-//     void CalculateCommand();
-// };
+#include "rapidjson/document.h"
+#include "rapidjson/stringbuffer.h"
+#include "rapidjson/writer.h"
+#include "definition-tree.hxx"
+#include "generic-function.hxx"
+#include <algorithm>
+
+/* 
+General Filter - Implements a general discrete time filter using the
+general filter difference equation.
+
+a[0]y[n] = b[0]x[n]+b[1]x[n-1]+b[2]x[n-2]+...-a[1]y[n-1]-a[2]y[n-2]-...
+
+Example JSON configuration:
+{
+  "Type": "GeneralFilter",
+  "Input": "InputPath",
+  "Output": "OutputName",
+  "a": [X],
+  "b": [X]
+}
+Where: 
+   * Input gives the full path of the input to the filter
+   * Output gives a convenient name for the block (i.e. SpeedReference).
+   * a is a vector of feedback coefficients. a[0] scales all a and b coefficients if given.
+     Feedback coefficients are optional and, if none are provided, a FIR filter is implemented.
+   * b is a vector of feedforward coefficients. At least one feedforward coefficient must be given.
+The order of the filter is given by the length of the a and b vectors.
+*/
+class GeneralFilter: public GenericFunction {
+  public:
+    void Configure(const rapidjson::Value& Config,std::string RootPath,DefinitionTree *DefinitionTreePtr);
+    void Initialize();
+    bool Initialized();
+    void Run(Mode mode);
+    void Clear(DefinitionTree *DefinitionTreePtr);
+  private:
+    struct Config {
+      float *Input;
+      std::vector<float> a;
+      std::vector<float> b;
+    };
+    struct Data {
+      uint8_t Mode = kStandby;
+      float Output = 0.0f;
+    };
+    struct States {
+      std::vector<float> x;
+      std::vector<float> y;
+    };
+    Config config_;
+    Data data_;
+    States states_;
+    std::string InputKey_,ModeKey_,OutputKey_;
+};
 
 #endif
