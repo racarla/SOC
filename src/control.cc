@@ -68,6 +68,9 @@ void ControlLaws::Configure(const rapidjson::Value& Config, DefinitionTree *Defi
                 if (Func["Type"] == "Filter") {
                   ResearchControlGroups_[ResearchGroupKeys_.back()][level].push_back(std::make_shared<GeneralFilter>());
                 }
+                if (Func["Type"] == "PseudoInverse") {
+                  ResearchControlGroups_[ResearchGroupKeys_.back()][level].push_back(std::make_shared<PseudoInverseAllocation>());
+                }
                 // configure the function
                 ResearchControlGroups_[ResearchGroupKeys_.back()][level].back()->Configure(Func,PathName,DefinitionTreePtr);
               } else {
