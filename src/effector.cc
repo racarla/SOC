@@ -47,14 +47,37 @@ void AircraftEffectors::Configure(const rapidjson::Value& Config, DefinitionTree
   assert(Config.IsArray());
   for (size_t i=0; i < Config.Size(); i++) {
     const rapidjson::Value& Effector = Config[i];
-    if (Effector.HasMember("Type")&&Effector.HasMember("Input")&&Effector.HasMember("Channel")&&Effector.HasMember("Calibration")) {
-      if (DefinitionTreePtr->GetValuePtr<float*>(Effector["Input"].GetString())) {
-        Inputs_.push_back(DefinitionTreePtr->GetValuePtr<float*>(Effector["Input"].GetString()));
+    if (Effector.HasMember("Type")) {
+      if (Effector["Type"] == "Node") {
+        if (Effector.HasMember("Effectors")) {
+          assert(Effector["Effectors"].IsArray());
+          for (auto &NodeEffector : Effector["Effectors"].GetArray()) {
+            if (NodeEffector.HasMember("Input")) {
+              if (DefinitionTreePtr->GetValuePtr<float*>(NodeEffector["Input"].GetString())) {
+                Inputs_.push_back(DefinitionTreePtr->GetValuePtr<float*>(NodeEffector["Input"].GetString()));
+              } else {
+                throw std::runtime_error(std::string("ERROR")+RootPath_+std::string(": Input ")+NodeEffector["Input"].GetString()+std::string(" not found in global data."));
+              }
+            } else {
+              throw std::runtime_error(std::string("ERROR")+RootPath_+std::string(": Input not specified in configuration."));
+            }
+          }
+        } else {
+          throw std::runtime_error(std::string("ERROR")+RootPath_+std::string(": Node effectors not specified in configuration."));
+        }
       } else {
-        throw std::runtime_error(std::string("ERROR")+RootPath_+std::string(": Input ")+Effector["Input"].GetString()+std::string(" not found in global data."));
+        if (Effector.HasMember("Input")) {
+          if (DefinitionTreePtr->GetValuePtr<float*>(Effector["Input"].GetString())) {
+            Inputs_.push_back(DefinitionTreePtr->GetValuePtr<float*>(Effector["Input"].GetString()));
+          } else {
+            throw std::runtime_error(std::string("ERROR")+RootPath_+std::string(": Input ")+Effector["Input"].GetString()+std::string(" not found in global data."));
+          }
+        } else {
+          throw std::runtime_error(std::string("ERROR")+RootPath_+std::string(": Input not specified in configuration."));
+        }
       }
     } else {
-      throw std::runtime_error(std::string("ERROR")+RootPath_+std::string(": Type, input, channel, or calibration not specified in configuration."));
+      throw std::runtime_error(std::string("ERROR")+RootPath_+std::string(": Type not specified in configuration."));
     }
   }
   Configured_ = true;
