@@ -48,9 +48,9 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SO
 Example JSON configuration:
 { 
   "Control": {
-    "Fmu": "FmuGroup",
+    "Fmu": ["FmuGroup1", ...],
     "Soc": ["SocGroup1","SocGroup2",...],
-    "FmuGroup": [
+    "FmuGroup1": [
       { "Level": "1",
         "Components": [
           { "Type": "Gain",
@@ -76,7 +76,7 @@ Example JSON configuration:
 }
 
 Where:
-   * FMU names the control law group for the Flight Management Unit to use.
+   * FMU is a vector of control law group names for the Flight Management Unit to use.
    * SOC is a vector of control law group names for the SOC to use.
    * Control law goups are named as arrays. Each array contains an object for each control
      law level starting with the outermost level and working to the innermost. Each level
