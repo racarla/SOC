@@ -48,9 +48,9 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SO
 Example JSON configuration:
 { 
   "Control": {
-    "Baseline": "BaselineGroup1",
-    "Research": ["ResearchGroup1","ResearchGroup2",...],
-    "BaselineGroup1": [
+    "Fmu": "FmuGroup",
+    "Soc": ["SocGroup1","SocGroup2",...],
+    "FmuGroup": [
       { "Level": "1",
         "Components": [
           { "Type": "Gain",
@@ -61,7 +61,7 @@ Example JSON configuration:
         ]
       }
     ]
-    "ResearchGroup1": [
+    "SocGroup1": [
       { "Level": "1",
         "Components": [
           { "Type": "Gain",
@@ -76,15 +76,12 @@ Example JSON configuration:
 }
 
 Where:
-   * Baseline names the control law group for the baseline control law to use. The baseline
-     control law is run on the FMU anytime the research control law is not engaged.
-   * Research is a vector of control law group names. Research control laws are run on the
-     SOC anytime they are engaged.
+   * FMU names the control law group for the Flight Management Unit to use.
+   * SOC is a vector of control law group names for the SOC to use.
    * Control law goups are named as arrays. Each array contains an object for each control
      law level starting with the outermost level and working to the innermost. Each level
      is named for easy reference by the excitation system. Components for each control
      level are objects configuring the specific control law.
-
 */
 
 class ControlLaws {
@@ -100,12 +97,12 @@ class ControlLaws {
     std::string RootPath_ = "/Control";
     std::string EngagedGroup_ = "Baseline";
     std::string ArmedGroup_ = "Baseline";
-    std::map<std::string,std::vector<std::vector<std::shared_ptr<GenericFunction>>>> ResearchControlGroups_;
-    std::vector<std::string> ResearchGroupKeys_;
-    std::map<std::string,std::vector<std::string>> ResearchLevelNames_;
-    std::map<std::string,std::vector<std::vector<std::string>>> ResearchDataKeys_;
+    std::map<std::string,std::vector<std::vector<std::shared_ptr<GenericFunction>>>> SocControlGroups_;
+    std::vector<std::string> SocGroupKeys_;
+    std::map<std::string,std::vector<std::string>> SocLevelNames_;
+    std::map<std::string,std::vector<std::vector<std::string>>> SocDataKeys_;
     std::map<std::string,std::variant<uint64_t,uint32_t,uint16_t,uint8_t,int64_t,int32_t,int16_t,int8_t,float, double>> OutputData_;
-    std::map<std::string,std::map<std::string,std::variant<uint64_t*,uint32_t*,uint16_t*,uint8_t*,int64_t*,int32_t*,int16_t*,int8_t*,float*,double*>>> ResearchDataPtr_;
+    std::map<std::string,std::map<std::string,std::variant<uint64_t*,uint32_t*,uint16_t*,uint8_t*,int64_t*,int32_t*,int16_t*,int8_t*,float*,double*>>> SocDataPtr_;
 };
 
 #endif
