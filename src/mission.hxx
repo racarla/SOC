@@ -53,23 +53,28 @@ class MissionManager {
     std::string GetEnagagedExcitation();
   private:
     struct Configuration {
-      struct {
+      struct Switch {
         float *SourcePtr;
         float Threshold = 0.5;
         float Gain = 1.0;
-      } EngageSwitch;
+      };
+      Switch SocEngageSwitch,ResearchEngageSwitch,ExcitationEngageSwitch,TestPointIncrementSwitch,TestPointDecrementSwitch;
+      std::string BaselineController;
     };
     Configuration config_;
     std::string RootPath_ = "/Mission-Manager";
-    bool EngageSwitchDefined_ = false;
-    size_t PersistenceCounter_ = 0;
     const size_t PersistenceThreshold_ = 5;
+    size_t SocEngageSwitchPersistenceCounter_ = 0;
+    size_t ResearchEngageSwitchPersistenceCounter_ = 0;
+    size_t ExcitationEngageSwitchPersistenceCounter_ = 0;
     size_t NumberOfTestPoints_ = 0;
-    size_t TestPointIndex_ = 0;
+    size_t CurrentTestPointIndex_ = 0;
+    size_t NextTestPointIndex_ = 0;
     bool TestPointIndexLatch_ = false;
+    bool ResearchEngageLatch_ = false;
     std::string EngagedSensorProcessing_ = "Baseline";
-    std::string EnagagedController_ = "Baseline";
-    std::string ArmedController_ = "Baseline";
+    std::string EnagagedController_ = "Fmu";
+    std::string ArmedController_ = "Fmu";
     std::string EnagagedExcitation_ = "None";
     std::map<std::string,TestPointDefinition> TestPoints_;
 };

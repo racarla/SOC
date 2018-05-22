@@ -48,9 +48,9 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SO
 Example JSON configuration:
 { 
   "Control": {
-    "Fmu": ["FmuGroup1", ...],
+    "Fmu": "FmuGroup",
     "Soc": ["SocGroup1","SocGroup2",...],
-    "FmuGroup1": [
+    "FmuGroup": [
       { "Level": "1",
         "Components": [
           { "Type": "Gain",
@@ -95,8 +95,8 @@ class ControlLaws {
     void RunArmed();
   private:
     std::string RootPath_ = "/Control";
-    std::string EngagedGroup_ = "Baseline";
-    std::string ArmedGroup_ = "Baseline";
+    std::string EngagedGroup_ = "Fmu";
+    std::string ArmedGroup_ = "Fmu";
     std::map<std::string,std::vector<std::vector<std::shared_ptr<GenericFunction>>>> SocControlGroups_;
     std::vector<std::string> SocGroupKeys_;
     std::map<std::string,std::vector<std::string>> SocLevelNames_;

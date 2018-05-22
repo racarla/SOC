@@ -108,7 +108,7 @@ int main(int argc, char* argv[]) {
         Control.SetArmedController(Mission.GetArmedController());
         // get and set engaged excitation
         Excitation.SetEngagedExcitation(Mission.GetEnagagedExcitation());
-        if (Mission.GetEnagagedController()!="Baseline") {
+        if (Mission.GetEnagagedController()!="Fmu") {
           // loop through control levels running excitations and control laws
           for (size_t i=0; i < Control.ActiveControlLevels(); i++) {
             // run excitation
