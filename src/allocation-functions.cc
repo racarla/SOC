@@ -61,10 +61,10 @@ void PseudoInverseAllocation::Configure(const rapidjson::Value& Config,std::stri
   // grab effectiveness
   if (Config.HasMember("Effectiveness")) {
     // resize effectiveness matrix
-    config_.Effectiveness.resize(Config["Effectiveness"].Size(),Config["Effectiveness"][0].Size());
-    for (size_t m=0; m < Config["Effectiveness"].Size(); m++) {
-      for (size_t n=0; n < Config["Effectiveness"][m].Size(); n++) {
-        config_.Effectiveness(m,n) = Config["Effectiveness"][m][n].GetFloat();
+    config_.Effectiveness.resize(Config["Effectiveness"][0].Size(),Config["Effectiveness"].Size());
+    for (size_t n=0; n < Config["Effectiveness"].Size(); n++) {
+      for (size_t m=0; m < Config["Effectiveness"][n].Size(); m++) {
+        config_.Effectiveness(m,n) = Config["Effectiveness"][n][m].GetFloat();
       }
     }
   } else {
