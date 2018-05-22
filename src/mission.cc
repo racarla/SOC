@@ -212,7 +212,6 @@ void MissionManager::Run() {
   } else {
     TestPointIndexLatch_ = false;
   }
-  std::cout << CurrentTestPointIndex_ << "\t" << NextTestPointIndex_ << "\t" << EngagedSensorProcessing_ << "\t" << EnagagedController_  << "\t" << ArmedController_ << "\t"<< EnagagedExcitation_ << std::endl;
 }
 
 /* returns the string of the sensor processing group that is engaged */
