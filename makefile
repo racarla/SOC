@@ -22,14 +22,19 @@
 # output targets
 TARGET_FLIGHT := flightcode
 TARGET_DATALOG := datalog-server
+TARGET_CAL := calibrate-surf
+
 # compiler
 CXX := arm-linux-gnueabihf-g++-7
+
 # cxx flags
 override CXXFLAGS += -std=c++17 -O3 -Wno-psabi -I includes/
+
 # directory structure
 OBJDIR := obj
 BINDIR := bin
 SRCDIR := src
+
 # flight code objects
 OBJECTS_FLIGHT := \
 ins-functions.o \
@@ -52,21 +57,47 @@ fmu.o \
 configuration.o \
 definition-tree.o \
 flightcode.o
+
 # datalog server objects
 OBJECTS_DATALOG := \
 definition-tree.o \
 datalog.o \
 datalog-server.o
+
+# calibration objects
+OBJECTS_CAL := \
+ins-functions.o \
+airdata-functions.o \
+allocation-functions.o \
+control-functions.o \
+excitation-waveforms.o \
+filter-functions.o \
+general-functions.o \
+generic-function.o \
+uNavINS.o \
+AirData.o \
+datalog.o \
+effector.o \
+excitation.o \
+control.o \
+mission.o \
+sensor-processing.o \
+fmu.o \
+configuration.o \
+definition-tree.o \
+inclinometer.o \
+calibrate-surf.o
+
 # add prefix to objects
 OBJS_FLIGHT := $(addprefix $(OBJDIR)/,$(OBJECTS_FLIGHT))
 OBJS_DATALOG := $(addprefix $(OBJDIR)/,$(OBJECTS_DATALOG))
+OBJS_CAL := $(addprefix $(OBJDIR)/,$(OBJECTS_CAL))
 
 # rules
-all: flightcode datalog-server | $(OBJDIR)
-
+all: flightcode datalog-server calibrate-surf | $(OBJDIR)
 flightcode: $(addprefix $(BINDIR)/,$(TARGET_FLIGHT))
-
 datalog-server: $(addprefix $(BINDIR)/,$(TARGET_DATALOG))
+calibrate-surf: $(addprefix $(BINDIR)/,$(TARGET_CAL))
 
 $(addprefix $(BINDIR)/,$(TARGET_FLIGHT)): $(OBJS_FLIGHT) | $(BINDIR)
 	@ echo
@@ -94,10 +125,30 @@ $(addprefix $(BINDIR)/,$(TARGET_DATALOG)): $(OBJS_DATALOG) | $(BINDIR)
 	@ echo "bolderflight.com"
 	@ echo ""
 
+$(addprefix $(BINDIR)/,$(TARGET_CAL)): $(OBJS_CAL) | $(BINDIR)
+	@ echo
+	@ echo "Building surface calibration..."
+	@ echo
+	$(CXX) $(CXXFLAGS) -o $(addprefix $(BINDIR)/,$(TARGET_CAL)) $(OBJS_CAL)
+	@ echo
+	@ echo "Successful build."
+	@ echo ""
+	@ echo "Bolder Flight Systems, by Design!"
+	@ echo "Copyright (c) 2018 Bolder Flight Systems"
+	@ echo "bolderflight.com"
+	@ echo ""
+
+
 $(OBJS_FLIGHT): $(addprefix $(OBJDIR)/,%.o): $(addprefix $(SRCDIR)/,%.cc) | $(OBJDIR)
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
 $(addprefix $(OBJDIR)/,datalog-server.o): $(addprefix $(SRCDIR)/,datalog-server.cc) | $(OBJDIR)
+	$(CXX) $(CXXFLAGS) -c $< -o $@
+
+$(addprefix $(OBJDIR)/,inclinometer.o): $(addprefix $(SRCDIR)/,inclinometer.cc) | $(OBJDIR)
+	$(CXX) $(CXXFLAGS) -c $< -o $@
+
+$(addprefix $(OBJDIR)/,calibrate-surf.o): $(addprefix $(SRCDIR)/,calibrate-surf.cc) | $(OBJDIR)
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
 $(OBJDIR):
@@ -109,4 +160,4 @@ $(BINDIR):
 # clean targets and objects
 .PHONY: clean
 clean:
-	-rm $(addprefix $(BINDIR)/,$(TARGET_FLIGHT)) $(addprefix $(BINDIR)/,$(TARGET_DATALOG)) $(OBJS_FLIGHT) $(addprefix $(OBJDIR)/,datalog-server.o)
+	-rm $(addprefix $(BINDIR)/,$(TARGET_FLIGHT)) $(addprefix $(BINDIR)/,$(TARGET_DATALOG)) $(OBJS_FLIGHT)  $(OBJS_DATALOG)  $(OBJS_CAL) $(addprefix $(OBJDIR)/,datalog-server.o)
