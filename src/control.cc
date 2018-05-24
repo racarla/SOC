@@ -83,7 +83,7 @@ void ControlLaws::Configure(const rapidjson::Value& Config, DefinitionTree *Defi
             DefinitionTreePtr->GetKeys(PathName,&SocDataKeys_[SocGroupKeys_.back()][level]);
             for (auto Key : SocDataKeys_[SocGroupKeys_.back()][level]) {
               std::string MemberName = RootPath_+Key.substr(Key.rfind("/"));
-              if (Key.substr(Key.rfind("/"))!="/Mode") {
+              if ((Key.substr(Key.rfind("/"))!="/Mode")&&(Key.substr(Key.rfind("/"))!="/Saturated")) {
                 OutputKeysMap[MemberName] = MemberName;
 std::cout << MemberName << std::endl;
               }
@@ -204,7 +204,7 @@ void ControlLaws::RunEngaged(size_t ControlLevel) {
     // output Soc control laws
     for (auto Key : SocDataKeys_[EngagedGroup_][ControlLevel]) {
       std::string KeyName = Key.substr(Key.rfind("/"));
-      if (KeyName!="/Mode") {
+      if ((KeyName!="/Mode")&&(KeyName!="/Saturated")) {
         if (std::get_if<uint64_t*>(&SocDataPtr_[EngagedGroup_][KeyName])) {
           OutputData_[KeyName] = **(std::get_if<uint64_t*>(&SocDataPtr_[EngagedGroup_][KeyName]));
         }
