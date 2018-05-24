@@ -221,29 +221,45 @@ void FlightManagementUnit::ConfigureMissionManager(const rapidjson::Value& Confi
 /* Configures the FMU control laws */
 void FlightManagementUnit::ConfigureControlLaws(const rapidjson::Value& Config) {
   std::vector<uint8_t> Payload;
-  rapidjson::StringBuffer StringBuff;
-  rapidjson::Writer<rapidjson::StringBuffer> Writer(StringBuff);
-  Config.Accept(Writer);
-  std::string OutputString = StringBuff.GetString();
-  std::string ConfigString = std::string("{\"Control\":") + OutputString + std::string("}");
-  for (size_t j=0; j < ConfigString.size(); j++) {
-    Payload.push_back((uint8_t)ConfigString[j]);
+  if (Config.HasMember("Fmu")) {
+    if (Config.HasMember(Config["Fmu"].GetString())) {
+      rapidjson::StringBuffer FmuStringBuff;
+      rapidjson::Writer<rapidjson::StringBuffer> FmuWriter(FmuStringBuff);
+      const rapidjson::Value& Fmu = Config["Fmu"];
+      Fmu.Accept(FmuWriter);
+      std::string FmuString = FmuStringBuff.GetString();
+      rapidjson::StringBuffer CntrlStringBuff;
+      rapidjson::Writer<rapidjson::StringBuffer> CntrlWriter(CntrlStringBuff);
+      const rapidjson::Value& Cntrl = Config[Config["Fmu"].GetString()];
+      Cntrl.Accept(CntrlWriter);
+      std::string CntrlString = CntrlStringBuff.GetString();
+      std::string ConfigString = std::string("{\"Control\":{") + std::string("\"Fmu\":") + FmuString + std::string(",") 
+        + std::string("\"") + Config["Fmu"].GetString() + std::string("\":") + CntrlString + std::string("}}");
+      for (size_t j=0; j < ConfigString.size(); j++) {
+        Payload.push_back((uint8_t)ConfigString[j]);
+      }
+      SendMessage(Message::kConfigMesg,Payload);
+    }
   }
-  SendMessage(Message::kConfigMesg,Payload);
 }
 
 /* Configures the FMU effectors */
 void FlightManagementUnit::ConfigureEffectors(const rapidjson::Value& Config) {
   std::vector<uint8_t> Payload;
-  rapidjson::StringBuffer StringBuff;
-  rapidjson::Writer<rapidjson::StringBuffer> Writer(StringBuff);
-  Config.Accept(Writer);
-  std::string OutputString = StringBuff.GetString();
-  std::string ConfigString = std::string("{\"Effectors\":") + OutputString + std::string("}");
-  for (size_t j=0; j < ConfigString.size(); j++) {
-    Payload.push_back((uint8_t)ConfigString[j]);
+  assert(Config.IsArray());
+  for (size_t i=0; i < Config.Size(); i++) {
+    const rapidjson::Value& Effector = Config[i];
+    Payload.clear();
+    rapidjson::StringBuffer StringBuff;
+    rapidjson::Writer<rapidjson::StringBuffer> Writer(StringBuff);
+    Effector.Accept(Writer);
+    std::string OutputString = StringBuff.GetString();
+    std::string ConfigString = std::string("{\"Effectors\":[") + OutputString + std::string("]}");
+    for (size_t j=0; j < ConfigString.size(); j++) {
+      Payload.push_back((uint8_t)ConfigString[j]);
+    }
+    SendMessage(Message::kConfigMesg,Payload);
   }
-  SendMessage(Message::kConfigMesg,Payload);
 }
 
 /* Registers sensor data with global definition tree */
