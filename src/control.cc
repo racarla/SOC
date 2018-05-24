@@ -32,9 +32,6 @@ void ControlLaws::Configure(const rapidjson::Value& Config, DefinitionTree *Defi
     for (auto &GroupName : SocConfig.GetArray()) {
       // grab Soc control law definition
       if (Config.HasMember(GroupName.GetString())) {
-
-std::cout << "\n" << GroupName.GetString() << std::endl;
-
         // store the group key
         SocGroupKeys_.push_back(GroupName.GetString());
         // json group definition
@@ -49,9 +46,6 @@ std::cout << "\n" << GroupName.GetString() << std::endl;
             auto level = std::distance(GroupDefinition.Begin(),Member);
             // store the level names
             SocLevelNames_[SocGroupKeys_.back()].push_back((*Member)["Level"].GetString());
-
-std::cout << "\t" << (*Member)["Level"].GetString() << std::endl;
-
             // path for the Soc functions /Control/"Group-Name"
             std::string PathName = RootPath_+"/"+SocGroupKeys_.back()+"/"+SocLevelNames_[SocGroupKeys_.back()].back();
             // json components on a given level
@@ -60,7 +54,7 @@ std::cout << "\t" << (*Member)["Level"].GetString() << std::endl;
             for (auto &Func : Components.GetArray()) {
               if (Func.HasMember("Type")) {
                 if (Func["Type"] == "Constant") {
-                  SocControlGroups_[SocGroupKeys_.back()][level].push_back(std::make_shared<ConstantClass>());
+                  SocControlGroups_[SocGroupKeys_.back()][level].push_back(std::make_shared<ConstantClass>()); 
                 }
                 if (Func["Type"] == "Gain") {
                   SocControlGroups_[SocGroupKeys_.back()][level].push_back(std::make_shared<GainClass>());
@@ -84,14 +78,80 @@ std::cout << "\t" << (*Member)["Level"].GetString() << std::endl;
               }
             }
             // getting a list of all Soc keys and adding to superset of output keys
-            // modify the key to remove the intermediate path
+            // modify the key to remove the intermediate path 
             // (i.e. /Control/GroupName/Pitch --> /Control/Pitch)
             DefinitionTreePtr->GetKeys(PathName,&SocDataKeys_[SocGroupKeys_.back()][level]);
             for (auto Key : SocDataKeys_[SocGroupKeys_.back()][level]) {
               std::string MemberName = RootPath_+Key.substr(Key.rfind("/"));
               if ((Key.substr(Key.rfind("/"))!="/Mode")&&(Key.substr(Key.rfind("/"))!="/Saturated")) {
                 OutputKeysMap[MemberName] = MemberName;
-std::cout << "\t\t" << MemberName << std::endl;
+              }
+            }
+            /* Soc outputs to superset of outputs */
+            // iterate through output keys and check for matching keys in Soc
+            for (auto OutputElem : OutputKeysMap) {
+              // current output key
+              std::string OutputKey = OutputElem.second;
+              // iterate through Soc keys
+              for (auto GroupKey : SocGroupKeys_) {
+                // iterate through all levels
+                for (auto Levels = SocLevelNames_[GroupKey].begin(); Levels != SocLevelNames_[GroupKey].end(); ++Levels) {
+                  auto Level = std::distance(SocLevelNames_[GroupKey].begin(),Levels);
+                  for (auto SocKey : SocDataKeys_[GroupKey][Level]) {
+                    // check for a match with output keys
+                    if (SocKey.substr(SocKey.rfind("/"))==OutputKey.substr(OutputKey.rfind("/"))) {
+                      std::string KeyName = SocKey.substr(SocKey.rfind("/"));
+                      // setup Soc data pointer
+                      DefinitionTree::VariableDefinition TempDef;
+                      DefinitionTreePtr->GetMember(SocKey,&TempDef);
+                      SocDataPtr_[GroupKey][KeyName] = TempDef.Value;
+                      // check to see if output key has already been registered
+                      if (DefinitionTreePtr->Size(OutputKey)==0) {
+                        // register output if it has not already been
+                        if (DefinitionTreePtr->GetValuePtr<uint64_t*>(SocKey)) {
+                          OutputData_[KeyName] = *(DefinitionTreePtr->GetValuePtr<uint64_t*>(SocKey));
+                          DefinitionTreePtr->InitMember(OutputKey,std::get_if<uint64_t>(&OutputData_[KeyName]),TempDef.Description,true,false);
+                        }
+                        if (DefinitionTreePtr->GetValuePtr<uint32_t*>(SocKey)) {
+                          OutputData_[KeyName] = *(DefinitionTreePtr->GetValuePtr<uint32_t*>(SocKey));
+                          DefinitionTreePtr->InitMember(OutputKey,std::get_if<uint32_t>(&OutputData_[KeyName]),TempDef.Description,true,false);
+                        }
+                        if (DefinitionTreePtr->GetValuePtr<uint16_t*>(SocKey)) {
+                          OutputData_[KeyName] = *(DefinitionTreePtr->GetValuePtr<uint16_t*>(SocKey));
+                          DefinitionTreePtr->InitMember(OutputKey,std::get_if<uint16_t>(&OutputData_[KeyName]),TempDef.Description,true,false);
+                        }
+                        if (DefinitionTreePtr->GetValuePtr<uint8_t*>(SocKey)) {
+                          OutputData_[KeyName] = *(DefinitionTreePtr->GetValuePtr<uint8_t*>(SocKey));
+                          DefinitionTreePtr->InitMember(OutputKey,std::get_if<uint8_t>(&OutputData_[KeyName]),TempDef.Description,true,false);
+                        }
+                        if (DefinitionTreePtr->GetValuePtr<int64_t*>(SocKey)) {
+                          OutputData_[KeyName] = *(DefinitionTreePtr->GetValuePtr<int64_t*>(SocKey));
+                          DefinitionTreePtr->InitMember(OutputKey,std::get_if<int64_t>(&OutputData_[KeyName]),TempDef.Description,true,false);
+                        }
+                        if (DefinitionTreePtr->GetValuePtr<int32_t*>(SocKey)) {
+                          OutputData_[KeyName] = *(DefinitionTreePtr->GetValuePtr<int32_t*>(SocKey));
+                          DefinitionTreePtr->InitMember(OutputKey,std::get_if<int32_t>(&OutputData_[KeyName]),TempDef.Description,true,false);
+                        }
+                        if (DefinitionTreePtr->GetValuePtr<int16_t*>(SocKey)) {
+                          OutputData_[KeyName] = *(DefinitionTreePtr->GetValuePtr<int16_t*>(SocKey));
+                          DefinitionTreePtr->InitMember(OutputKey,std::get_if<int16_t>(&OutputData_[KeyName]),TempDef.Description,true,false);
+                        }
+                        if (DefinitionTreePtr->GetValuePtr<int8_t*>(SocKey)) {
+                          OutputData_[KeyName] = *(DefinitionTreePtr->GetValuePtr<int8_t*>(SocKey));
+                          DefinitionTreePtr->InitMember(OutputKey,std::get_if<int8_t>(&OutputData_[KeyName]),TempDef.Description,true,false);
+                        }
+                        if (DefinitionTreePtr->GetValuePtr<float*>(SocKey)) {
+                          OutputData_[KeyName] = *(DefinitionTreePtr->GetValuePtr<float*>(SocKey));
+                          DefinitionTreePtr->InitMember(OutputKey,std::get_if<float>(&OutputData_[KeyName]),TempDef.Description,true,false);
+                        }
+                        if (DefinitionTreePtr->GetValuePtr<double*>(SocKey)) {
+                          OutputData_[KeyName] = *(DefinitionTreePtr->GetValuePtr<double*>(SocKey));
+                          DefinitionTreePtr->InitMember(OutputKey,std::get_if<double>(&OutputData_[KeyName]),TempDef.Description,true,false);
+                        }
+                      }
+                    }
+                  }
+                }
               }
             }
           } else {
@@ -100,83 +160,6 @@ std::cout << "\t\t" << MemberName << std::endl;
         }
       } else {
         throw std::runtime_error(std::string("ERROR")+RootPath_+std::string(": Group name not found in configuration."));
-      }
-    }
-  } else {
-    std::cout << "WARNING" << RootPath_ << ": Soc Control configuration not defined." << std::endl;
-  }
-
-std::cout << "TEST0" << std::endl;
-  /* Soc outputs to superset of outputs */
-  // iterate through output keys and check for matching keys in Soc
-  for (auto OutputElem : OutputKeysMap) {
-std::cout << "TEST1" << std::endl;
-    // current output key
-    std::string OutputKey = OutputElem.second;
-    // iterate through Soc keys
-    for (auto GroupKey : SocGroupKeys_) {
-  std::cout << "TEST2" << std::endl;
-      // iterate through all levels
-      for (auto Levels = SocLevelNames_[GroupKey].begin(); Levels != SocLevelNames_[GroupKey].end(); ++Levels) {
-    std::cout << "TEST3" << std::endl;
-        auto Level = std::distance(SocLevelNames_[GroupKey].begin(),Levels);
-        for (auto SocKey : SocDataKeys_[GroupKey][Level]) {
-      std::cout << "TEST4" << std::endl;
-          // check for a match with output keys
-          if (SocKey.substr(SocKey.rfind("/"))==OutputKey.substr(OutputKey.rfind("/"))) {
-        std::cout << "TEST5" << std::endl;
-            std::string KeyName = SocKey.substr(SocKey.rfind("/"));
-            // setup Soc data pointer
-            DefinitionTree::VariableDefinition TempDef;
-            DefinitionTreePtr->GetMember(SocKey,&TempDef);
-            SocDataPtr_[GroupKey][KeyName] = TempDef.Value;
-            // check to see if output key has already been registered
-            if (DefinitionTreePtr->Size(OutputKey)==0) {
-std::cout << "Using KeyName: " << KeyName << "  to create Output:  " << OutputKey << std::endl;
-              // register output if it has not already been
-              if (DefinitionTreePtr->GetValuePtr<uint64_t*>(SocKey)) {
-                OutputData_[KeyName] = *(DefinitionTreePtr->GetValuePtr<uint64_t*>(SocKey));
-                DefinitionTreePtr->InitMember(OutputKey,std::get_if<uint64_t>(&OutputData_[KeyName]),TempDef.Description,true,false);
-              }
-              if (DefinitionTreePtr->GetValuePtr<uint32_t*>(SocKey)) {
-                OutputData_[KeyName] = *(DefinitionTreePtr->GetValuePtr<uint32_t*>(SocKey));
-                DefinitionTreePtr->InitMember(OutputKey,std::get_if<uint32_t>(&OutputData_[KeyName]),TempDef.Description,true,false);
-              }
-              if (DefinitionTreePtr->GetValuePtr<uint16_t*>(SocKey)) {
-                OutputData_[KeyName] = *(DefinitionTreePtr->GetValuePtr<uint16_t*>(SocKey));
-                DefinitionTreePtr->InitMember(OutputKey,std::get_if<uint16_t>(&OutputData_[KeyName]),TempDef.Description,true,false);
-              }
-              if (DefinitionTreePtr->GetValuePtr<uint8_t*>(SocKey)) {
-                OutputData_[KeyName] = *(DefinitionTreePtr->GetValuePtr<uint8_t*>(SocKey));
-                DefinitionTreePtr->InitMember(OutputKey,std::get_if<uint8_t>(&OutputData_[KeyName]),TempDef.Description,true,false);
-              }
-              if (DefinitionTreePtr->GetValuePtr<int64_t*>(SocKey)) {
-                OutputData_[KeyName] = *(DefinitionTreePtr->GetValuePtr<int64_t*>(SocKey));
-                DefinitionTreePtr->InitMember(OutputKey,std::get_if<int64_t>(&OutputData_[KeyName]),TempDef.Description,true,false);
-              }
-              if (DefinitionTreePtr->GetValuePtr<int32_t*>(SocKey)) {
-                OutputData_[KeyName] = *(DefinitionTreePtr->GetValuePtr<int32_t*>(SocKey));
-                DefinitionTreePtr->InitMember(OutputKey,std::get_if<int32_t>(&OutputData_[KeyName]),TempDef.Description,true,false);
-              }
-              if (DefinitionTreePtr->GetValuePtr<int16_t*>(SocKey)) {
-                OutputData_[KeyName] = *(DefinitionTreePtr->GetValuePtr<int16_t*>(SocKey));
-                DefinitionTreePtr->InitMember(OutputKey,std::get_if<int16_t>(&OutputData_[KeyName]),TempDef.Description,true,false);
-              }
-              if (DefinitionTreePtr->GetValuePtr<int8_t*>(SocKey)) {
-                OutputData_[KeyName] = *(DefinitionTreePtr->GetValuePtr<int8_t*>(SocKey));
-                DefinitionTreePtr->InitMember(OutputKey,std::get_if<int8_t>(&OutputData_[KeyName]),TempDef.Description,true,false);
-              }
-              if (DefinitionTreePtr->GetValuePtr<float*>(SocKey)) {
-                OutputData_[KeyName] = *(DefinitionTreePtr->GetValuePtr<float*>(SocKey));
-                DefinitionTreePtr->InitMember(OutputKey,std::get_if<float>(&OutputData_[KeyName]),TempDef.Description,true,false);
-              }
-              if (DefinitionTreePtr->GetValuePtr<double*>(SocKey)) {
-                OutputData_[KeyName] = *(DefinitionTreePtr->GetValuePtr<double*>(SocKey));
-                DefinitionTreePtr->InitMember(OutputKey,std::get_if<double>(&OutputData_[KeyName]),TempDef.Description,true,false);
-              }
-            }
-          }
-        }
       }
     }
   }
@@ -262,7 +245,7 @@ void ControlLaws::RunArmed() {
   for (auto Group : SocGroupKeys_) {
     // iterate through all levels
     for (auto Levels = SocControlGroups_[Group].begin(); Levels != SocControlGroups_[Group].end(); ++Levels) {
-      auto Level = std::distance(SocControlGroups_[Group].begin(),Levels);
+      auto Level = std::distance(SocControlGroups_[Group].begin(),Levels); 
       // iterate through all functions
       for (auto Func : SocControlGroups_[Group][Level]) {
         // make sure we don't run the engaged group
