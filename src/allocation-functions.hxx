@@ -27,8 +27,10 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SO
 #include "definition-tree.hxx"
 #include "generic-function.hxx"
 #include <Eigen/Dense>
+#include <stdio.h>
+#include <iostream>
 
-/* 
+/*
 Pseudo Inverse Allocation - Implements a pseudo inverse control allocation
 
 Example JSON configuration:
@@ -42,7 +44,7 @@ Example JSON configuration:
     "Upper": [M]
   }
 }
-Where: 
+Where:
    * Input gives the full path of the allocator inputs / objectives (i.e. /Control/PitchMomentCmd)
    * Output gives the relative path of the allocator outputs / effector commands (i.e Elevator)
    * Effectiveness gives the control effectiveness (i.e. change in moment for a unit change in effector output)

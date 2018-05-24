@@ -55,6 +55,7 @@ void FlightManagementUnit::Configure(const rapidjson::Value& Config, DefinitionT
   }
   // configuring FMU control laws
   if (Config.HasMember("Control")) {
+sleep(1);
     ConfigureControlLaws(Config["Control"]);
   }
   // configuring FMU effectors
@@ -199,7 +200,9 @@ void FlightManagementUnit::ConfigureSensors(const rapidjson::Value& Config) {
       for (size_t j=0; j < ConfigString.size(); j++) {
         Payload.push_back((uint8_t)ConfigString[j]);
       }
+      std::cout << "\tSending Sensor config to FMU..." << std::flush;
       SendMessage(Message::kConfigMesg,Payload);
+      std::cout << "done!" << std::endl;
     }
   }
 }
@@ -215,7 +218,9 @@ void FlightManagementUnit::ConfigureMissionManager(const rapidjson::Value& Confi
   for (size_t j=0; j < ConfigString.size(); j++) {
     Payload.push_back((uint8_t)ConfigString[j]);
   }
+  std::cout << "\tSending Mission-Manager config to FMU..." << std::flush;
   SendMessage(Message::kConfigMesg,Payload);
+  std::cout << "done!" << std::endl;
 }
 
 /* Configures the FMU control laws */
@@ -229,7 +234,9 @@ void FlightManagementUnit::ConfigureControlLaws(const rapidjson::Value& Config) 
   for (size_t j=0; j < ConfigString.size(); j++) {
     Payload.push_back((uint8_t)ConfigString[j]);
   }
+  std::cout << "\tSending Control config to FMU..." << std::flush;
   SendMessage(Message::kConfigMesg,Payload);
+  std::cout << "done!" << std::endl;
 }
 
 /* Configures the FMU effectors */
@@ -243,7 +250,9 @@ void FlightManagementUnit::ConfigureEffectors(const rapidjson::Value& Config) {
   for (size_t j=0; j < ConfigString.size(); j++) {
     Payload.push_back((uint8_t)ConfigString[j]);
   }
+  std::cout << "\tSending Effectors config to FMU..." << std::flush;
   SendMessage(Message::kConfigMesg,Payload);
+  std::cout << "done!" << std::endl;
 }
 
 /* Registers sensor data with global definition tree */

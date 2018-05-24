@@ -54,7 +54,7 @@ void ControlLaws::Configure(const rapidjson::Value& Config, DefinitionTree *Defi
             for (auto &Func : Components.GetArray()) {
               if (Func.HasMember("Type")) {
                 if (Func["Type"] == "Constant") {
-                  SocControlGroups_[SocGroupKeys_.back()][level].push_back(std::make_shared<ConstantClass>()); 
+                  SocControlGroups_[SocGroupKeys_.back()][level].push_back(std::make_shared<ConstantClass>());
                 }
                 if (Func["Type"] == "Gain") {
                   SocControlGroups_[SocGroupKeys_.back()][level].push_back(std::make_shared<GainClass>());
@@ -78,13 +78,14 @@ void ControlLaws::Configure(const rapidjson::Value& Config, DefinitionTree *Defi
               }
             }
             // getting a list of all Soc keys and adding to superset of output keys
-            // modify the key to remove the intermediate path 
+            // modify the key to remove the intermediate path
             // (i.e. /Control/GroupName/Pitch --> /Control/Pitch)
             DefinitionTreePtr->GetKeys(PathName,&SocDataKeys_[SocGroupKeys_.back()][level]);
             for (auto Key : SocDataKeys_[SocGroupKeys_.back()][level]) {
               std::string MemberName = RootPath_+Key.substr(Key.rfind("/"));
               if (Key.substr(Key.rfind("/"))!="/Mode") {
                 OutputKeysMap[MemberName] = MemberName;
+std::cout << MemberName << std::endl;
               }
             }
           } else {
@@ -245,7 +246,7 @@ void ControlLaws::RunArmed() {
   for (auto Group : SocGroupKeys_) {
     // iterate through all levels
     for (auto Levels = SocControlGroups_[Group].begin(); Levels != SocControlGroups_[Group].end(); ++Levels) {
-      auto Level = std::distance(SocControlGroups_[Group].begin(),Levels); 
+      auto Level = std::distance(SocControlGroups_[Group].begin(),Levels);
       // iterate through all functions
       for (auto Func : SocControlGroups_[Group][Level]) {
         // make sure we don't run the engaged group
