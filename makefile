@@ -28,7 +28,7 @@ TARGET_CAL := calibrate-surf
 CXX := arm-linux-gnueabihf-g++-7
 
 # cxx flags
-override CXXFLAGS += -std=c++17 -O3 -Wno-psabi -I includes/
+override CXXFLAGS += -std=c++17 -O3 -g -Wno-psabi -I includes/
 
 # directory structure
 OBJDIR := obj

@@ -32,6 +32,9 @@ void ControlLaws::Configure(const rapidjson::Value& Config, DefinitionTree *Defi
     for (auto &GroupName : SocConfig.GetArray()) {
       // grab Soc control law definition
       if (Config.HasMember(GroupName.GetString())) {
+
+std::cout << "\n" << GroupName.GetString() << std::endl;
+
         // store the group key
         SocGroupKeys_.push_back(GroupName.GetString());
         // json group definition
@@ -46,6 +49,9 @@ void ControlLaws::Configure(const rapidjson::Value& Config, DefinitionTree *Defi
             auto level = std::distance(GroupDefinition.Begin(),Member);
             // store the level names
             SocLevelNames_[SocGroupKeys_.back()].push_back((*Member)["Level"].GetString());
+
+std::cout << "\t" << (*Member)["Level"].GetString() << std::endl;
+
             // path for the Soc functions /Control/"Group-Name"
             std::string PathName = RootPath_+"/"+SocGroupKeys_.back()+"/"+SocLevelNames_[SocGroupKeys_.back()].back();
             // json components on a given level
@@ -85,7 +91,7 @@ void ControlLaws::Configure(const rapidjson::Value& Config, DefinitionTree *Defi
               std::string MemberName = RootPath_+Key.substr(Key.rfind("/"));
               if ((Key.substr(Key.rfind("/"))!="/Mode")&&(Key.substr(Key.rfind("/"))!="/Saturated")) {
                 OutputKeysMap[MemberName] = MemberName;
-std::cout << MemberName << std::endl;
+std::cout << "\t\t" << MemberName << std::endl;
               }
             }
           } else {
@@ -96,20 +102,29 @@ std::cout << MemberName << std::endl;
         throw std::runtime_error(std::string("ERROR")+RootPath_+std::string(": Group name not found in configuration."));
       }
     }
+  } else {
+    std::cout << "WARNING" << RootPath_ << ": Soc Control configuration not defined." << std::endl;
   }
+
+std::cout << "TEST0" << std::endl;
   /* Soc outputs to superset of outputs */
   // iterate through output keys and check for matching keys in Soc
   for (auto OutputElem : OutputKeysMap) {
+std::cout << "TEST1" << std::endl;
     // current output key
     std::string OutputKey = OutputElem.second;
     // iterate through Soc keys
     for (auto GroupKey : SocGroupKeys_) {
+  std::cout << "TEST2" << std::endl;
       // iterate through all levels
       for (auto Levels = SocLevelNames_[GroupKey].begin(); Levels != SocLevelNames_[GroupKey].end(); ++Levels) {
+    std::cout << "TEST3" << std::endl;
         auto Level = std::distance(SocLevelNames_[GroupKey].begin(),Levels);
         for (auto SocKey : SocDataKeys_[GroupKey][Level]) {
+      std::cout << "TEST4" << std::endl;
           // check for a match with output keys
           if (SocKey.substr(SocKey.rfind("/"))==OutputKey.substr(OutputKey.rfind("/"))) {
+        std::cout << "TEST5" << std::endl;
             std::string KeyName = SocKey.substr(SocKey.rfind("/"));
             // setup Soc data pointer
             DefinitionTree::VariableDefinition TempDef;
@@ -117,6 +132,7 @@ std::cout << MemberName << std::endl;
             SocDataPtr_[GroupKey][KeyName] = TempDef.Value;
             // check to see if output key has already been registered
             if (DefinitionTreePtr->Size(OutputKey)==0) {
+std::cout << "Using KeyName: " << KeyName << "  to create Output:  " << OutputKey << std::endl;
               // register output if it has not already been
               if (DefinitionTreePtr->GetValuePtr<uint64_t*>(SocKey)) {
                 OutputData_[KeyName] = *(DefinitionTreePtr->GetValuePtr<uint64_t*>(SocKey));
