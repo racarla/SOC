@@ -73,21 +73,18 @@ void ExcitationSystem::Configure(const rapidjson::Value& Config, DefinitionTree 
                     // pushing back the correct waveform type
                     if (WaveformValue["Type"] == "Pulse") {
                       ExcitationGroups_[GroupIndex][LevelIndex].push_back(std::make_shared<Pulse>());
-                    }
-                    if (WaveformValue["Type"] == "Doublet") {
+                    } else if (WaveformValue["Type"] == "Doublet") {
                       ExcitationGroups_[GroupIndex][LevelIndex].push_back(std::make_shared<Doublet>());
-                    }
-                    if (WaveformValue["Type"] == "Doublet121") {
+                    } else if (WaveformValue["Type"] == "Doublet121") {
                       ExcitationGroups_[GroupIndex][LevelIndex].push_back(std::make_shared<Doublet121>());
-                    }
-                    if (WaveformValue["Type"] == "Doublet3211") {
+                    } else if (WaveformValue["Type"] == "Doublet3211") {
                       ExcitationGroups_[GroupIndex][LevelIndex].push_back(std::make_shared<Doublet3211>());
-                    }
-                    if (WaveformValue["Type"] == "LinearChirp") {
+                    } else if (WaveformValue["Type"] == "LinearChirp") {
                       ExcitationGroups_[GroupIndex][LevelIndex].push_back(std::make_shared<LinearChirp>());
-                    }
-                    if (WaveformValue["Type"] == "MultiSine") {
+                    } else if (WaveformValue["Type"] == "MultiSine") {
                       ExcitationGroups_[GroupIndex][LevelIndex].push_back(std::make_shared<MultiSine>());
+                    } else {
+                      throw std::runtime_error(std::string("ERROR")+PathName+std::string(": Waveform type does not match known types."));
                     }
                     // configuring the waveform
                     ExcitationGroups_[GroupIndex][LevelIndex].back()->Configure(Waveform,PathName,DefinitionTreePtr);
