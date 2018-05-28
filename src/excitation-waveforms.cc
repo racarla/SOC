@@ -515,7 +515,7 @@ void LinearChirp::Run(Mode mode) {
       // linear varying amplitude
       float amp_nd = config_.Amplitude[0]+(config_.Amplitude[1]-config_.Amplitude[0])*ElapsedTime_us/(config_.Duration_s*1e6);
       // chirp Equation
-      data_.Excitation = amp_nd*sinf(freq_rps*ElapsedTime_us);
+      data_.Excitation = amp_nd*sinf(freq_rps*ElapsedTime_us/1e6);
     } else {
       // do nothing
       data_.Excitation = 0;
