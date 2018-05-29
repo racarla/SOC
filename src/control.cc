@@ -32,6 +32,9 @@ void ControlLaws::Configure(const rapidjson::Value& Config, DefinitionTree *Defi
     for (auto &GroupName : SocConfig.GetArray()) {
       // grab Soc control law definition
       if (Config.HasMember(GroupName.GetString())) {
+
+std::cout << "\n" << GroupName.GetString() << std::endl;
+
         // store the group key
         SocGroupKeys_.push_back(GroupName.GetString());
         // json group definition
@@ -46,6 +49,9 @@ void ControlLaws::Configure(const rapidjson::Value& Config, DefinitionTree *Defi
             auto level = std::distance(GroupDefinition.Begin(),Member);
             // store the level names
             SocLevelNames_[SocGroupKeys_.back()].push_back((*Member)["Level"].GetString());
+
+std::cout << "\t" << (*Member)["Level"].GetString() << std::endl;
+
             // path for the Soc functions /Control/"Group-Name"
             std::string PathName = RootPath_+"/"+SocGroupKeys_.back()+"/"+SocLevelNames_[SocGroupKeys_.back()].back();
             // json components on a given level
@@ -85,6 +91,7 @@ void ControlLaws::Configure(const rapidjson::Value& Config, DefinitionTree *Defi
               std::string MemberName = RootPath_+Key.substr(Key.rfind("/"));
               if ((Key.substr(Key.rfind("/"))!="/Mode")&&(Key.substr(Key.rfind("/"))!="/Saturated")) {
                 OutputKeysMap[MemberName] = MemberName;
+std::cout << "\t\t" << MemberName << std::endl;
               }
             }
             /* Soc outputs to superset of outputs */
@@ -106,7 +113,11 @@ void ControlLaws::Configure(const rapidjson::Value& Config, DefinitionTree *Defi
                       DefinitionTreePtr->GetMember(SocKey,&TempDef);
                       SocDataPtr_[GroupKey][KeyName] = TempDef.Value;
                       // check to see if output key has already been registered
+
+std::cout << "\t\t Checking: " << OutputKey << std::flush;
+
                       if (DefinitionTreePtr->Size(OutputKey)==0) {
+std::cout << "  creating new entry" << std::endl;
                         // register output if it has not already been
                         if (DefinitionTreePtr->GetValuePtr<uint64_t*>(SocKey)) {
                           OutputData_[KeyName] = *(DefinitionTreePtr->GetValuePtr<uint64_t*>(SocKey));
@@ -148,6 +159,9 @@ void ControlLaws::Configure(const rapidjson::Value& Config, DefinitionTree *Defi
                           OutputData_[KeyName] = *(DefinitionTreePtr->GetValuePtr<double*>(SocKey));
                           DefinitionTreePtr->InitMember(OutputKey,std::get_if<double>(&OutputData_[KeyName]),TempDef.Description,true,false);
                         }
+                      } else {
+std::cout << "  already exists" << std::endl;
+
                       }
                     }
                   }
@@ -162,6 +176,8 @@ void ControlLaws::Configure(const rapidjson::Value& Config, DefinitionTree *Defi
         throw std::runtime_error(std::string("ERROR")+RootPath_+std::string(": Group name not found in configuration."));
       }
     }
+  } else {
+    std::cout << "WARNING" << RootPath_ << ": Soc Control configuration not defined." << std::endl;
   }
 }
 

@@ -24,194 +24,310 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SO
 void MissionManager::Configure(const rapidjson::Value& Config, DefinitionTree *DefinitionTreePtr) {
   // get the engage switch configuration
   if (Config.HasMember("Fmu-Soc-Switch")) {
-    const rapidjson::Value& EngageSwitch = Config["Fmu-Soc-Switch"];
-    if (EngageSwitch.HasMember("Source")) {
-      if (DefinitionTreePtr->GetValuePtr<float*>(EngageSwitch["Source"].GetString())) {
-        config_.SocEngageSwitch.SourcePtr = DefinitionTreePtr->GetValuePtr<float*>(EngageSwitch["Source"].GetString());
+    const rapidjson::Value& TempSwitch = Config["Fmu-Soc-Switch"];
+    if (TempSwitch.HasMember("Source")) {
+std::cout << TempSwitch["Source"].GetString() << std::endl;
+      if (DefinitionTreePtr->GetValuePtr<float*>(TempSwitch["Source"].GetString())) {
+        config_.SocEngageSwitch.SourcePtr = DefinitionTreePtr->GetValuePtr<float*>(TempSwitch["Source"].GetString());
       } else {
-        throw std::runtime_error(std::string("ERROR")+RootPath_+std::string(": Engage switch source not found in global data."));
+        throw std::runtime_error(std::string("ERROR")+RootPath_+std::string(": Fmu-Soc-Switch source not found in global data."));
       }
     } else {
-      throw std::runtime_error(std::string("ERROR")+RootPath_+std::string(": Engage switch configuration does not define a source."));
+      throw std::runtime_error(std::string("ERROR")+RootPath_+std::string(": Fmu-Soc-Switch configuration does not define a source."));
     }
-    if (EngageSwitch.HasMember("Threshold")) {
-      config_.SocEngageSwitch.Threshold = EngageSwitch["Threshold"].GetFloat();
+    if (TempSwitch.HasMember("Threshold")) {
+      config_.SocEngageSwitch.Threshold = TempSwitch["Threshold"].GetFloat();
     }
-    if (EngageSwitch.HasMember("Gain")) {
-      config_.SocEngageSwitch.Gain = EngageSwitch["Gain"].GetFloat();
+    if (TempSwitch.HasMember("Gain")) {
+      config_.SocEngageSwitch.Gain = TempSwitch["Gain"].GetFloat();
     }
-  } 
+  }
+
   // get the research switch configuration
-  if (Config.HasMember("Baseline-Research-Switch")) {
-    const rapidjson::Value& EngageSwitch = Config["Baseline-Research-Switch"];
-    if (EngageSwitch.HasMember("Source")) {
-      if (DefinitionTreePtr->GetValuePtr<float*>(EngageSwitch["Source"].GetString())) {
-        config_.ResearchEngageSwitch.SourcePtr = DefinitionTreePtr->GetValuePtr<float*>(EngageSwitch["Source"].GetString());
+  if (Config.HasMember("Control-Select-Switch")) {
+    const rapidjson::Value& TempSwitch = Config["Control-Select-Switch"];
+    if (TempSwitch.HasMember("Source")) {
+std::cout << TempSwitch["Source"].GetString() << std::endl;
+      if (DefinitionTreePtr->GetValuePtr<float*>(TempSwitch["Source"].GetString())) {
+        config_.CtrlSelectSwitch.SourcePtr = DefinitionTreePtr->GetValuePtr<float*>(TempSwitch["Source"].GetString());
       } else {
-        throw std::runtime_error(std::string("ERROR")+RootPath_+std::string(": Engage switch source not found in global data."));
+        throw std::runtime_error(std::string("ERROR")+RootPath_+std::string(": Control-Select-Switch source not found in global data."));
       }
     } else {
-      throw std::runtime_error(std::string("ERROR")+RootPath_+std::string(": Engage switch configuration does not define a source."));
+      throw std::runtime_error(std::string("ERROR")+RootPath_+std::string(": Control-Select-Switch configuration does not define a source."));
     }
-    if (EngageSwitch.HasMember("Threshold")) {
-      config_.ResearchEngageSwitch.Threshold = EngageSwitch["Threshold"].GetFloat();
+    if (TempSwitch.HasMember("Threshold")) {
+      config_.CtrlSelectSwitch.Threshold = TempSwitch["Threshold"].GetFloat();
     }
-    if (EngageSwitch.HasMember("Gain")) {
-      config_.ResearchEngageSwitch.Gain = EngageSwitch["Gain"].GetFloat();
+    if (TempSwitch.HasMember("Gain")) {
+      config_.CtrlSelectSwitch.Gain = TempSwitch["Gain"].GetFloat();
     }
-  }   
+  }
+
   // get the excitation switch configuration
-  if (Config.HasMember("Excitation-Switch")) {
-    const rapidjson::Value& EngageSwitch = Config["Excitation-Switch"];
-    if (EngageSwitch.HasMember("Source")) {
-      if (DefinitionTreePtr->GetValuePtr<float*>(EngageSwitch["Source"].GetString())) {
-        config_.ExcitationEngageSwitch.SourcePtr = DefinitionTreePtr->GetValuePtr<float*>(EngageSwitch["Source"].GetString());
+  if (Config.HasMember("Trigger-Switch")) {
+    const rapidjson::Value& TempSwitch = Config["Trigger-Switch"];
+    if (TempSwitch.HasMember("Source")) {
+std::cout << TempSwitch["Source"].GetString() << std::endl;
+      if (DefinitionTreePtr->GetValuePtr<float*>(TempSwitch["Source"].GetString())) {
+        config_.TriggerSwitch.SourcePtr = DefinitionTreePtr->GetValuePtr<float*>(TempSwitch["Source"].GetString());
       } else {
-        throw std::runtime_error(std::string("ERROR")+RootPath_+std::string(": Engage switch source not found in global data."));
+        throw std::runtime_error(std::string("ERROR")+RootPath_+std::string(": Trigger-Switch source not found in global data."));
       }
     } else {
-      throw std::runtime_error(std::string("ERROR")+RootPath_+std::string(": Engage switch configuration does not define a source."));
+      throw std::runtime_error(std::string("ERROR")+RootPath_+std::string(": Trigger-Switch configuration does not define a source."));
     }
-    if (EngageSwitch.HasMember("Threshold")) {
-      config_.ExcitationEngageSwitch.Threshold = EngageSwitch["Threshold"].GetFloat();
+    if (TempSwitch.HasMember("Threshold")) {
+      config_.TriggerSwitch.Threshold = TempSwitch["Threshold"].GetFloat();
     }
-    if (EngageSwitch.HasMember("Gain")) {
-      config_.ExcitationEngageSwitch.Gain = EngageSwitch["Gain"].GetFloat();
+    if (TempSwitch.HasMember("Gain")) {
+      config_.TriggerSwitch.Gain = TempSwitch["Gain"].GetFloat();
     }
-  }  
+  }
+
   // get the test point switch configuration
   if (Config.HasMember("Test-Increment-Switch")) {
-    const rapidjson::Value& EngageSwitch = Config["Test-Increment-Switch"];
-    if (EngageSwitch.HasMember("Source")) {
-      if (DefinitionTreePtr->GetValuePtr<float*>(EngageSwitch["Source"].GetString())) {
-        config_.TestPointIncrementSwitch.SourcePtr = DefinitionTreePtr->GetValuePtr<float*>(EngageSwitch["Source"].GetString());
+    const rapidjson::Value& TempSwitch = Config["Test-Increment-Switch"];
+    if (TempSwitch.HasMember("Source")) {
+std::cout << TempSwitch["Source"].GetString() << std::endl;
+      if (DefinitionTreePtr->GetValuePtr<float*>(TempSwitch["Source"].GetString())) {
+        config_.TestSelectIncrementSwitch.SourcePtr = DefinitionTreePtr->GetValuePtr<float*>(TempSwitch["Source"].GetString());
       } else {
-        throw std::runtime_error(std::string("ERROR")+RootPath_+std::string(": Engage switch source not found in global data."));
+        throw std::runtime_error(std::string("ERROR")+RootPath_+std::string(": Test-Increment-Switch source not found in global data."));
       }
     } else {
-      throw std::runtime_error(std::string("ERROR")+RootPath_+std::string(": Engage switch configuration does not define a source."));
+      throw std::runtime_error(std::string("ERROR")+RootPath_+std::string(": Test-Increment-Switch configuration does not define a source."));
     }
-    if (EngageSwitch.HasMember("Threshold")) {
-      config_.TestPointIncrementSwitch.Threshold = EngageSwitch["Threshold"].GetFloat();
+    if (TempSwitch.HasMember("Threshold")) {
+      config_.TestSelectIncrementSwitch.Threshold = TempSwitch["Threshold"].GetFloat();
     }
-    if (EngageSwitch.HasMember("Gain")) {
-      config_.TestPointIncrementSwitch.Gain = EngageSwitch["Gain"].GetFloat();
+    if (TempSwitch.HasMember("Gain")) {
+      config_.TestSelectIncrementSwitch.Gain = TempSwitch["Gain"].GetFloat();
     }
-  }  
+  }
+
   if (Config.HasMember("Test-Decrement-Switch")) {
-    const rapidjson::Value& EngageSwitch = Config["Test-Decrement-Switch"];
-    if (EngageSwitch.HasMember("Source")) {
-      if (DefinitionTreePtr->GetValuePtr<float*>(EngageSwitch["Source"].GetString())) {
-        config_.TestPointDecrementSwitch.SourcePtr = DefinitionTreePtr->GetValuePtr<float*>(EngageSwitch["Source"].GetString());
+    const rapidjson::Value& TempSwitch = Config["Test-Decrement-Switch"];
+    if (TempSwitch.HasMember("Source")) {
+std::cout << TempSwitch["Source"].GetString() << std::endl;
+      if (DefinitionTreePtr->GetValuePtr<float*>(TempSwitch["Source"].GetString())) {
+        config_.TestSelectDecrementSwitch.SourcePtr = DefinitionTreePtr->GetValuePtr<float*>(TempSwitch["Source"].GetString());
       } else {
-        throw std::runtime_error(std::string("ERROR")+RootPath_+std::string(": Engage switch source not found in global data."));
+        throw std::runtime_error(std::string("ERROR")+RootPath_+std::string(": Test-Decrement-Switch source not found in global data."));
       }
     } else {
-      throw std::runtime_error(std::string("ERROR")+RootPath_+std::string(": Engage switch configuration does not define a source."));
+      throw std::runtime_error(std::string("ERROR")+RootPath_+std::string(": Test-Decrement-Switch configuration does not define a source."));
     }
-    if (EngageSwitch.HasMember("Threshold")) {
-      config_.TestPointDecrementSwitch.Threshold = EngageSwitch["Threshold"].GetFloat();
+    if (TempSwitch.HasMember("Threshold")) {
+      config_.TestSelectDecrementSwitch.Threshold = TempSwitch["Threshold"].GetFloat();
     }
-    if (EngageSwitch.HasMember("Gain")) {
-      config_.TestPointDecrementSwitch.Gain = EngageSwitch["Gain"].GetFloat();
+    if (TempSwitch.HasMember("Gain")) {
+      config_.TestSelectDecrementSwitch.Gain = TempSwitch["Gain"].GetFloat();
     }
-  } 
+  }
+
   // build a map of the test point data
   if (Config.HasMember("Test-Points")) {
     const rapidjson::Value& TestPoints = Config["Test-Points"];
     NumberOfTestPoints_ = TestPoints.Size();
+std::cout << "Test Points: " << NumberOfTestPoints_ << std::endl;
     for (auto &TestPoint : TestPoints.GetArray()) {
       if (TestPoint.HasMember("Test-ID")&&TestPoint.HasMember("Sensor-Processing")&&TestPoint.HasMember("Control")&&TestPoint.HasMember("Excitation")) {
+std::cout << TestPoint["Test-ID"].GetString() << std::endl;
+std::cout << TestPoint["Sensor-Processing"].GetString() << std::endl;
         TestPoints_[TestPoint["Test-ID"].GetString()].SensorProcessing = TestPoint["Sensor-Processing"].GetString();
+std::cout << TestPoint["Sensor-Processing"].GetString() << std::endl;
         TestPoints_[TestPoint["Test-ID"].GetString()].Control = TestPoint["Control"].GetString();
+std::cout << TestPoint["Control"].GetString() << std::endl;
         TestPoints_[TestPoint["Test-ID"].GetString()].Excitation = TestPoint["Excitation"].GetString();
+std::cout << TestPoint["Excitation"].GetString() << std::endl;
       } else {
         throw std::runtime_error(std::string("ERROR")+RootPath_+std::string(": Test-ID, Sensor-Processing, Control, or Excitation not included in test point definition."));
       }
     }
-  } 
+  }
+
   // setting the baseline controller
   if (Config.HasMember("Baseline-Controller")) {
     config_.BaselineController = Config["Baseline-Controller"].GetString();
+    std::cout << config_.BaselineController << std::endl;
   }
+
 }
 
 /* runs the mission manager */
 void MissionManager::Run() {
+  // Switch processing
+
   // FMU / SOC switch logic
-  if (*config_.SocEngageSwitch.SourcePtr*config_.SocEngageSwitch.Gain > config_.SocEngageSwitch.Threshold) {
-    SocEngageSwitchPersistenceCounter_++;
+  float SocEngageSwitchVal = (*config_.SocEngageSwitch.SourcePtr) * config_.SocEngageSwitch.Gain;
+  bool SocEngageCheck = (SocEngageSwitchVal > config_.SocEngageSwitch.Threshold);
+
+  if ((SocEngage_ != true) && (SocEngageCheck == true)) {
+    SocEngagePersistenceCounter_++;
+    if (SocEngagePersistenceCounter_ > PersistenceThreshold_) {
+      SocEngage_ = true;
+      SocEngagePersistenceCounter_ = 0;
+    }
+  } else if ((SocEngage_ != false) && (SocEngageCheck == false)) {
+    SocEngagePersistenceCounter_++;
+    if (SocEngagePersistenceCounter_ > PersistenceThreshold_) {
+      SocEngage_ = false;
+      SocEngagePersistenceCounter_ = 0;
+    }
   } else {
-    SocEngageSwitchPersistenceCounter_ = 0;
+    SocEngagePersistenceCounter_ = 0;
   }
-  // In SOC baseline, no excitation, arm the next controller
-  if (SocEngageSwitchPersistenceCounter_ > PersistenceThreshold_) {
-    EngagedSensorProcessing_ = "Baseline";
-    EnagagedController_ = config_.BaselineController;
-    ArmedController_ = ArmedController_ = TestPoints_[std::to_string(NextTestPointIndex_)].Control;
-    EnagagedExcitation_ = "None";
+// std::cout << SocEngageSwitchVal << "\t" << SocEngageCheck << "\t" << SocEngagePersistenceCounter_ << "\t" << SocEngage_ << "\t" << std::flush;
+
+  // Control law select switch logic
+  float CtrlSelectSwitchVal = (*config_.CtrlSelectSwitch.SourcePtr) * config_.CtrlSelectSwitch.Gain;
+  bool CtrlSelectCheck = CtrlSelectSwitchVal > config_.CtrlSelectSwitch.Threshold;
+
+  if (SocEngage_ == true) {
+    if ((CtrlSelect_ != true) && (CtrlSelectCheck == true)) {
+      CtrlSelectPersistenceCounter_++;
+      if (CtrlSelectPersistenceCounter_ > PersistenceThreshold_) {
+        CtrlSelect_ = true;
+        CtrlSelectPersistenceCounter_ = 0;
+      }
+    } else if ((CtrlSelect_ != false) && (CtrlSelectCheck == false)) {
+      CtrlSelectPersistenceCounter_++;
+      if (CtrlSelectPersistenceCounter_ > PersistenceThreshold_) {
+        CtrlSelect_ = false;
+        CtrlSelectPersistenceCounter_ = 0;
+      }
+    } else {
+      CtrlSelectPersistenceCounter_ = 0;
+    }
   } else {
-    // In FMU, no excitation, arm the baseline controller
+    CtrlSelect_ = false;
+    CtrlSelectPersistenceCounter_ = 0;
+  }
+// std::cout << CtrlSelectSwitchVal << "\t" << CtrlSelectCheck << "\t" << CtrlSelectPersistenceCounter_ << "\t" << CtrlSelect_ << "\t" << std::flush;
+
+  // Test point select logic
+  float TestSelectDecrementSwitchVal = (*config_.TestSelectDecrementSwitch.SourcePtr) * config_.TestSelectDecrementSwitch.Gain;
+  bool TestSelectDecrementCheck = TestSelectDecrementSwitchVal > config_.TestSelectDecrementSwitch.Threshold;
+  float TestSelectIncrementSwitchVal = (*config_.TestSelectIncrementSwitch.SourcePtr) * config_.TestSelectIncrementSwitch.Gain;
+  bool TestSelectIncrementCheck = TestSelectIncrementSwitchVal > config_.TestSelectIncrementSwitch.Threshold;
+
+  bool TestSelectExciteCheck;
+
+  // If the switch is not in Increment or Decrement, then set to Excite
+  if ((TestSelectIncrementCheck == false) && (TestSelectDecrementCheck == false)) {
+    TestSelectExciteCheck = true;
+  } else {
+    TestSelectExciteCheck = 0;
+  }
+
+  if ((TestSelect_ != 1) && (TestSelectIncrementCheck == true)) {
+    TestSelectIncrementPersistenceCounter_++;
+    if (TestSelectIncrementPersistenceCounter_ > PersistenceThreshold_) {
+      TestSelect_ = 1;
+      TestSelectIncrementPersistenceCounter_ = 0;
+    }
+  } else if ((TestSelect_ != -1) && (TestSelectDecrementCheck == true)) {
+    TestSelectDecrementPersistenceCounter_++;
+    if (TestSelectDecrementPersistenceCounter_ > PersistenceThreshold_) {
+      TestSelect_ = -1;
+      TestSelectDecrementPersistenceCounter_ = 0;
+    }
+  } else if ((TestSelect_ != 0) && (TestSelectExciteCheck == true)) {
+    TestSelectExcitePersistenceCounter_++;
+    if (TestSelectExcitePersistenceCounter_ > PersistenceThreshold_) {
+      TestSelect_ = 0;
+      TestSelectExcitePersistenceCounter_ = 0;
+    }
+  } else {
+    TestSelectIncrementPersistenceCounter_ = 0;
+    TestSelectDecrementPersistenceCounter_ = 0;
+    TestSelectExcitePersistenceCounter_ = 0;
+  }
+
+  // Triggger switch logic
+  float TriggerValue = (*config_.TriggerSwitch.SourcePtr) * config_.TriggerSwitch.Gain;
+  bool TriggerCheck = TriggerValue > config_.TriggerSwitch.Threshold;
+  // int TriggerPersistenceCounter_;
+  // bool Trigger_;
+
+  if ((Trigger_ != true) && (TriggerCheck == true)) {
+    if (TriggerLatch_ == false) {
+      TriggerPersistenceCounter_++;
+      if (TriggerPersistenceCounter_ > PersistenceThreshold_) {
+        Trigger_ = true;
+        TriggerPersistenceCounter_ = 0;
+        TriggerLatch_ = true;
+      }
+    }
+  } else { // Clear the counter, clear the latch, let the mode controller "clear" the trigger event
+    TriggerPersistenceCounter_ = 0;
+    TriggerLatch_ = false;
+    // Trigger_ = false;
+  }
+// std::cout << TriggerValue << "\t" << TriggerCheck << "\t" << (int) TriggerPersistenceCounter_ << "\t" << (int) PersistenceThreshold_ << "\t" << (bool) (TriggerPersistenceCounter_ > PersistenceThreshold_)  << "\t" << Trigger_ << "\t\t" << std::flush;
+
+
+std::cout << SocEngage_ << "\t" << CtrlSelect_ << "\t" << TestSelect_ << "\t" << Trigger_ << "\t" << std::flush;
+  // Mode Control Logic
+
+  // Test Selection
+  if (TestSelect_ == 0) { // Excitation selected
+    if (Trigger_ == true) {
+      if (EnagagedExcitation_ == "None") { // Engage the Excitation
+        EnagagedExcitation_ = TestPoints_[std::to_string(CurrentTestPointIndex_)].Excitation;
+      } else { // Dis-Engage the Excitation
+        EnagagedExcitation_ = "None";
+      }
+      Trigger_ = false;
+    }
+  } else if (TestSelect_ == 1) { // Increment selected
+    EnagagedExcitation_ = "None";
+
+    if (Trigger_ == true) { // Increment the Test Point, switches engaged controller
+      CurrentTestPointIndex_ = NextTestPointIndex_;
+      NextTestPointIndex_ = CurrentTestPointIndex_ + 1;
+
+      if (NextTestPointIndex_ >= NumberOfTestPoints_) {
+        NextTestPointIndex_ = 0;
+      }
+      Trigger_ = false;
+    }
+  } else if (TestSelect_ == -1) { // Decrement selected
+    EnagagedExcitation_ = "None";
+
+    if (Trigger_ == true) { // Decrement the Test Point to 0, switches engaged controller
+      CurrentTestPointIndex_ = 0;
+      NextTestPointIndex_ = CurrentTestPointIndex_ + 1;
+      Trigger_ = false;
+    }
+  }
+
+  // SOC Controller and SensorProcessing Mode Switching
+  if (SocEngage_ == true) {
+    if (CtrlSelect_ == true) { // SOC Research
+      EngagedSensorProcessing_ = TestPoints_[std::to_string(CurrentTestPointIndex_)].SensorProcessing;
+      EnagagedController_ = TestPoints_[std::to_string(CurrentTestPointIndex_)].Control;
+      ArmedController_ = TestPoints_[std::to_string(NextTestPointIndex_)].Control;
+      // EnagagedExcitation_ = "None";
+
+    } else { // In SOC Baseline, arm the next controller, no excitation
+      EngagedSensorProcessing_ = "Baseline";
+      EnagagedController_ = config_.BaselineController;
+      ArmedController_ = TestPoints_[std::to_string(CurrentTestPointIndex_)].Control;
+      EnagagedExcitation_ = "None";
+    }
+
+  } else { // FMU Mode
     EngagedSensorProcessing_ = "Baseline";
     EnagagedController_ = "Fmu";
     ArmedController_ = config_.BaselineController;
     EnagagedExcitation_ = "None";
   }
-  // Research control law logic
-  if (*config_.ResearchEngageSwitch.SourcePtr*config_.ResearchEngageSwitch.Gain > config_.ResearchEngageSwitch.Threshold) {
-    ResearchEngageSwitchPersistenceCounter_++;
-  } else {
-    ResearchEngageSwitchPersistenceCounter_ = 0;
-  }
-  // SOC Research sensor processing and control, no excitation, arm the next controller
-  if (ResearchEngageSwitchPersistenceCounter_ > PersistenceThreshold_) {
-    if (!ResearchEngageLatch_) {
-      ResearchEngageLatch_ = true;
-      CurrentTestPointIndex_ = NextTestPointIndex_;
-    }
-    EngagedSensorProcessing_ = TestPoints_[std::to_string(CurrentTestPointIndex_)].SensorProcessing;
-    EnagagedController_ = TestPoints_[std::to_string(CurrentTestPointIndex_)].Control;
-    ArmedController_ = config_.BaselineController;
-    EnagagedExcitation_ = "None";
-    // In SOC baseline, no excitation, arm the next controller
-  } else {
-    ResearchEngageLatch_ = false;
-  }
-  // Excitation engage logic
-  if (*config_.ExcitationEngageSwitch.SourcePtr*config_.ExcitationEngageSwitch.Gain > config_.ExcitationEngageSwitch.Threshold) {
-    ExcitationEngageSwitchPersistenceCounter_++;
-  } else {
-    ExcitationEngageSwitchPersistenceCounter_ = 0;
-  }
-  // Excitation engaged
-  if (ExcitationEngageSwitchPersistenceCounter_ > PersistenceThreshold_) {
-    EnagagedExcitation_ = TestPoints_[std::to_string(CurrentTestPointIndex_)].Excitation;
-    // Excitation not engaged
-  } else {
-    EnagagedExcitation_ = "None";
-  }
-  // Test point select logic
-  if (*config_.TestPointIncrementSwitch.SourcePtr*config_.TestPointIncrementSwitch.Gain > config_.TestPointIncrementSwitch.Threshold) {
-    if (!TestPointIndexLatch_) {
-      TestPointIndexLatch_ = true;
-      NextTestPointIndex_++;
-      if (NextTestPointIndex_>=NumberOfTestPoints_) {
-        NextTestPointIndex_ = 0;
-      }
-    }
-  }
-  else if (*config_.TestPointDecrementSwitch.SourcePtr*config_.TestPointDecrementSwitch.Gain < config_.TestPointDecrementSwitch.Threshold) {
-    if (!TestPointIndexLatch_) {
-      TestPointIndexLatch_ = true;
-      if (NextTestPointIndex_==0) {
-        NextTestPointIndex_ = NumberOfTestPoints_-1;
-      } else {
-        NextTestPointIndex_--;
-      }
-    }
-  } else {
-    TestPointIndexLatch_ = false;
-  }
+
+
+
+std::cout << std::to_string(CurrentTestPointIndex_) << "\t" << EnagagedController_ << "\t" << ArmedController_ << "\t" << EnagagedExcitation_ << std::endl;
 }
 
 /* returns the string of the sensor processing group that is engaged */

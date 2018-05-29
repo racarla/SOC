@@ -58,24 +58,37 @@ class MissionManager {
         float Threshold = 0.5;
         float Gain = 1.0;
       };
-      Switch SocEngageSwitch,ResearchEngageSwitch,ExcitationEngageSwitch,TestPointIncrementSwitch,TestPointDecrementSwitch;
+      Switch SocEngageSwitch,CtrlSelectSwitch,TestSelectIncrementSwitch,TestSelectDecrementSwitch,TriggerSwitch;
       std::string BaselineController;
     };
     Configuration config_;
     std::string RootPath_ = "/Mission-Manager";
     const size_t PersistenceThreshold_ = 5;
-    size_t SocEngageSwitchPersistenceCounter_ = 0;
-    size_t ResearchEngageSwitchPersistenceCounter_ = 0;
-    size_t ExcitationEngageSwitchPersistenceCounter_ = 0;
+
+    size_t SocEngagePersistenceCounter_ = 0;
+    bool SocEngage_ = false;;
+
+    size_t CtrlSelectPersistenceCounter_ = 0;
+    bool CtrlSelect_ = false;
+
+    size_t TestSelectIncrementPersistenceCounter_ = 0;
+    size_t TestSelectDecrementPersistenceCounter_ = 0;
+    size_t TestSelectExcitePersistenceCounter_ = 0;
+    int TestSelect_ = 0;
+
+    size_t TriggerPersistenceCounter_ = 0;
+    bool TriggerLatch_ = false;
+    bool Trigger_ = false;
+
     size_t NumberOfTestPoints_ = 0;
     size_t CurrentTestPointIndex_ = 0;
     size_t NextTestPointIndex_ = 0;
-    bool TestPointIndexLatch_ = false;
-    bool ResearchEngageLatch_ = false;
+
     std::string EngagedSensorProcessing_ = "Baseline";
     std::string EnagagedController_ = "Fmu";
     std::string ArmedController_ = "Fmu";
     std::string EnagagedExcitation_ = "None";
+
     std::map<std::string,TestPointDefinition> TestPoints_;
 };
 
