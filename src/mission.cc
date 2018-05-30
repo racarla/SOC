@@ -26,7 +26,6 @@ void MissionManager::Configure(const rapidjson::Value& Config, DefinitionTree *D
   if (Config.HasMember("Fmu-Soc-Switch")) {
     const rapidjson::Value& TempSwitch = Config["Fmu-Soc-Switch"];
     if (TempSwitch.HasMember("Source")) {
-std::cout << TempSwitch["Source"].GetString() << std::endl;
       if (DefinitionTreePtr->GetValuePtr<float*>(TempSwitch["Source"].GetString())) {
         config_.SocEngageSwitch.SourcePtr = DefinitionTreePtr->GetValuePtr<float*>(TempSwitch["Source"].GetString());
       } else {
@@ -47,7 +46,6 @@ std::cout << TempSwitch["Source"].GetString() << std::endl;
   if (Config.HasMember("Control-Select-Switch")) {
     const rapidjson::Value& TempSwitch = Config["Control-Select-Switch"];
     if (TempSwitch.HasMember("Source")) {
-std::cout << TempSwitch["Source"].GetString() << std::endl;
       if (DefinitionTreePtr->GetValuePtr<float*>(TempSwitch["Source"].GetString())) {
         config_.CtrlSelectSwitch.SourcePtr = DefinitionTreePtr->GetValuePtr<float*>(TempSwitch["Source"].GetString());
       } else {
@@ -68,7 +66,6 @@ std::cout << TempSwitch["Source"].GetString() << std::endl;
   if (Config.HasMember("Trigger-Switch")) {
     const rapidjson::Value& TempSwitch = Config["Trigger-Switch"];
     if (TempSwitch.HasMember("Source")) {
-std::cout << TempSwitch["Source"].GetString() << std::endl;
       if (DefinitionTreePtr->GetValuePtr<float*>(TempSwitch["Source"].GetString())) {
         config_.TriggerSwitch.SourcePtr = DefinitionTreePtr->GetValuePtr<float*>(TempSwitch["Source"].GetString());
       } else {
@@ -89,7 +86,6 @@ std::cout << TempSwitch["Source"].GetString() << std::endl;
   if (Config.HasMember("Test-Increment-Switch")) {
     const rapidjson::Value& TempSwitch = Config["Test-Increment-Switch"];
     if (TempSwitch.HasMember("Source")) {
-std::cout << TempSwitch["Source"].GetString() << std::endl;
       if (DefinitionTreePtr->GetValuePtr<float*>(TempSwitch["Source"].GetString())) {
         config_.TestSelectIncrementSwitch.SourcePtr = DefinitionTreePtr->GetValuePtr<float*>(TempSwitch["Source"].GetString());
       } else {
@@ -109,7 +105,6 @@ std::cout << TempSwitch["Source"].GetString() << std::endl;
   if (Config.HasMember("Test-Decrement-Switch")) {
     const rapidjson::Value& TempSwitch = Config["Test-Decrement-Switch"];
     if (TempSwitch.HasMember("Source")) {
-std::cout << TempSwitch["Source"].GetString() << std::endl;
       if (DefinitionTreePtr->GetValuePtr<float*>(TempSwitch["Source"].GetString())) {
         config_.TestSelectDecrementSwitch.SourcePtr = DefinitionTreePtr->GetValuePtr<float*>(TempSwitch["Source"].GetString());
       } else {
@@ -131,18 +126,12 @@ std::cout << TempSwitch["Source"].GetString() << std::endl;
     const rapidjson::Value& TestPoints = Config["Test-Points"];
     assert(TestPoints.IsArray());
     NumberOfTestPoints_ = TestPoints.Size();
-std::cout << "Test Points: " << NumberOfTestPoints_ << std::endl;
     for (auto &TestPoint : TestPoints.GetArray()) {
       if (TestPoint.HasMember("Test-ID")&&TestPoint.HasMember("Sensor-Processing")&&TestPoint.HasMember("Control")&&TestPoint.HasMember("Excitation")) {
-std::cout << TestPoint["Test-ID"].GetString() << std::endl;
         TestPoints_[TestPoint["Test-ID"].GetString()].ID = TestPoint["Test-ID"].GetString();
-std::cout << TestPoint["Sensor-Processing"].GetString() << std::endl;
         TestPoints_[TestPoint["Test-ID"].GetString()].SensorProcessing = TestPoint["Sensor-Processing"].GetString();
-std::cout << TestPoint["Sensor-Processing"].GetString() << std::endl;
         TestPoints_[TestPoint["Test-ID"].GetString()].Control = TestPoint["Control"].GetString();
-std::cout << TestPoint["Control"].GetString() << std::endl;
         TestPoints_[TestPoint["Test-ID"].GetString()].Excitation = TestPoint["Excitation"].GetString();
-std::cout << TestPoint["Excitation"].GetString() << std::endl;
       } else {
         throw std::runtime_error(std::string("ERROR")+RootPath_+std::string(": Test-ID, Sensor-Processing, Control, or Excitation not included in test point definition."));
       }

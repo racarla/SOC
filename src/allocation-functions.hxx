@@ -27,8 +27,6 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SO
 #include "definition-tree.hxx"
 #include "generic-function.hxx"
 #include <Eigen/Dense>
-#include <stdio.h>
-#include <iostream>
 
 /*
 Pseudo Inverse Allocation - Implements a pseudo inverse control allocation

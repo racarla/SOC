@@ -26,7 +26,6 @@ void PseudoInverseAllocation::Configure(const rapidjson::Value& Config,std::stri
     for (size_t i=0; i < Config["Inputs"].Size(); i++) {
       const rapidjson::Value& Input = Config["Inputs"][i];
       InputKeys_.push_back(Input.GetString());
-std::cout << "Looking for: " << Input.GetString() << std::endl;
       if (DefinitionTreePtr->GetValuePtr<float*>(InputKeys_.back())) {
         config_.Inputs.push_back(DefinitionTreePtr->GetValuePtr<float*>(InputKeys_.back()));
       } else {
