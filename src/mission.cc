@@ -129,11 +129,13 @@ std::cout << TempSwitch["Source"].GetString() << std::endl;
   // build a map of the test point data
   if (Config.HasMember("Test-Points")) {
     const rapidjson::Value& TestPoints = Config["Test-Points"];
+    assert(TestPoints.IsArray());
     NumberOfTestPoints_ = TestPoints.Size();
 std::cout << "Test Points: " << NumberOfTestPoints_ << std::endl;
     for (auto &TestPoint : TestPoints.GetArray()) {
       if (TestPoint.HasMember("Test-ID")&&TestPoint.HasMember("Sensor-Processing")&&TestPoint.HasMember("Control")&&TestPoint.HasMember("Excitation")) {
 std::cout << TestPoint["Test-ID"].GetString() << std::endl;
+        TestPoints_[TestPoint["Test-ID"].GetString()].ID = TestPoint["Test-ID"].GetString();
 std::cout << TestPoint["Sensor-Processing"].GetString() << std::endl;
         TestPoints_[TestPoint["Test-ID"].GetString()].SensorProcessing = TestPoint["Sensor-Processing"].GetString();
 std::cout << TestPoint["Sensor-Processing"].GetString() << std::endl;
@@ -144,6 +146,13 @@ std::cout << TestPoint["Excitation"].GetString() << std::endl;
       } else {
         throw std::runtime_error(std::string("ERROR")+RootPath_+std::string(": Test-ID, Sensor-Processing, Control, or Excitation not included in test point definition."));
       }
+    }
+
+    // initialize the next test point index
+    NextTestPointIndex_ = CurrentTestPointIndex_ + 1;
+
+    if (NextTestPointIndex_ >= NumberOfTestPoints_) {
+      NextTestPointIndex_ = 0;
     }
   }
 
@@ -327,7 +336,7 @@ std::cout << SocEngage_ << "\t" << CtrlSelect_ << "\t" << TestSelect_ << "\t" <<
 
 
 
-std::cout << std::to_string(CurrentTestPointIndex_) << "\t" << EnagagedController_ << "\t" << ArmedController_ << "\t" << EnagagedExcitation_ << std::endl;
+std::cout << CurrentTestPointIndex_ << "\t" << NextTestPointIndex_ << "\t" << EnagagedController_ << "\t" << ArmedController_ << "\t" << EnagagedExcitation_ << std::endl;
 }
 
 /* returns the string of the sensor processing group that is engaged */

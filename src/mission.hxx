@@ -41,6 +41,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SO
 class MissionManager {
   public:
     struct TestPointDefinition {
+      std::string ID;
       std::string SensorProcessing;
       std::string Control;
       std::string Excitation;

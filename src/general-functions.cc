@@ -19,6 +19,8 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SO
 */
 
 #include "general-functions.hxx"
+#include <stdio.h>
+#include <iostream>
 
 /* Constant class methods, see general-functions.hxx for more information */
 void ConstantClass::Configure(const rapidjson::Value& Config,std::string RootPath,DefinitionTree *DefinitionTreePtr) {
@@ -143,18 +145,30 @@ void GainClass::Clear(DefinitionTree *DefinitionTreePtr) {
 /* Sum class methods, see general-functions.hxx for more information */
 void SumClass::Configure(const rapidjson::Value& Config,std::string RootPath,DefinitionTree *DefinitionTreePtr) {
   std::string OutputName;
+std::cout << "Sum" << std::endl;
   if (Config.HasMember("Output")) {
     OutputName = RootPath + "/" + Config["Output"].GetString();
   } else {
     throw std::runtime_error(std::string("ERROR")+RootPath+std::string(": Output not specified in configuration."));
   }
+std::cout << "Output: " << OutputName << std::endl;
+
   if (Config.HasMember("Inputs")) {
+std::cout << "Inputs: " << std::endl;
+std::cout << "Size: " << (int) Config["Inputs"].Size() << std::endl;
     for (size_t i=0; i < Config["Inputs"].Size(); i++) {
       const rapidjson::Value& Input = Config["Inputs"][i];
       InputKeys_.push_back(Input.GetString());
+
+std::cout << "Indx: " << (int) i << std::endl;
+std::cout << "Input: " << Input.GetString() << std::endl;
+
       if (DefinitionTreePtr->GetValuePtr<float*>(InputKeys_.back())) {
         config_.Inputs.push_back(DefinitionTreePtr->GetValuePtr<float*>(InputKeys_.back()));
       } else {
+        std::cout << OutputName << std::endl;
+        std::cout << InputKeys_.back() << std::endl;
+
         throw std::runtime_error(std::string("ERROR")+OutputName+std::string(": Input ")+InputKeys_.back()+std::string(" not found in global data."));
       }
     }
