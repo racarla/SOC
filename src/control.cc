@@ -32,9 +32,6 @@ void ControlLaws::Configure(const rapidjson::Value& Config, DefinitionTree *Defi
     for (auto &GroupName : SocConfig.GetArray()) {
       // grab Soc control law definition
       if (Config.HasMember(GroupName.GetString())) {
-
-std::cout << "\n" << GroupName.GetString() << std::endl;
-
         // store the group key
         SocGroupKeys_.push_back(GroupName.GetString());
         // json group definition
@@ -49,9 +46,6 @@ std::cout << "\n" << GroupName.GetString() << std::endl;
             auto level = std::distance(GroupDefinition.Begin(),Member);
             // store the level names
             SocLevelNames_[SocGroupKeys_.back()].push_back((*Member)["Level"].GetString());
-
-std::cout << "\t" << (*Member)["Level"].GetString() << std::endl;
-
             // path for the Soc functions /Control/"Group-Name"
             std::string PathName = RootPath_+"/"+SocGroupKeys_.back()+"/"+SocLevelNames_[SocGroupKeys_.back()].back();
             // json components on a given level
@@ -60,7 +54,7 @@ std::cout << "\t" << (*Member)["Level"].GetString() << std::endl;
             for (auto &Func : Components.GetArray()) {
               if (Func.HasMember("Type")) {
                 if (Func["Type"] == "Constant") {
-                  SocControlGroups_[SocGroupKeys_.back()][level].push_back(std::make_shared<ConstantClass>()); 
+                  SocControlGroups_[SocGroupKeys_.back()][level].push_back(std::make_shared<ConstantClass>());
                 }
                 if (Func["Type"] == "Gain") {
                   SocControlGroups_[SocGroupKeys_.back()][level].push_back(std::make_shared<GainClass>());
@@ -84,14 +78,13 @@ std::cout << "\t" << (*Member)["Level"].GetString() << std::endl;
               }
             }
             // getting a list of all Soc keys and adding to superset of output keys
-            // modify the key to remove the intermediate path 
+            // modify the key to remove the intermediate path
             // (i.e. /Control/GroupName/Pitch --> /Control/Pitch)
             DefinitionTreePtr->GetKeys(PathName,&SocDataKeys_[SocGroupKeys_.back()][level]);
             for (auto Key : SocDataKeys_[SocGroupKeys_.back()][level]) {
               std::string MemberName = RootPath_+Key.substr(Key.rfind("/"));
               if ((Key.substr(Key.rfind("/"))!="/Mode")&&(Key.substr(Key.rfind("/"))!="/Saturated")) {
                 OutputKeysMap[MemberName] = MemberName;
-std::cout << "\t\t" << MemberName << std::endl;
               }
             }
             /* Soc outputs to superset of outputs */
@@ -113,11 +106,7 @@ std::cout << "\t\t" << MemberName << std::endl;
                       DefinitionTreePtr->GetMember(SocKey,&TempDef);
                       SocDataPtr_[GroupKey][KeyName] = TempDef.Value;
                       // check to see if output key has already been registered
-
-std::cout << "\t\t Checking: " << OutputKey << std::flush;
-
                       if (DefinitionTreePtr->Size(OutputKey)==0) {
-std::cout << "  creating new entry" << std::endl;
                         // register output if it has not already been
                         if (DefinitionTreePtr->GetValuePtr<uint64_t*>(SocKey)) {
                           OutputData_[KeyName] = *(DefinitionTreePtr->GetValuePtr<uint64_t*>(SocKey));
@@ -160,9 +149,10 @@ std::cout << "  creating new entry" << std::endl;
                           DefinitionTreePtr->InitMember(OutputKey,std::get_if<double>(&OutputData_[KeyName]),TempDef.Description,true,false);
                         }
                       } else {
-std::cout << "  already exists" << std::endl;
 
                       }
+                    } else {
+
                     }
                   }
                 }
@@ -261,7 +251,7 @@ void ControlLaws::RunArmed() {
   for (auto Group : SocGroupKeys_) {
     // iterate through all levels
     for (auto Levels = SocControlGroups_[Group].begin(); Levels != SocControlGroups_[Group].end(); ++Levels) {
-      auto Level = std::distance(SocControlGroups_[Group].begin(),Levels); 
+      auto Level = std::distance(SocControlGroups_[Group].begin(),Levels);
       // iterate through all functions
       for (auto Func : SocControlGroups_[Group][Level]) {
         // make sure we don't run the engaged group
