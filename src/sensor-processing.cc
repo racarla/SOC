@@ -32,31 +32,30 @@ void SensorProcessing::Configure(const rapidjson::Value& Config,DefinitionTree *
     for (auto &Func : BaselineConfig.GetArray()) {
       if (Func.HasMember("Type")) {
         if (Func["Type"] == "Constant") {
-          BaselineSensorProcessing_.push_back(std::make_shared<ConstantClass>()); 
-        }
-        if (Func["Type"] == "Gain") {
+          BaselineSensorProcessing_.push_back(std::make_shared<ConstantClass>());
+        } else if (Func["Type"] == "Gain") {
           BaselineSensorProcessing_.push_back(std::make_shared<GainClass>());
-        }
-        if (Func["Type"] == "Sum") {
+        } else if (Func["Type"] == "Sum") {
           BaselineSensorProcessing_.push_back(std::make_shared<SumClass>());
-        }
-        if (Func["Type"] == "IAS") {
+        } else if (Func["Type"] == "IAS") {
           BaselineSensorProcessing_.push_back(std::make_shared<IndicatedAirspeed>());
-        }
-        if (Func["Type"] == "AGL") {
+        } else if (Func["Type"] == "AGL") {
           BaselineSensorProcessing_.push_back(std::make_shared<AglAltitude>());
-        }
-        if (Func["Type"] == "EKF15StateINS") {
+        } else if (Func["Type"] == "EKF15StateINS") {
           BaselineSensorProcessing_.push_back(std::make_shared<Ekf15StateIns>());
+        } else {
+          throw std::runtime_error(std::string("ERROR")+PathName+std::string(": Type specified is not a defined type"));
         }
+
         // configure the function
         BaselineSensorProcessing_.back()->Configure(Func,PathName,DefinitionTreePtr);
+
       } else {
         throw std::runtime_error(std::string("ERROR")+PathName+std::string(": Type not specified in configuration."));
       }
     }
     // getting a list of all baseline keys and adding to superset of output keys
-    // modify the key to remove the intermediate path 
+    // modify the key to remove the intermediate path
     // (i.e. /Sensor-Processing/Baseline/Ias --> /Sensor-Processing/Ias)
     DefinitionTreePtr->GetKeys(PathName,&BaselineDataKeys_);
     for (auto Key : BaselineDataKeys_) {
@@ -68,7 +67,7 @@ void SensorProcessing::Configure(const rapidjson::Value& Config,DefinitionTree *
   } else {
     throw std::runtime_error(std::string("ERROR")+RootPath_+std::string(": Baseline not specified in configuration."));
   }
-  
+
   // configuring research sensor processing groups
   if (Config.HasMember("Research")) {
     const rapidjson::Value& ResearchConfig = Config["Research"];
@@ -81,34 +80,32 @@ void SensorProcessing::Configure(const rapidjson::Value& Config,DefinitionTree *
         for (auto &Func : Group["Components"].GetArray()) {
           if (Func.HasMember("Type")) {
             if (Func["Type"] == "Constant") {
-              ResearchSensorProcessingGroups_[ResearchGroupKeys_.back()].push_back(std::make_shared<ConstantClass>()); 
-            }
-            if (Func["Type"] == "Gain") {
+              ResearchSensorProcessingGroups_[ResearchGroupKeys_.back()].push_back(std::make_shared<ConstantClass>());
+            } else if (Func["Type"] == "Gain") {
               ResearchSensorProcessingGroups_[ResearchGroupKeys_.back()].push_back(std::make_shared<GainClass>());
-            }
-            if (Func["Type"] == "Sum") {
+            } else if (Func["Type"] == "Sum") {
               ResearchSensorProcessingGroups_[ResearchGroupKeys_.back()].push_back(std::make_shared<SumClass>());
-            }
-            if (Func["Type"] == "IAS") {
+            } else if (Func["Type"] == "IAS") {
               ResearchSensorProcessingGroups_[ResearchGroupKeys_.back()].push_back(std::make_shared<IndicatedAirspeed>());
-            }
-            if (Func["Type"] == "AGL") {
+            } else if (Func["Type"] == "AGL") {
               ResearchSensorProcessingGroups_[ResearchGroupKeys_.back()].push_back(std::make_shared<AglAltitude>());
-            }
-            if (Func["Type"] == "EKF15StateINS") {
+            } else if (Func["Type"] == "EKF15StateINS") {
               ResearchSensorProcessingGroups_[ResearchGroupKeys_.back()].push_back(std::make_shared<Ekf15StateIns>());
-            }
-            if (Func["Type"] == "Filter") {
+            } else if (Func["Type"] == "Filter") {
               ResearchSensorProcessingGroups_[ResearchGroupKeys_.back()].push_back(std::make_shared<GeneralFilter>());
+            } else {
+              throw std::runtime_error(std::string("ERROR")+PathName+std::string(": Type specified is not a defined type"));
             }
+
             // configure the function
             ResearchSensorProcessingGroups_[ResearchGroupKeys_.back()].back()->Configure(Func,PathName,DefinitionTreePtr);
+
           } else {
             throw std::runtime_error(std::string("ERROR")+PathName+std::string(": Type not specified in configuration."));
-          }          
+          }
         }
         // getting a list of all research keys and adding to superset of output keys
-        // modify the key to remove the intermediate path 
+        // modify the key to remove the intermediate path
         // (i.e. /Sensor-Processing/GroupName/Ias --> /Sensor-Processing/Ias)
         DefinitionTreePtr->GetKeys(PathName,&ResearchDataKeys_[ResearchGroupKeys_.back()]);
         for (auto Key : ResearchDataKeys_[ResearchGroupKeys_.back()]) {
