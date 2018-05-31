@@ -83,10 +83,15 @@ class PIDClass: public GenericFunction {
       float *dt;
       float SampleTime;
       bool UseSampleTime = false;
-      float Kp,Ki,Kd,Tf = 0.0f;
-      float b,c = 1.0f;
+      float Kp = 0.0f;
+      float Ki = 0.0f;
+      float Kd = 0.0f;
+      float Tf = 0.0f;
+      float b = 1.0f;
+      float c = 1.0f;
       bool SaturateOutput = false;
-      float UpperLimit, LowerLimit = 0.0f;
+      float UpperLimit = 0.0f;
+      float LowerLimit = 0.0f;
     };
     struct Data {
       uint8_t Mode = kStandby;
@@ -94,13 +99,17 @@ class PIDClass: public GenericFunction {
       int8_t Saturated = 0;
     };
     struct States {
-      float ProportionalError, DerivativeError, PreviousDerivativeError, IntegralError = 0.0f;
-      float DerivativeErrorState, IntegralErrorState = 0.0f;
+      float ProportionalError = 0.0f;
+      float DerivativeError = 0.0f;
+      float PreviousDerivativeError = 0.0f;
+      float IntegralError = 0.0f;
+      float DerivativeErrorState = 0.0f;
+      float IntegralErrorState = 0.0f;
     };
     Config config_;
     Data data_;
     States states_;
-    std::string ReferenceKey_,FeedbackKey_,SampleTimeKey_,ModeKey_,SaturatedKey_,OutputKey_; 
+    std::string ReferenceKey_,FeedbackKey_,SampleTimeKey_,ModeKey_,SaturatedKey_,OutputKey_;
     void InitializeState(float Command);
     void UpdateState();
     void CalculateCommand();
