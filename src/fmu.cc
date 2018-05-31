@@ -47,26 +47,31 @@ void FlightManagementUnit::Configure(const rapidjson::Value& Config, DefinitionT
   while ((read(FmuFileDesc_,&RxByte_,sizeof(RxByte_)))>0) {}
   // configure FMU sensors
   if (Config.HasMember("Sensors")) {
+    std::cout << "\t\tSending Sensors config to FMU..." << std::endl;
     ConfigureSensors(Config["Sensors"]);
   }
   // configuring FMU mission manager
   if (Config.HasMember("Mission-Manager")) {
     sleep(1);
+    std::cout << "\t\tSending Mission-Manager config to FMU..." << std::endl;
     ConfigureMissionManager(Config["Mission-Manager"]);
   }
   // configuring FMU control laws
   if (Config.HasMember("Control")) {
     sleep(1);
+    std::cout << "\t\tSending Control config to FMU..." << std::endl;
     ConfigureControlLaws(Config["Control"]);
   }
   // configuring FMU effectors
   if (Config.HasMember("Effectors")) {
     sleep(1);
+    std::cout << "\t\tSending Effector config to FMU..." << std::endl;
     ConfigureEffectors(Config["Effectors"]);
   }
   // switch FMU to run mode
   SendModeCommand(kRunMode);
   // get the updated configuration from the sensor meta data
+    std::cout << "\t\tReading Sensors config back from FMU..." << std::endl;
   size_t i=0;
   while(i < 100) {
     if (ReceiveSensorData()) {
@@ -75,6 +80,7 @@ void FlightManagementUnit::Configure(const rapidjson::Value& Config, DefinitionT
   }
   // register sensor data with global definition tree
   if (Config.HasMember("Sensors")) {
+    std::cout << "\t\tRegistering Sensors with DefinitionTree..." << std::endl;
     RegisterSensors(Config["Sensors"],DefinitionTreePtr);
   }
 }
@@ -202,9 +208,7 @@ void FlightManagementUnit::ConfigureSensors(const rapidjson::Value& Config) {
       for (size_t j=0; j < ConfigString.size(); j++) {
         Payload.push_back((uint8_t)ConfigString[j]);
       }
-      std::cout << "\tSending Sensor config to FMU..." << std::flush;
       SendMessage(Message::kConfigMesg,Payload);
-      std::cout << "done!" << std::endl;
     }
   }
 }
@@ -220,9 +224,7 @@ void FlightManagementUnit::ConfigureMissionManager(const rapidjson::Value& Confi
   for (size_t j=0; j < ConfigString.size(); j++) {
     Payload.push_back((uint8_t)ConfigString[j]);
   }
-  std::cout << "\tSending Mission-Manager config to FMU..." << std::flush;
   SendMessage(Message::kConfigMesg,Payload);
-  std::cout << "done!" << std::endl;
 }
 
 /* Configures the FMU control laws */

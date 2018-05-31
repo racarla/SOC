@@ -148,7 +148,6 @@ void MissionManager::Configure(const rapidjson::Value& Config, DefinitionTree *D
   // setting the baseline controller
   if (Config.HasMember("Baseline-Controller")) {
     config_.BaselineController = Config["Baseline-Controller"].GetString();
-    std::cout << config_.BaselineController << std::endl;
   }
 
 }
@@ -176,7 +175,6 @@ void MissionManager::Run() {
   } else {
     SocEngagePersistenceCounter_ = 0;
   }
-// std::cout << SocEngageSwitchVal << "\t" << SocEngageCheck << "\t" << SocEngagePersistenceCounter_ << "\t" << SocEngage_ << "\t" << std::flush;
 
   // Control law select switch logic
   float CtrlSelectSwitchVal = (*config_.CtrlSelectSwitch.SourcePtr) * config_.CtrlSelectSwitch.Gain;
@@ -202,7 +200,6 @@ void MissionManager::Run() {
     CtrlSelect_ = false;
     CtrlSelectPersistenceCounter_ = 0;
   }
-// std::cout << CtrlSelectSwitchVal << "\t" << CtrlSelectCheck << "\t" << CtrlSelectPersistenceCounter_ << "\t" << CtrlSelect_ << "\t" << std::flush;
 
   // Test point select logic
   float TestSelectDecrementSwitchVal = (*config_.TestSelectDecrementSwitch.SourcePtr) * config_.TestSelectDecrementSwitch.Gain;
@@ -263,10 +260,8 @@ void MissionManager::Run() {
     TriggerLatch_ = false;
     // Trigger_ = false;
   }
-// std::cout << TriggerValue << "\t" << TriggerCheck << "\t" << (int) TriggerPersistenceCounter_ << "\t" << (int) PersistenceThreshold_ << "\t" << (bool) (TriggerPersistenceCounter_ > PersistenceThreshold_)  << "\t" << Trigger_ << "\t\t" << std::flush;
 
 
-std::cout << SocEngage_ << "\t" << CtrlSelect_ << "\t" << TestSelect_ << "\t" << Trigger_ << "\t" << std::flush;
   // Mode Control Logic
 
   // Test Selection
@@ -322,10 +317,6 @@ std::cout << SocEngage_ << "\t" << CtrlSelect_ << "\t" << TestSelect_ << "\t" <<
     ArmedController_ = config_.BaselineController;
     EnagagedExcitation_ = "None";
   }
-
-
-
-std::cout << CurrentTestPointIndex_ << "\t" << NextTestPointIndex_ << "\t" << EnagagedController_ << "\t" << ArmedController_ << "\t" << EnagagedExcitation_ << std::endl;
 }
 
 /* returns the string of the sensor processing group that is engaged */
