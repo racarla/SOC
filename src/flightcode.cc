@@ -65,9 +65,9 @@ int main(int argc, char* argv[]) {
   std::cout << "\tLoading configuration..." << std::flush;
   Config.LoadConfiguration(argv[1], &AircraftConfiguration);
   std::cout << "done!" << std::endl;
-  std::cout << "\tConfiguring flight management unit..." << std::flush;
+  std::cout << "\tConfiguring flight management unit..." << std::endl;
   Fmu.Configure(AircraftConfiguration,&GlobalData);
-  std::cout << "done!" << std::endl;
+  std::cout << "\tdone!" << std::endl;
   if (AircraftConfiguration.HasMember("Sensor-Processing")) {
     std::cout << "\tConfiguring sensor processing..." << std::flush;
     SenProc.Configure(AircraftConfiguration["Sensor-Processing"],&GlobalData);

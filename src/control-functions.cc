@@ -41,7 +41,7 @@ void PIDClass::Configure(const rapidjson::Value& Config,std::string RootPath,Def
   if (Config.HasMember("Feedback")) {
     FeedbackKey_ = Config["Feedback"].GetString();
     if (DefinitionTreePtr->GetValuePtr<float*>(FeedbackKey_)) {
-      config_.Reference = DefinitionTreePtr->GetValuePtr<float*>(FeedbackKey_);
+      config_.Feedback = DefinitionTreePtr->GetValuePtr<float*>(FeedbackKey_);
     } else {
       throw std::runtime_error(std::string("ERROR")+OutputName+std::string(": Feedback ")+FeedbackKey_+std::string(" not found in global data."));
     }

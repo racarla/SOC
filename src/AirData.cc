@@ -21,17 +21,31 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SO
 
 /* computes indicated airspeed given differential pressure */
 float AirData::getIAS(float qc) {
-  return A0 * sqrtf(5.0f*(powf((qc/P0 + 1.0f),(2.0f/7.0f)) - 1.0f));
+  float temp = 5.0f*(powf((qc/P0 + 1.0f),(2.0f/7.0f)) - 1.0f);
+  if (temp > 0) {
+    return A0 * sqrtf(temp);
+  } else {
+    return A0 * -sqrtf(-temp);
+  }
 }
 
 /* computes equivalent airspeed given differential pressure and static pressure */
 float AirData::getEAS(float qc, float p) {
-  return A0 * sqrtf(5.0f*p/P0*(powf((qc/p + 1.0f),(2.0f/7.0f)) - 1.0f));
+  float temp = 5.0f*p/P0*(powf((qc/p + 1.0f),(2.0f/7.0f)) - 1.0f);
+  if (temp > 0) {
+    return A0 * sqrtf(temp);
+  } else {
+    return A0 * -sqrtf(-temp);
+  }
 }
 
 /* computes true air speed given IAS or EAS and temperature */
 float AirData::getTAS(float AS, float T) {
-  return AS * sqrtf((T+273.15f)/T0);
+  if (T > -273.15) {
+    return AS * sqrtf((T+273.15f)/T0);
+  } else {
+    return 0.0;
+  }
 }
 
 /* computes pressure altitude given static pressure */

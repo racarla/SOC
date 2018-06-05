@@ -101,7 +101,7 @@ void PseudoInverseAllocation::Run(Mode mode) {
   }
   // Pseduo-Inverse solver using singular value decomposition
   // SVD Decomposition based linear algebra solver
-  data_.uCmd = config_.Effectiveness.jacobiSvd(Eigen::ComputeThinU | Eigen::ComputeThinV).solve(config_.Objectives); // Jacobi SVD solver  
+  data_.uCmd = config_.Effectiveness.jacobiSvd(Eigen::ComputeThinU | Eigen::ComputeThinV).solve(config_.Objectives); // Jacobi SVD solver
   // saturate output
   for (size_t i=0; i < data_.uCmd.rows(); i++) {
     if (data_.uCmd(i,0) <= config_.LowerLimit(i,0)) {

@@ -19,6 +19,8 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SO
 */
 
 #include "general-functions.hxx"
+#include <stdio.h>
+#include <iostream>
 
 /* Constant class methods, see general-functions.hxx for more information */
 void ConstantClass::Configure(const rapidjson::Value& Config,std::string RootPath,DefinitionTree *DefinitionTreePtr) {
@@ -148,10 +150,12 @@ void SumClass::Configure(const rapidjson::Value& Config,std::string RootPath,Def
   } else {
     throw std::runtime_error(std::string("ERROR")+RootPath+std::string(": Output not specified in configuration."));
   }
+
   if (Config.HasMember("Inputs")) {
     for (size_t i=0; i < Config["Inputs"].Size(); i++) {
       const rapidjson::Value& Input = Config["Inputs"][i];
       InputKeys_.push_back(Input.GetString());
+
       if (DefinitionTreePtr->GetValuePtr<float*>(InputKeys_.back())) {
         config_.Inputs.push_back(DefinitionTreePtr->GetValuePtr<float*>(InputKeys_.back()));
       } else {
@@ -161,6 +165,7 @@ void SumClass::Configure(const rapidjson::Value& Config,std::string RootPath,Def
   } else {
     throw std::runtime_error(std::string("ERROR")+OutputName+std::string(": Inputs not specified in configuration."));
   }
+
   if (Config.HasMember("Limits")) {
     config_.SaturateOutput = true;
     // pointer to log saturation data
@@ -173,9 +178,11 @@ void SumClass::Configure(const rapidjson::Value& Config,std::string RootPath,Def
       throw std::runtime_error(std::string("ERROR")+OutputName+std::string(": Either upper or lower limit not specified in configuration."));
     }
   }
+
   // pointer to log run mode data
   ModeKey_ = OutputName+"/Mode";
   DefinitionTreePtr->InitMember(ModeKey_,&data_.Mode,"Run mode",true,false);
+
   // pointer to log command data
   OutputKey_ = OutputName+"/"+Config["Output"].GetString();
   DefinitionTreePtr->InitMember(OutputKey_,&data_.Output,"Control law output",true,false);
@@ -186,10 +193,12 @@ bool SumClass::Initialized() {return true;}
 
 void SumClass::Run(Mode mode) {
   data_.Mode = (uint8_t) mode;
+
   data_.Output = 0.0f;
   for (size_t i=0; i < config_.Inputs.size(); i++) {
     data_.Output += *config_.Inputs[i];
   }
+
   // saturate command
   if (config_.SaturateOutput) {
     if (data_.Output <= config_.LowerLimit) {

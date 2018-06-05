@@ -54,7 +54,7 @@ void ControlLaws::Configure(const rapidjson::Value& Config, DefinitionTree *Defi
             for (auto &Func : Components.GetArray()) {
               if (Func.HasMember("Type")) {
                 if (Func["Type"] == "Constant") {
-                  SocControlGroups_[SocGroupKeys_.back()][level].push_back(std::make_shared<ConstantClass>()); 
+                  SocControlGroups_[SocGroupKeys_.back()][level].push_back(std::make_shared<ConstantClass>());
                 }
                 if (Func["Type"] == "Gain") {
                   SocControlGroups_[SocGroupKeys_.back()][level].push_back(std::make_shared<GainClass>());
@@ -78,7 +78,7 @@ void ControlLaws::Configure(const rapidjson::Value& Config, DefinitionTree *Defi
               }
             }
             // getting a list of all Soc keys and adding to superset of output keys
-            // modify the key to remove the intermediate path 
+            // modify the key to remove the intermediate path
             // (i.e. /Control/GroupName/Pitch --> /Control/Pitch)
             DefinitionTreePtr->GetKeys(PathName,&SocDataKeys_[SocGroupKeys_.back()][level]);
             for (auto Key : SocDataKeys_[SocGroupKeys_.back()][level]) {
@@ -148,7 +148,11 @@ void ControlLaws::Configure(const rapidjson::Value& Config, DefinitionTree *Defi
                           OutputData_[KeyName] = *(DefinitionTreePtr->GetValuePtr<double*>(SocKey));
                           DefinitionTreePtr->InitMember(OutputKey,std::get_if<double>(&OutputData_[KeyName]),TempDef.Description,true,false);
                         }
+                      } else {
+
                       }
+                    } else {
+
                     }
                   }
                 }
@@ -162,6 +166,8 @@ void ControlLaws::Configure(const rapidjson::Value& Config, DefinitionTree *Defi
         throw std::runtime_error(std::string("ERROR")+RootPath_+std::string(": Group name not found in configuration."));
       }
     }
+  } else {
+    std::cout << "WARNING" << RootPath_ << ": Soc Control configuration not defined." << std::endl;
   }
 }
 
@@ -245,7 +251,7 @@ void ControlLaws::RunArmed() {
   for (auto Group : SocGroupKeys_) {
     // iterate through all levels
     for (auto Levels = SocControlGroups_[Group].begin(); Levels != SocControlGroups_[Group].end(); ++Levels) {
-      auto Level = std::distance(SocControlGroups_[Group].begin(),Levels); 
+      auto Level = std::distance(SocControlGroups_[Group].begin(),Levels);
       // iterate through all functions
       for (auto Func : SocControlGroups_[Group][Level]) {
         // make sure we don't run the engaged group
