@@ -20,7 +20,7 @@ See: LICENSE.md for Copyright and License Agreement
 #define kMaxExciteElem 46 // Excitation Elements (Multisine components)
 
 extern int kConfigSpeed = 17; // Reference speed setpoint
-extern int kCtrlDelay = 50; // Controller Delay, number of frames
+extern int kCtrlDelay = 4; // Controller Delay, number of frames
 
 #include "navigation.hxx"
 #include "structs.hxx"
@@ -134,6 +134,9 @@ std::cout << kConfigSpeed << "\t" << kCtrlDelay << std::endl;
 
   clock_t frameStart_tic; // Start the in-frame timer
   clock_t frameStartNav_tic, frameStartExcite_tic, frameStartCntrl; // Intermidiate in-frame timers
+
+std::cout << "Speed: " << kConfigSpeed << std::endl;
+std::cout << "Delay Frames: " << kCtrlDelay << std::endl;
 
   /* main loop */
   while (1) {
