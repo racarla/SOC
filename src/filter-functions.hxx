@@ -26,7 +26,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SO
 #include "rapidjson/writer.h"
 #include "definition-tree.hxx"
 #include "generic-function.hxx"
-#include <algorithm>
+#include "filter-algorithms.hxx"
 
 /* 
 General Filter - Implements a general discrete time filter using the
@@ -60,20 +60,14 @@ class GeneralFilter: public GenericFunction {
   private:
     struct Config {
       float *Input;
-      std::vector<float> a;
-      std::vector<float> b;
     };
     struct Data {
       uint8_t Mode = kStandby;
       float Output = 0.0f;
     };
-    struct States {
-      std::vector<float> x;
-      std::vector<float> y;
-    };
+    __GeneralFilter filter_;
     Config config_;
     Data data_;
-    States states_;
     std::string InputKey_,ModeKey_,OutputKey_;
 };
 
