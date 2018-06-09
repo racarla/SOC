@@ -41,6 +41,7 @@ OBJECTS_FLIGHT := \
 ins-functions.o \
 airdata-functions.o \
 allocation-functions.o \
+control-algorithms.o \
 control-functions.o \
 excitation-waveforms.o \
 filter-algorithms.o \
@@ -72,6 +73,7 @@ OBJECTS_CAL := \
 ins-functions.o \
 airdata-functions.o \
 allocation-functions.o \
+control-algorithms.o \
 control-functions.o \
 excitation-waveforms.o \
 filter-algorithms.o \

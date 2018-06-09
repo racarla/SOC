@@ -26,6 +26,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SO
 #include "rapidjson/writer.h"
 #include "definition-tree.hxx"
 #include "generic-function.hxx"
+#include "control-algorithms.hxx"
 
 /* Control related functions. Each function describes its JSON
 configuration below. See generic-function.hxx for more information
@@ -83,36 +84,16 @@ class PIDClass: public GenericFunction {
       float *dt;
       float SampleTime;
       bool UseSampleTime = false;
-      float Kp = 0.0f;
-      float Ki = 0.0f;
-      float Kd = 0.0f;
-      float Tf = 0.0f;
-      float b = 1.0f;
-      float c = 1.0f;
-      bool SaturateOutput = false;
-      float UpperLimit = 0.0f;
-      float LowerLimit = 0.0f;
     };
     struct Data {
       uint8_t Mode = kStandby;
       float Output = 0.0f;
       int8_t Saturated = 0;
     };
-    struct States {
-      float ProportionalError = 0.0f;
-      float DerivativeError = 0.0f;
-      float PreviousDerivativeError = 0.0f;
-      float IntegralError = 0.0f;
-      float DerivativeErrorState = 0.0f;
-      float IntegralErrorState = 0.0f;
-    };
+    __PIDClass PIDClass_;
     Config config_;
     Data data_;
-    States states_;
     std::string ReferenceKey_,FeedbackKey_,SampleTimeKey_,ModeKey_,SaturatedKey_,OutputKey_;
-    void InitializeState(float Command);
-    void UpdateState();
-    void CalculateCommand();
 };
 
 #endif

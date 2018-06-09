@@ -22,6 +22,15 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SO
 
 /* PID class methods, see control-functions.hxx for more information */
 void PIDClass::Configure(const rapidjson::Value& Config,std::string RootPath,DefinitionTree *DefinitionTreePtr) {
+  float Kp = 0;
+  float Ki = 0;
+  float Kd = 0;
+  float b = 1;
+  float c = 1;
+  float Tf = 0;
+  float UpperLimit = 0;
+  float LowerLimit = 0;
+  bool SaturateOutput = false;
   std::string OutputName;
   if (Config.HasMember("Output")) {
     OutputName = RootPath + "/" + Config["Output"].GetString();
@@ -51,13 +60,13 @@ void PIDClass::Configure(const rapidjson::Value& Config,std::string RootPath,Def
   if (Config.HasMember("Gains")) {
     const rapidjson::Value& Gains = Config["Gains"];
     if (Gains.HasMember("Proportional")) {
-      config_.Kp = Gains["Proportional"].GetFloat();
+      Kp = Gains["Proportional"].GetFloat();
     }
     if (Gains.HasMember("Derivative")) {
-      config_.Kd = Gains["Derivative"].GetFloat();
+      Kd = Gains["Derivative"].GetFloat();
     }
     if (Gains.HasMember("Integral")) {
-      config_.Ki = Gains["Integral"].GetFloat();
+      Ki = Gains["Integral"].GetFloat();
     }
   } else {
     throw std::runtime_error(std::string("ERROR")+OutputName+std::string(": Gains not specified in configuration."));
@@ -80,20 +89,20 @@ void PIDClass::Configure(const rapidjson::Value& Config,std::string RootPath,Def
   if (Config.HasMember("Setpoint-Weights")) {
     const rapidjson::Value& Weights = Config["Setpoint-Weights"];
     if (Weights.HasMember("Proportional")) {
-      config_.b = Weights["Proportional"].GetFloat();
+      b = Weights["Proportional"].GetFloat();
     }
     if (Weights.HasMember("Derivative")) {
-      config_.c = Weights["Derivative"].GetFloat();
+      c = Weights["Derivative"].GetFloat();
     }
   }
   if (Config.HasMember("Limits")) {
-    config_.SaturateOutput = true;
+    SaturateOutput = true;
     // pointer to log saturation data
     SaturatedKey_ = OutputName+"/Saturated";
     DefinitionTreePtr->InitMember(SaturatedKey_,&data_.Saturated,"Control law saturation, 0 if not saturated, 1 if saturated on the upper limit, and -1 if saturated on the lower limit",true,false);
     if (Config["Limits"].HasMember("Lower")&&Config["Limits"].HasMember("Upper")) {
-      config_.UpperLimit = Config["Limits"]["Upper"].GetFloat();
-      config_.LowerLimit = Config["Limits"]["Lower"].GetFloat();
+      UpperLimit = Config["Limits"]["Upper"].GetFloat();
+      LowerLimit = Config["Limits"]["Lower"].GetFloat();
     } else {
       throw std::runtime_error(std::string("ERROR")+OutputName+std::string(": Either upper or lower limit not specified in configuration."));
     }
@@ -104,6 +113,8 @@ void PIDClass::Configure(const rapidjson::Value& Config,std::string RootPath,Def
   // pointer to log command data
   OutputKey_ = OutputName+"/"+Config["Output"].GetString();
   DefinitionTreePtr->InitMember(OutputKey_,&data_.Output,"Control law output",true,false);
+  // configure PID Class
+  PIDClass_.Configure(Kp,Ki,Kd,b,c,Tf,SaturateOutput,UpperLimit,LowerLimit);
 }
 
 void PIDClass::Initialize() {}
@@ -116,97 +127,11 @@ void PIDClass::Run(Mode mode) {
   if(!config_.UseSampleTime) {
     config_.SampleTime = *config_.dt;
   }
-  // error for proportional
-  states_.ProportionalError = (config_.b*(*config_.Reference))-*config_.Feedback;
-  // error for integral
-  states_.IntegralError = *config_.Reference-*config_.Feedback;
-  // error for derivative
-  states_.DerivativeError = (config_.c*(*config_.Reference))-*config_.Feedback;
-  // derivative of Error
-  if (config_.SampleTime > 0.0f) {
-    states_.DerivativeErrorState = 1.0f/(config_.Tf+config_.SampleTime/(states_.DerivativeError-states_.PreviousDerivativeError));
-  }
-  states_.PreviousDerivativeError = states_.DerivativeError;
-  switch(mode) {
-    case kStandby: {
-      break;
-    }
-    case kArm: {
-      InitializeState(0.0f);
-      CalculateCommand();
-      break;
-    }
-    case kHold: {
-      CalculateCommand();
-      break;
-    }
-    case kEngage: {
-      UpdateState();
-      CalculateCommand();
-      break;
-    }
-  }
-}
-
-void PIDClass::InitializeState(float Command) {
-  // Protect for Ki == 0
-  if (config_.Ki != 0.0f) {
-    states_.IntegralErrorState = (Command-(config_.Kp*states_.ProportionalError+config_.Kd*states_.DerivativeErrorState))/config_.Ki;
-  } else {
-    states_.IntegralErrorState = 0.0f;
-  }
-}
-
-void PIDClass::UpdateState() {
-  // Protect for unlimited windup when Ki == 0
-  if (config_.Ki != 0.0f) {
-    states_.IntegralErrorState += (config_.SampleTime*states_.IntegralError);
-  } else {
-    states_.IntegralErrorState = 0.0;
-  }
-}
-
-void PIDClass::CalculateCommand() {
-  float ProportionalCommand = config_.Kp*states_.ProportionalError;
-  float IntegralCommand = config_.Ki*states_.IntegralErrorState;
-  float DerivativeCommand = config_.Kd*states_.DerivativeErrorState;
-  data_.Output = ProportionalCommand+IntegralCommand+DerivativeCommand;
-  // saturate cmd, set iErr to limit that produces saturated cmd
-  // saturate command
-  if (config_.SaturateOutput) {
-    if (data_.Output <= config_.LowerLimit) {
-      data_.Output = config_.LowerLimit;
-      data_.Saturated = -1;
-      // Re-compute the integrator state
-      InitializeState(data_.Output);
-    } else if (data_.Output >= config_.UpperLimit) {
-      data_.Output = config_.UpperLimit;
-      data_.Saturated = 1;
-      // Re-compute the integrator state
-      InitializeState(data_.Output);
-    } else {
-      data_.Saturated = 0;
-    }
-  }
+  PIDClass_.Run(mode,*config_.Reference,*config_.Feedback,config_.SampleTime,&data_.Output,&data_.Saturated);
 }
 
 void PIDClass::Clear(DefinitionTree *DefinitionTreePtr) {
   config_.UseSampleTime = false;
-  config_.Kp = 0.0f;
-  config_.Ki = 0.0f;
-  config_.Kd = 0.0f;
-  config_.Tf = 0.0f;
-  config_.b = 1.0f;
-  config_.c = 1.0f;
-  config_.SaturateOutput = false;
-  config_.UpperLimit = 0.0f;
-  config_.LowerLimit = 0.0f;
-  states_.ProportionalError = 0.0f;
-  states_.DerivativeError = 0.0f;
-  states_.PreviousDerivativeError = 0.0f;
-  states_.IntegralError = 0.0f;
-  states_.DerivativeErrorState = 0.0f;
-  states_.IntegralErrorState = 0.0f;
   data_.Mode = kStandby;
   data_.Saturated = 0;
   data_.Output = 0.0f;
@@ -218,4 +143,5 @@ void PIDClass::Clear(DefinitionTree *DefinitionTreePtr) {
   ModeKey_.clear();
   SaturatedKey_.clear();
   OutputKey_.clear();
+  PIDClass_.Clear();
 }
