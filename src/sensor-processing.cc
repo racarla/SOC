@@ -43,6 +43,10 @@ void SensorProcessing::Configure(const rapidjson::Value& Config,DefinitionTree *
           BaselineSensorProcessing_.push_back(std::make_shared<AglAltitude>());
         } else if (Func["Type"] == "EKF15StateINS") {
           BaselineSensorProcessing_.push_back(std::make_shared<Ekf15StateIns>());
+        } else if (Func["Type"] == "Filter") {
+          BaselineSensorProcessing_.push_back(std::make_shared<GeneralFilter>());
+        } else if (Func["Type"] == "If") {
+          BaselineSensorProcessing_.push_back(std::make_shared<If>());
         } else {
           throw std::runtime_error(std::string("ERROR")+PathName+std::string(": Type specified is not a defined type"));
         }
@@ -93,6 +97,8 @@ void SensorProcessing::Configure(const rapidjson::Value& Config,DefinitionTree *
               ResearchSensorProcessingGroups_[ResearchGroupKeys_.back()].push_back(std::make_shared<Ekf15StateIns>());
             } else if (Func["Type"] == "Filter") {
               ResearchSensorProcessingGroups_[ResearchGroupKeys_.back()].push_back(std::make_shared<GeneralFilter>());
+            } else if (Func["Type"] == "If") {
+              ResearchSensorProcessingGroups_[ResearchGroupKeys_.back()].push_back(std::make_shared<If>());
             } else {
               throw std::runtime_error(std::string("ERROR")+PathName+std::string(": Type specified is not a defined type"));
             }

@@ -28,6 +28,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SO
 #include "rapidjson/writer.h"
 #include "generic-function.hxx"
 #include "general-functions.hxx"
+#include "flow-control-functions.hxx"
 #include "filter-functions.hxx"
 #include "airdata-functions.hxx"
 #include "ins-functions.hxx"

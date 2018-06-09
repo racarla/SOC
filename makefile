@@ -45,6 +45,7 @@ control-functions.o \
 excitation-waveforms.o \
 filter-algorithms.o \
 filter-functions.o \
+flow-control-functions.o \
 general-functions.o \
 generic-function.o \
 uNavINS.o \
@@ -75,6 +76,7 @@ control-functions.o \
 excitation-waveforms.o \
 filter-algorithms.o \
 filter-functions.o \
+flow-control-functions.o \
 general-functions.o \
 generic-function.o \
 uNavINS.o \
