@@ -95,6 +95,9 @@ void PIDClass::Configure(const rapidjson::Value& Config,std::string RootPath,Def
       c = Weights["Derivative"].GetFloat();
     }
   }
+  if (Config.HasMember("Time-Constant")) {
+    Tf = Config["Time-Constant"].GetFloat();
+  }
   if (Config.HasMember("Limits")) {
     SaturateOutput = true;
     // pointer to log saturation data
