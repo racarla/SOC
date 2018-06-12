@@ -24,6 +24,7 @@ TARGET_FLIGHT := flightcode
 TARGET_DATALOG := datalog-server
 TARGET_CAL := calibrate-surf
 TARGET_FILT := filter-test 
+TARGET_TELEM := telemetry-server
 
 # compiler
 CXX := arm-linux-gnueabihf-g++-7
@@ -51,6 +52,7 @@ general-functions.o \
 generic-function.o \
 uNavINS.o \
 AirData.o \
+telemetry.o \
 datalog.o \
 effector.o \
 excitation.o \
@@ -99,18 +101,24 @@ OBJECTS_FILT := \
 filter-algorithms.o \
 filter-test.o
 
+OBJECTS_TELEM := \
+telemetry.o \
+telemetry-server.o
+
 # add prefix to objects
 OBJS_FLIGHT := $(addprefix $(OBJDIR)/,$(OBJECTS_FLIGHT))
 OBJS_DATALOG := $(addprefix $(OBJDIR)/,$(OBJECTS_DATALOG))
 OBJS_CAL := $(addprefix $(OBJDIR)/,$(OBJECTS_CAL))
 OBJS_FILT := $(addprefix $(OBJDIR)/,$(OBJECTS_FILT))
+OBJS_TELEM := $(addprefix $(OBJDIR)/,$(OBJECTS_TELEM))
 
 # rules
-all: flightcode datalog-server calibrate-surf filter-test | $(OBJDIR)
+all: flightcode datalog-server telemetry-server calibrate-surf filter-test | $(OBJDIR)
 flightcode: $(addprefix $(BINDIR)/,$(TARGET_FLIGHT))
 datalog-server: $(addprefix $(BINDIR)/,$(TARGET_DATALOG))
 calibrate-surf: $(addprefix $(BINDIR)/,$(TARGET_CAL))
 filter-test: $(addprefix $(BINDIR)/,$(TARGET_FILT))
+telemetry-server: $(addprefix $(BINDIR)/,$(TARGET_TELEM))
 
 $(addprefix $(BINDIR)/,$(TARGET_FLIGHT)): $(OBJS_FLIGHT) | $(BINDIR)
 	@ echo
@@ -137,6 +145,19 @@ $(addprefix $(BINDIR)/,$(TARGET_DATALOG)): $(OBJS_DATALOG) | $(BINDIR)
 	@ echo "Copyright (c) 2018 Bolder Flight Systems"
 	@ echo "bolderflight.com"
 	@ echo ""
+
+$(addprefix $(BINDIR)/,$(TARGET_TELEM)): $(OBJS_TELEM) | $(BINDIR)
+	@ echo
+	@ echo "Building telemetry server..."
+	@ echo
+	$(CXX) $(CXXFLAGS) -o $(addprefix $(BINDIR)/,$(TARGET_TELEM)) $(OBJS_TELEM)
+	@ echo
+	@ echo "Successful build."
+	@ echo ""
+	@ echo "Bolder Flight Systems, by Design!"
+	@ echo "Copyright (c) 2018 Bolder Flight Systems"
+	@ echo "bolderflight.com"
+	@ echo ""	
 
 $(addprefix $(BINDIR)/,$(TARGET_CAL)): $(OBJS_CAL) | $(BINDIR)
 	@ echo
@@ -171,6 +192,9 @@ $(OBJS_FLIGHT): $(addprefix $(OBJDIR)/,%.o): $(addprefix $(SRCDIR)/,%.cc) | $(OB
 $(addprefix $(OBJDIR)/,datalog-server.o): $(addprefix $(SRCDIR)/,datalog-server.cc) | $(OBJDIR)
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
+$(addprefix $(OBJDIR)/,telemetry-server.o): $(addprefix $(SRCDIR)/,telemetry-server.cc) | $(OBJDIR)
+	$(CXX) $(CXXFLAGS) -c $< -o $@
+
 $(addprefix $(OBJDIR)/,inclinometer.o): $(addprefix $(SRCDIR)/,inclinometer.cc) | $(OBJDIR)
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
@@ -189,4 +213,4 @@ $(BINDIR):
 # clean targets and objects
 .PHONY: clean
 clean:
-	-rm $(addprefix $(BINDIR)/,$(TARGET_FLIGHT)) $(addprefix $(BINDIR)/,$(TARGET_DATALOG)) $(OBJS_FLIGHT) $(addprefix $(OBJDIR)/,datalog-server.o) $(addprefix $(OBJDIR)/,calibrate-surf.o) $(addprefix $(OBJDIR)/,inclinometer.o) $(addprefix $(OBJDIR)/,filter-test.o)
+	-rm $(addprefix $(BINDIR)/,$(TARGET_FLIGHT)) $(addprefix $(BINDIR)/,$(TARGET_DATALOG)) $(addprefix $(BINDIR)/,$(TARGET_CAL)) $(addprefix $(BINDIR)/,$(TARGET_FILT)) $(addprefix $(BINDIR)/,$(TARGET_TELEM)) $(OBJS_FLIGHT) $(addprefix $(OBJDIR)/,datalog-server.o) $(addprefix $(OBJDIR)/,telemetry-server.o) $(addprefix $(OBJDIR)/,calibrate-surf.o) $(addprefix $(OBJDIR)/,inclinometer.o) $(addprefix $(OBJDIR)/,filter-test.o)
