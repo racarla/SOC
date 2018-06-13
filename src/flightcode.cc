@@ -27,6 +27,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SO
 #include "control.hxx"
 #include "excitation.hxx"
 #include "effector.hxx"
+#include "telemetry.hxx"
 #include "datalog.hxx"
 #include "rapidjson/document.h"
 #include "rapidjson/stringbuffer.h"
@@ -54,6 +55,7 @@ int main(int argc, char* argv[]) {
   ExcitationSystem Excitation;
   AircraftEffectors Effectors;
   DatalogClient Datalog;
+  TelemetryClient Telemetry;
   /* initialize classes */
   std::cout << "Initializing software modules." << std::endl;
   std::cout << "\tInitializing FMU..." << std::flush;
@@ -89,6 +91,11 @@ int main(int argc, char* argv[]) {
       }
     }
   }
+  if (AircraftConfiguration.HasMember("Telemetry")) {
+    std::cout << "\tConfiguring telemetry..." << std::flush;
+    Telemetry.Configure(AircraftConfiguration["Telemetry"],&GlobalData);
+    std::cout << "done!" << std::endl;  
+  }
   std::cout << "\tConfiguring datalog..." << std::flush;
   Datalog.RegisterGlobalData(GlobalData);
   std::cout << "done!" << std::endl;
@@ -123,8 +130,9 @@ int main(int argc, char* argv[]) {
         Excitation.RunArmed();
         // run armed control laws
         Control.RunArmed();
-        // run telemetry
       }
+      // run telemetry
+      Telemetry.Send();
       // run datalog
       Datalog.LogBinaryData();
     }

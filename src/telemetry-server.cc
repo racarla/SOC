@@ -18,22 +18,21 @@ DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
-// #include "datalog.hxx"
+#include "telemetry.hxx"
 #include <iostream>
 #include <iomanip>
 #include <stdint.h>
-#include <variant>
 
 int main(int argc, char* argv[]) {
   std::cout << "Bolder Flight Systems" << std::endl;
   std::cout << "Telemetry Server Version 1.0.0 " << std::endl << std::endl;
 
-  // /* declare classes */
-  // DatalogServer Datalog;
+  /* declare classes */
+  TelemetryServer Telemetry;
 
-  // while(1) {
-  //   Datalog.ReceiveBinary();
-  // }
+  while(1) {
+    Telemetry.ReceivePacket();
+  }
 
 	return 0;
 }

@@ -195,7 +195,7 @@ void Ekf15StateIns::Configure(const rapidjson::Value& Config,std::string RootPat
   DefinitionTreePtr->InitMember(LatKey_,&data_.Lat,"Latitude, rad",true,false);
   LonKey_ = OutputName+"/Longitude_rad";
   DefinitionTreePtr->InitMember(LonKey_,&data_.Lon,"Longitude, rad",true,false);
-  AltKey_ = OutputName+"/Altitude_rad";
+  AltKey_ = OutputName+"/Altitude_m";
   DefinitionTreePtr->InitMember(AltKey_,&data_.Alt,"Altitude, m",true,false);
   VnKey_ = OutputName+"/NorthVelocity_ms";
   DefinitionTreePtr->InitMember(VnKey_,&data_.Vn,"North velocity, m/s",true,false);
