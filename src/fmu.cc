@@ -47,31 +47,34 @@ void FlightManagementUnit::Configure(const rapidjson::Value& Config, DefinitionT
   while ((read(FmuFileDesc_,&RxByte_,sizeof(RxByte_)))>0) {}
   // configure FMU sensors
   if (Config.HasMember("Sensors")) {
+    sleep(3);
     std::cout << "\t\tSending Sensors config to FMU..." << std::endl;
     ConfigureSensors(Config["Sensors"]);
   }
   // configuring FMU mission manager
   if (Config.HasMember("Mission-Manager")) {
-    sleep(1);
+    sleep(3);
     std::cout << "\t\tSending Mission-Manager config to FMU..." << std::endl;
     ConfigureMissionManager(Config["Mission-Manager"]);
   }
   // configuring FMU control laws
   if (Config.HasMember("Control")) {
-    sleep(1);
+    sleep(3);
     std::cout << "\t\tSending Control config to FMU..." << std::endl;
     ConfigureControlLaws(Config["Control"]);
   }
   // configuring FMU effectors
   if (Config.HasMember("Effectors")) {
-    sleep(1);
+    sleep(3);
     std::cout << "\t\tSending Effector config to FMU..." << std::endl;
     ConfigureEffectors(Config["Effectors"]);
   }
   // switch FMU to run mode
   SendModeCommand(kRunMode);
+  sleep(1);
+
   // get the updated configuration from the sensor meta data
-    std::cout << "\t\tReading Sensors config back from FMU..." << std::endl;
+  std::cout << "\t\tReading Sensors config back from FMU..." << std::endl;
   size_t i=0;
   while(i < 100) {
     if (ReceiveSensorData()) {
