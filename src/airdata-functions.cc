@@ -217,3 +217,424 @@ uint64_t AglAltitude::micros() {
   gettimeofday(&tv,NULL);
   return tv.tv_sec*(uint64_t)1000000+tv.tv_usec;
 }
+
+/* Pitot-Static System */
+void PitotStatic::Configure(const rapidjson::Value& Config,std::string RootPath,DefinitionTree *DefinitionTreePtr) {
+  // get PitotStatic name
+  std::string SysName;
+  if (Config.HasMember("PitotStatic")) {
+    SysName = RootPath + "/" + Config["PitotStatic"].GetString();
+  } else {
+    throw std::runtime_error(std::string("ERROR")+RootPath+std::string(": PitotStatic not specified in configuration."));
+  }
+
+  std::string OutputIasName;
+  if (Config.HasMember("OutputIas")) {
+    OutputIasName = Config["OutputIas"].GetString();
+  } else {
+    throw std::runtime_error(std::string("ERROR")+SysName+std::string(": OutputIas not specified in configuration."));
+  }
+
+  // get output names
+  std::string OutputAglName;
+  if (Config.HasMember("OutputAltitude")) {
+    OutputAglName = Config["OutputAltitude"].GetString();
+  } else {
+    throw std::runtime_error(std::string("ERROR")+SysName+std::string(": OutputAltitude not specified in configuration."));
+  }
+
+
+  // get differential pressure source
+  if (Config.HasMember("Differential-Pressure")) {
+    DifferentialPressureKey_ = Config["Differential-Pressure"].GetString();
+    if (DefinitionTreePtr->GetValuePtr<float*>(DifferentialPressureKey_)) {
+      config_.DifferentialPressure = DefinitionTreePtr->GetValuePtr<float*>(DifferentialPressureKey_);
+    } else {
+      throw std::runtime_error(std::string("ERROR")+SysName+std::string(": Differential-Pressure ")+DifferentialPressureKey_+std::string(" not found in global data."));
+    }
+  } else {
+    throw std::runtime_error(std::string("ERROR")+SysName+std::string(": Differential-Pressure not specified in configuration."));
+  }
+
+  // get static pressure source
+  if (Config.HasMember("Static-Pressure")) {
+    StaticPressureKey_ = Config["Static-Pressure"].GetString();
+    if (DefinitionTreePtr->GetValuePtr<float*>(StaticPressureKey_)) {
+      config_.StaticPressure = DefinitionTreePtr->GetValuePtr<float*>(StaticPressureKey_);
+    } else {
+      throw std::runtime_error(std::string("ERROR")+SysName+std::string(": Static-Pressure ")+StaticPressureKey_+std::string(" not found in global data."));
+    }
+  } else {
+    throw std::runtime_error(std::string("ERROR")+SysName+std::string(": Static-Pressure not specified in configuration."));
+  }
+
+  // get initialization time
+  if (Config.HasMember("Initialization-Time")) {
+    config_.InitTime = Config["Initialization-Time"].GetFloat();
+  } else {
+    throw std::runtime_error(std::string("ERROR")+SysName+std::string(": Initialization time not specified in configuration."));
+  }
+
+  // pointer to log run mode data
+  ModeKey_ = SysName+"/Mode";
+  DefinitionTreePtr->InitMember(ModeKey_,&data_.Mode,"Run mode",true,false);
+
+  // pointer to log ias data
+  OutputIasKey_ = SysName+"/"+OutputIasName;
+  DefinitionTreePtr->InitMember(OutputIasKey_,&data_.Ias_ms,"Indicated airspeed, m/s",true,false);
+  OutputAglKey_ = SysName+"/"+OutputAglName;
+  DefinitionTreePtr->InitMember(OutputAglKey_,&data_.Agl_m,"Altitude above ground, m",true,false);
+}
+
+void PitotStatic::Initialize() {
+  // grab the starting time
+  if (!TimeLatch_) {
+    T0_us_ = micros();
+    TimeLatch_ = true;
+  }
+
+  // compute the elapsed time
+  float ElapsedTime = ((float)(micros()-T0_us_))/1e6;
+
+  // if less than init time, compute bias
+  if (ElapsedTime < config_.InitTime) {
+    // compute differential pressure bias
+    data_.DifferentialPressureBias += *config_.DifferentialPressure;
+
+    // compute static pressure bias
+    data_.StaticPressureBias += *config_.StaticPressure;
+
+    NumberSamples_++;
+  } else {
+    Initialized_ = true;
+  }
+
+  // Compute the Averages
+  data_.DifferentialPressureBias = data_.DifferentialPressureBias / (float)NumberSamples_;
+  data_.StaticPressureBias = data_.StaticPressureBias / (float)NumberSamples_;
+
+  // compute pressure altitude
+  data_.PressAlt0 += AirData_.getPressureAltitude(data_.StaticPressureBias);
+
+}
+
+bool PitotStatic::Initialized() {
+  return Initialized_;
+}
+
+void PitotStatic::Run(Mode mode) {
+  data_.Mode = (uint8_t) mode;
+  if (mode!=kStandby) {
+    // compute indicated airspeed
+    data_.Ias_ms = AirData_.getIAS(*config_.DifferentialPressure - data_.DifferentialPressureBias);
+
+    // compute altitude above ground level
+    data_.Agl_m = AirData_.getAGL(*config_.StaticPressure, data_.PressAlt0);
+  }
+}
+
+void PitotStatic::Clear(DefinitionTree *DefinitionTreePtr) {
+  config_.InitTime = 0.0f;
+
+  data_.Mode = kStandby;
+
+  data_.DifferentialPressureBias = 0.0f;
+  data_.StaticPressureBias = 0.0f;
+  data_.Ias_ms = 0.0f;
+
+  data_.Agl_m = 0.0f;
+  data_.PressAlt0 = 0.0f;
+
+  bool TimeLatch_ = false;
+  bool Initialized_ = false;
+  uint64_t T0_us_ = 0;
+  size_t NumberSamples_ = 1;
+  DefinitionTreePtr->Erase(ModeKey_);
+  DefinitionTreePtr->Erase(OutputIasKey_);
+  DefinitionTreePtr->Erase(OutputAglKey_);
+
+  DifferentialPressureKey_.clear();
+  StaticPressureKey_.clear();
+
+  ModeKey_.clear();
+  OutputIasKey_.clear();
+  OutputAglKey_.clear();
+}
+
+uint64_t PitotStatic::micros() {
+  struct timeval tv;
+  gettimeofday(&tv,NULL);
+  return tv.tv_sec*(uint64_t)1000000+tv.tv_usec;
+}
+
+
+/* 5-Hole Probe - Method 1 */
+// Assume that all 5 pressure sensors are measuring relative to the static ring
+void FiveHole::Configure(const rapidjson::Value& Config,std::string RootPath,DefinitionTree *DefinitionTreePtr) {
+  // get FiveHole name
+  std::string SysName;
+  if (Config.HasMember("FiveHole")) {
+    SysName = RootPath + "/" + Config["FiveHole"].GetString();
+  } else {
+    throw std::runtime_error(std::string("ERROR")+RootPath+std::string(": FiveHole not specified in configuration."));
+  }
+
+  // get Airspeed output name
+  std::string OutputIasName;
+  if (Config.HasMember("OutputIas")) {
+    OutputIasName = Config["OutputIas"].GetString();
+  } else {
+    throw std::runtime_error(std::string("ERROR")+SysName+std::string(": OutputIas not specified in configuration."));
+  }
+
+  // get Altitude output name
+  std::string OutputAglName;
+  if (Config.HasMember("OutputAltitude")) {
+    OutputAglName = Config["OutputAltitude"].GetString();
+  } else {
+    throw std::runtime_error(std::string("ERROR")+SysName+std::string(": OutputAltitude not specified in configuration."));
+  }
+
+  // get Alpha output name
+  std::string OutputAlphaName;
+  if (Config.HasMember("OutputAlpha")) {
+    OutputAglName = Config["OutputAlpha"].GetString();
+  } else {
+    throw std::runtime_error(std::string("ERROR")+SysName+std::string(": OutputAlpha not specified in configuration."));
+  }
+
+  // get Beta output name
+  std::string OutputBetaName;
+  if (Config.HasMember("OutputBeta")) {
+    OutputAglName = Config["OutputBeta"].GetString();
+  } else {
+    throw std::runtime_error(std::string("ERROR")+SysName+std::string(": OutputBeta not specified in configuration."));
+  }
+
+
+  // get Tip pressure source
+  if (Config.HasMember("Tip-Pressure")) {
+    TipPressureKey_ = Config["Tip-Pressure"].GetString();
+    if (DefinitionTreePtr->GetValuePtr<float*>(TipPressureKey_)) {
+      config_.TipPressure = DefinitionTreePtr->GetValuePtr<float*>(TipPressureKey_);
+    } else {
+      throw std::runtime_error(std::string("ERROR")+SysName+std::string(": Tip-Pressure ")+TipPressureKey_+std::string(" not found in global data."));
+    }
+  } else {
+    throw std::runtime_error(std::string("ERROR")+SysName+std::string(": Tip-Pressure not specified in configuration."));
+  }
+
+  // get static pressure source
+  if (Config.HasMember("Static-Pressure")) {
+    StaticPressureKey_ = Config["Static-Pressure"].GetString();
+    if (DefinitionTreePtr->GetValuePtr<float*>(StaticPressureKey_)) {
+      config_.StaticPressure = DefinitionTreePtr->GetValuePtr<float*>(StaticPressureKey_);
+    } else {
+      throw std::runtime_error(std::string("ERROR")+SysName+std::string(": Static-Pressure ")+StaticPressureKey_+std::string(" not found in global data."));
+    }
+  } else {
+    throw std::runtime_error(std::string("ERROR")+SysName+std::string(": Static-Pressure not specified in configuration."));
+  }
+
+  // get Alpha1 pressure source
+  if (Config.HasMember("Alpha1-Pressure")) {
+    Alpha1PressureKey_ = Config["Alpha1-Pressure"].GetString();
+    if (DefinitionTreePtr->GetValuePtr<float*>(Alpha1PressureKey_)) {
+      config_.Alpha1Pressure = DefinitionTreePtr->GetValuePtr<float*>(Alpha1PressureKey_);
+    } else {
+      throw std::runtime_error(std::string("ERROR")+SysName+std::string(": Alpha1-Pressure ")+Alpha1PressureKey_+std::string(" not found in global data."));
+    }
+  } else {
+    throw std::runtime_error(std::string("ERROR")+SysName+std::string(": Alpha1-Pressure not specified in configuration."));
+  }
+
+  // get Alpha2 pressure source
+  if (Config.HasMember("Alpha2-Pressure")) {
+    Alpha2PressureKey_ = Config["Alpha2-Pressure"].GetString();
+    if (DefinitionTreePtr->GetValuePtr<float*>(Alpha2PressureKey_)) {
+      config_.Alpha2Pressure = DefinitionTreePtr->GetValuePtr<float*>(Alpha2PressureKey_);
+    } else {
+      throw std::runtime_error(std::string("ERROR")+SysName+std::string(": Alpha2-Pressure ")+Alpha2PressureKey_+std::string(" not found in global data."));
+    }
+  } else {
+    throw std::runtime_error(std::string("ERROR")+SysName+std::string(": Alpha2-Pressure not specified in configuration."));
+  }
+
+  // get Beta1 pressure source
+  if (Config.HasMember("Beta1-Pressure")) {
+    Beta1PressureKey_ = Config["Beta1-Pressure"].GetString();
+    if (DefinitionTreePtr->GetValuePtr<float*>(Beta1PressureKey_)) {
+      config_.Beta1Pressure = DefinitionTreePtr->GetValuePtr<float*>(Beta1PressureKey_);
+    } else {
+      throw std::runtime_error(std::string("ERROR")+SysName+std::string(": Beta1-Pressure ")+Beta1PressureKey_+std::string(" not found in global data."));
+    }
+  } else {
+    throw std::runtime_error(std::string("ERROR")+SysName+std::string(": Beta1-Pressure not specified in configuration."));
+  }
+
+  // get Beta2 pressure source
+  if (Config.HasMember("Beta2-Pressure")) {
+    Beta2PressureKey_ = Config["Beta2-Pressure"].GetString();
+    if (DefinitionTreePtr->GetValuePtr<float*>(Beta2PressureKey_)) {
+      config_.Beta2Pressure = DefinitionTreePtr->GetValuePtr<float*>(Beta2PressureKey_);
+    } else {
+      throw std::runtime_error(std::string("ERROR")+SysName+std::string(": Beta2-Pressure ")+Beta2PressureKey_+std::string(" not found in global data."));
+    }
+  } else {
+    throw std::runtime_error(std::string("ERROR")+SysName+std::string(": Beta2-Pressure not specified in configuration."));
+  }
+
+
+  // get Alpha Calibration constant
+  if (Config.HasMember("Alpha-Calibration")) {
+    config_.kAlpha = Config["Alpha-Calibration"].GetFloat();
+  } else {
+    throw std::runtime_error(std::string("ERROR")+SysName+std::string(": Alpha-Calibration not specified in configuration."));
+  }
+
+  // get Beta Calibration constant
+  if (Config.HasMember("Beta-Calibration")) {
+    config_.kBeta = Config["Beta-Calibration"].GetFloat();
+  } else {
+    throw std::runtime_error(std::string("ERROR")+SysName+std::string(": Beta-Calibration not specified in configuration."));
+  }
+
+  // get initialization time
+  if (Config.HasMember("Initialization-Time")) {
+    config_.InitTime = Config["Initialization-Time"].GetFloat();
+  } else {
+    throw std::runtime_error(std::string("ERROR")+SysName+std::string(": Initialization time not specified in configuration."));
+  }
+
+  // pointer to log run mode data
+  ModeKey_ = SysName+"/Mode";
+  DefinitionTreePtr->InitMember(ModeKey_,&data_.Mode,"Run mode",true,false);
+
+  // pointer to log ias data
+  OutputAglKey_ = SysName+"/"+OutputAglName;
+  DefinitionTreePtr->InitMember(OutputAglKey_,&data_.Agl_m,"Altitude above ground, m",true,false);
+  OutputIasKey_ = SysName+"/"+OutputIasName;
+  DefinitionTreePtr->InitMember(OutputIasKey_,&data_.Ias_ms,"Indicated airspeed, m/s",true,false);
+  OutputAlphaKey_ = SysName+"/"+OutputAlphaName;
+  DefinitionTreePtr->InitMember(OutputAlphaKey_,&data_.Alpha_rad,"Angle of attack, rad",true,false);
+  OutputBetaKey_ = SysName+"/"+OutputBetaName;
+  DefinitionTreePtr->InitMember(OutputBetaKey_,&data_.Beta_rad,"Sideslip angle, rad",true,false);
+}
+
+void FiveHole::Initialize() {
+  // grab the starting time
+  if (!TimeLatch_) {
+    T0_us_ = micros();
+    TimeLatch_ = true;
+  }
+
+  // compute the elapsed time
+  float ElapsedTime = ((float)(micros()-T0_us_))/1e6;
+
+  // if less than init time, compute bias
+  if (ElapsedTime < config_.InitTime) {
+    // compute pressure biases
+    data_.StaticPressureBias += *config_.StaticPressure;
+    data_.TipPressureBias += *config_.TipPressure;
+    data_.Alpha1PressureBias += *config_.Alpha1Pressure;
+    data_.Alpha2PressureBias += *config_.Alpha2Pressure;
+    data_.Beta1PressureBias += *config_.Beta1Pressure;
+    data_.Beta2PressureBias += *config_.Beta2Pressure;
+
+    NumberSamples_++;
+  } else {
+    Initialized_ = true;
+  }
+
+  // Compute the Averages
+  data_.StaticPressureBias = data_.StaticPressureBias / (float)NumberSamples_;
+  data_.TipPressureBias = data_.TipPressureBias / (float)NumberSamples_;
+  data_.Alpha1PressureBias = data_.Alpha1PressureBias / (float)NumberSamples_;
+  data_.Alpha2PressureBias = data_.Alpha2PressureBias / (float)NumberSamples_;
+  data_.Beta1PressureBias = data_.Beta1PressureBias / (float)NumberSamples_;
+  data_.Beta2PressureBias = data_.Beta2PressureBias / (float)NumberSamples_;
+
+  // compute pressure altitude
+  data_.PressAlt0 += AirData_.getPressureAltitude(data_.StaticPressureBias);
+
+}
+
+bool FiveHole::Initialized() {
+  return Initialized_;
+}
+
+void FiveHole::Run(Mode mode) {
+  data_.Mode = (uint8_t) mode;
+  if (mode!=kStandby) {
+    // compute indicated airspeed
+    data_.Ias_ms = AirData_.getIAS(*config_.TipPressure - data_.TipPressureBias);
+
+    // compute altitude above ground level
+    data_.Agl_m = AirData_.getAGL(*config_.StaticPressure, data_.PressAlt0);
+
+    // compute Alpha and Beta
+    data_.Alpha_rad = AirData_.getAngle(*config_.TipPressure - data_.TipPressureBias,
+      *config_.Alpha1Pressure - data_.Alpha1PressureBias,
+      *config_.Alpha2Pressure - data_.Alpha2PressureBias,
+      *config_.Beta1Pressure - data_.Beta1PressureBias,
+      *config_.Beta2Pressure - data_.Beta2PressureBias,
+      config_.kAlpha);
+
+    data_.Beta_rad = AirData_.getAngle(*config_.TipPressure - data_.TipPressureBias,
+      *config_.Beta1Pressure - data_.Beta1PressureBias,
+      *config_.Beta2Pressure - data_.Beta2PressureBias,
+      *config_.Alpha1Pressure - data_.Alpha1PressureBias,
+      *config_.Alpha2Pressure - data_.Alpha2PressureBias,
+      config_.kBeta);
+  }
+}
+
+void FiveHole::Clear(DefinitionTree *DefinitionTreePtr) {
+  config_.InitTime = 0.0f;
+
+  data_.Mode = kStandby;
+
+  data_.TipPressureBias = 0.0f;
+  data_.StaticPressureBias = 0.0f;
+  data_.Ias_ms = 0.0f;
+
+  data_.Agl_m = 0.0f;
+  data_.PressAlt0 = 0.0f;
+
+  data_.Alpha1PressureBias = 0.0f;
+  data_.Alpha2PressureBias = 0.0f;
+  data_.Alpha_rad = 0.0f;
+
+  data_.Beta1PressureBias = 0.0f;
+  data_.Beta2PressureBias = 0.0f;
+  data_.Beta_rad = 0.0f;
+
+  bool TimeLatch_ = false;
+  bool Initialized_ = false;
+  uint64_t T0_us_ = 0;
+  size_t NumberSamples_ = 1;
+  DefinitionTreePtr->Erase(ModeKey_);
+  DefinitionTreePtr->Erase(OutputIasKey_);
+  DefinitionTreePtr->Erase(OutputAglKey_);
+  DefinitionTreePtr->Erase(OutputAlphaKey_);
+  DefinitionTreePtr->Erase(OutputBetaKey_);
+
+  TipPressureKey_.clear();
+  StaticPressureKey_.clear();
+  Alpha1PressureKey_.clear();
+  Alpha2PressureKey_.clear();
+  Beta1PressureKey_.clear();
+  Beta2PressureKey_.clear();
+
+  ModeKey_.clear();
+  OutputIasKey_.clear();
+  OutputAglKey_.clear();
+  OutputAlphaKey_.clear();
+  OutputBetaKey_.clear();
+}
+
+uint64_t FiveHole::micros() {
+  struct timeval tv;
+  gettimeofday(&tv,NULL);
+  return tv.tv_sec*(uint64_t)1000000+tv.tv_usec;
+}

@@ -39,6 +39,9 @@ class AirData{
 		float getDensityAltitude(float p, float T);
     float getApproxTemp(float T, float h);
     float getDensity(float p, float T);
+    float getAngle(float pTip, float pAngle1, float pAngle2, float pSide1, float pSide2, float kCal);
+		float getAngleMeth2(float pTip, float pAngle, float kCal);
+
   private:
     const float A0 = 340.29f;   // standard sea level speed of sound, m/s
     const float P0 = 101325.0f; // standard sea level pressure, Pa
