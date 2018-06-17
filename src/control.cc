@@ -65,6 +65,9 @@ void ControlLaws::Configure(const rapidjson::Value& Config, DefinitionTree *Defi
                 if (Func["Type"] == "PID") {
                   SocControlGroups_[SocGroupKeys_.back()][level].push_back(std::make_shared<PIDClass>());
                 }
+                if (Func["Type"] == "SS") {
+                  SocControlGroups_[SocGroupKeys_.back()][level].push_back(std::make_shared<SSClass>());
+                }
                 if (Func["Type"] == "Filter") {
                   SocControlGroups_[SocGroupKeys_.back()][level].push_back(std::make_shared<GeneralFilter>());
                 }

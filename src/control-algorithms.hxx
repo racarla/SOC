@@ -3,44 +3,52 @@
 #define CONTROL_ALGORITHMS_HXX_
 
 #include "generic-function.hxx"
+#include <Eigen/Dense>
 
 class __PIDClass {
   public:
-    void Configure(float Kp,float Ki,float Kd,float Tf,float b,float c,bool Sat,float UL,float LL);
-    void Run(GenericFunction::Mode mode,float Reference,float Feedback,float dt,float *Output,int8_t *Saturated);
+    void Configure(float Kp, float Ki, float Kd, float Tf, float b, float c, bool SatFlag, float OutMax, float OutMin);
+    void Run(GenericFunction::Mode mode, float Reference, float Feedback, float dt, float *Output, int8_t *Saturated);
     void Clear();
   private:
-    struct Config {
-      float Kp = 0.0f;
-      float Ki = 0.0f;
-      float Kd = 0.0f;
-      float Tf = 0.0f;
-      float b = 1.0f;
-      float c = 1.0f;
-      bool SaturateOutput = false;
-      float UpperLimit = 0.0f;
-      float LowerLimit = 0.0f;
-    };
-    struct Data {
-      uint8_t Mode = GenericFunction::Mode::kStandby;
-      float Output = 0.0f;
-      int8_t Saturated = 0;
-    };
-    struct States {
-      float ProportionalError = 0.0f;
-      float DerivativeError = 0.0f;
-      float PreviousDerivativeError = 0.0f;
-      float IntegralError = 0.0f;
-      float DerivativeErrorState = 0.0f;
-      float IntegralErrorState = 0.0f;
-    };
-    Config config_;
-    Data data_;
-    States states_;
-    std::string ReferenceKey_,FeedbackKey_,SampleTimeKey_,ModeKey_,SaturatedKey_,OutputKey_;
+    uint8_t mode_ = GenericFunction::Mode::kStandby;
+
+    float Kp_, Ki_, Kd_, Tf_, b_, c_, Output_, OutMax_, OutMin_;
+    bool SatFlag_;
+
+    float ProportionalError_, DerivativeError_, IntegralError_, DerivativeErrorState_;
+    float PreviousDerivativeError_, IntegralErrorState_;
+
+    int8_t Saturated_;
+
     void InitializeState(float Command);
+    void ComputeDerivative(float dt);
     void UpdateState(float dt);
     void CalculateCommand();
+    void Reset();
+};
+
+class __SSClass {
+  public:
+    void Configure(Eigen::MatrixXf A, Eigen::MatrixXf B, Eigen::MatrixXf C, Eigen::MatrixXf D, bool satFlag, Eigen::VectorXf yMax, Eigen::VectorXf yMin);
+    void Run(GenericFunction::Mode mode, Eigen::VectorXf u, float dt, Eigen::VectorXf *y, Eigen::VectorXi *ySat_);
+    void Clear();
+  private:
+    uint8_t mode_ = GenericFunction::Mode::kStandby;
+
+    Eigen::MatrixXf A_, B_, C_, D_;
+    Eigen::VectorXf x_;
+    Eigen::VectorXf y_, yMin_, yMax_;
+    Eigen::VectorXi ySat_;
+
+    bool SatFlag_;
+
+    Eigen::MatrixXf CA_inv_, CB_;
+
+    void InitializeState(Eigen::VectorXf u, float dt);
+    void UpdateState(Eigen::VectorXf u, float dt);
+    void OutputEquation(Eigen::VectorXf u, float dt);
+    void Reset();
 };
 
 #endif

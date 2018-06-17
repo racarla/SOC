@@ -32,7 +32,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SO
 configuration below. See generic-function.hxx for more information
 on the methods and modes. */
 
-/* 
+/*
 PID Class - PID and PID2 control law
 Example JSON configuration:
 {
@@ -55,11 +55,11 @@ Example JSON configuration:
     "Lower": X
   }
 }
-Where: 
+Where:
    * Output gives a convenient name for the block (i.e. PitchControl).
    * Reference is the full path name of the reference signal.
    * Feedback is the full path name of the feedback signal.
-   * Sample-Time is either: the full path name of the sample time signal in seconds, 
+   * Sample-Time is either: the full path name of the sample time signal in seconds,
      or a fixed value sample time in seconds.
    * Time-Constant is the time constant for the derivative filter.
      If a time constant is not specified, then no filtering is used.
@@ -96,4 +96,81 @@ class PIDClass: public GenericFunction {
     std::string ReferenceKey_,FeedbackKey_,SampleTimeKey_,ModeKey_,SaturatedKey_,OutputKey_;
 };
 
+/*
+SS Class - State Space
+Example JSON configuration:
+{
+  "Name": "Name",
+  "Inputs": ["InputNames"],
+  "Outputs": ["OutputNames"],
+  "Sample-Time": "SampleTime" or X,
+  "Ad": [[X]],
+  "Bd": [[X]],
+  "C": [[X]],
+  "D": [[X]],
+  "Limits": {
+    "Upper": [X],
+    "Lower": [X]
+  }
+}
+Where:
+   * Name gives a convenient name for the block (i.e. PitchControl).
+   * Inputs is the full path name of the input signals.
+   * Outputs is the full path name of the output signals.
+   * Sample-Time is either: the full path name of the sample time signal in seconds,
+     or a fixed value sample time in seconds.
+   * Gains specifies the proportional derivative and integral gains.
+   * Limits are optional and saturate the output if defined.
+
+Data types for all input and output values are float.
+
+The implemented algorithm assumes a discrete state space model, with variable dt.
+x[k+1] = dt * (Ad*x + Bd*u);
+y = C*x + D*u;
+  where:  Ad = (Ac + I);
+          Bd = B;
+
+If providing a value (dt) or source (dt = t - tPrev) for Sample-Time:
+Compute the discrete SS from the continuous SS as:
+  sysD = c2d(sysC, 1, 'zoh'); % use dt = 1 for c2d to allow variable sample time
+
+If the c2d was performed with a non-one value, dt,
+  sysD = c2d(sysC, dt, 'zoh'); % use dt as nominal framerate for c2d to allow variable sample time
+the set Sample-Time to 1.0.
+
+*/
+
+class SSClass: public GenericFunction {
+  public:
+    void Configure(const rapidjson::Value& Config,std::string RootPath,DefinitionTree *DefinitionTreePtr);
+    void Initialize();
+    bool Initialized();
+    void Run(Mode mode);
+    void Clear(DefinitionTree *DefinitionTreePtr);
+  private:
+    struct Config {
+      std::vector<float*> Inputs;
+      Eigen::VectorXf u;
+      Eigen::VectorXf x;
+      Eigen::MatrixXf A;
+      Eigen::MatrixXf B;
+      Eigen::MatrixXf C;
+      Eigen::MatrixXf D;
+      Eigen::VectorXf yMin;
+      Eigen::VectorXf yMax;
+      float *dt;
+      float SampleTime;
+      bool UseSampleTime = false;
+    };
+    struct Data {
+      uint8_t Mode = kStandby;
+      Eigen::VectorXf y;
+      Eigen::VectorXi ySat;
+    };
+    __SSClass SSClass_;
+    Config config_;
+    Data data_;
+    std::vector<std::string> InputKeys_, OutputKeys_, SaturatedKeys_;
+    std::string ModeKey_, SampleTimeKey_;
+};
 #endif
