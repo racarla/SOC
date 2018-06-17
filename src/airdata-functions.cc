@@ -222,10 +222,10 @@ uint64_t AglAltitude::micros() {
 void PitotStatic::Configure(const rapidjson::Value& Config,std::string RootPath,DefinitionTree *DefinitionTreePtr) {
   // get PitotStatic name
   std::string SysName;
-  if (Config.HasMember("PitotStatic")) {
-    SysName = RootPath + "/" + Config["PitotStatic"].GetString();
+  if (Config.HasMember("Output")) {
+    SysName = RootPath + "/" + Config["Output"].GetString();
   } else {
-    throw std::runtime_error(std::string("ERROR")+RootPath+std::string(": PitotStatic not specified in configuration."));
+    throw std::runtime_error(std::string("ERROR")+RootPath+std::string(": Output not specified in configuration."));
   }
 
   std::string OutputIasName;
@@ -298,24 +298,16 @@ void PitotStatic::Initialize() {
 
   // if less than init time, compute bias
   if (ElapsedTime < config_.InitTime) {
-    // compute differential pressure bias
-    data_.DifferentialPressureBias += *config_.DifferentialPressure;
+    // compute differential pressure bias, using Welford's algorithm
+    data_.DifferentialPressureBias += (*config_.DifferentialPressure - data_.DifferentialPressureBias) / (float)NumberSamples_;
 
-    // compute static pressure bias
-    data_.StaticPressureBias += *config_.StaticPressure;
+    // compute static pressure bias, using Welford's algorithm
+    data_.PressAlt0 += (AirData_.getPressureAltitude(*config_.StaticPressure) - data_.PressAlt0) / (float)NumberSamples_;
 
     NumberSamples_++;
   } else {
     Initialized_ = true;
   }
-
-  // Compute the Averages
-  data_.DifferentialPressureBias = data_.DifferentialPressureBias / (float)NumberSamples_;
-  data_.StaticPressureBias = data_.StaticPressureBias / (float)NumberSamples_;
-
-  // compute pressure altitude
-  data_.PressAlt0 += AirData_.getPressureAltitude(data_.StaticPressureBias);
-
 }
 
 bool PitotStatic::Initialized() {
@@ -339,7 +331,6 @@ void PitotStatic::Clear(DefinitionTree *DefinitionTreePtr) {
   data_.Mode = kStandby;
 
   data_.DifferentialPressureBias = 0.0f;
-  data_.StaticPressureBias = 0.0f;
   data_.Ias_ms = 0.0f;
 
   data_.Agl_m = 0.0f;
@@ -373,10 +364,10 @@ uint64_t PitotStatic::micros() {
 void FiveHole::Configure(const rapidjson::Value& Config,std::string RootPath,DefinitionTree *DefinitionTreePtr) {
   // get FiveHole name
   std::string SysName;
-  if (Config.HasMember("FiveHole")) {
-    SysName = RootPath + "/" + Config["FiveHole"].GetString();
+  if (Config.HasMember("Output")) {
+    SysName = RootPath + "/" + Config["Output"].GetString();
   } else {
-    throw std::runtime_error(std::string("ERROR")+RootPath+std::string(": FiveHole not specified in configuration."));
+    throw std::runtime_error(std::string("ERROR")+RootPath+std::string(": Output not specified in configuration."));
   }
 
   // get Airspeed output name
@@ -398,7 +389,7 @@ void FiveHole::Configure(const rapidjson::Value& Config,std::string RootPath,Def
   // get Alpha output name
   std::string OutputAlphaName;
   if (Config.HasMember("OutputAlpha")) {
-    OutputAglName = Config["OutputAlpha"].GetString();
+    OutputAlphaName = Config["OutputAlpha"].GetString();
   } else {
     throw std::runtime_error(std::string("ERROR")+SysName+std::string(": OutputAlpha not specified in configuration."));
   }
@@ -406,7 +397,7 @@ void FiveHole::Configure(const rapidjson::Value& Config,std::string RootPath,Def
   // get Beta output name
   std::string OutputBetaName;
   if (Config.HasMember("OutputBeta")) {
-    OutputAglName = Config["OutputBeta"].GetString();
+    OutputBetaName = Config["OutputBeta"].GetString();
   } else {
     throw std::runtime_error(std::string("ERROR")+SysName+std::string(": OutputBeta not specified in configuration."));
   }
@@ -533,30 +524,18 @@ void FiveHole::Initialize() {
 
   // if less than init time, compute bias
   if (ElapsedTime < config_.InitTime) {
-    // compute pressure biases
-    data_.StaticPressureBias += *config_.StaticPressure;
-    data_.TipPressureBias += *config_.TipPressure;
-    data_.Alpha1PressureBias += *config_.Alpha1Pressure;
-    data_.Alpha2PressureBias += *config_.Alpha2Pressure;
-    data_.Beta1PressureBias += *config_.Beta1Pressure;
-    data_.Beta2PressureBias += *config_.Beta2Pressure;
+    // compute pressure biases, using Welford's algorithm
+    data_.PressAlt0 += (AirData_.getPressureAltitude(*config_.StaticPressure) - data_.PressAlt0) / (float)NumberSamples_;
+    data_.TipPressureBias += (*config_.TipPressure - data_.TipPressureBias) / (float)NumberSamples_;
+    data_.Alpha1PressureBias += (*config_.Alpha1Pressure - data_.Alpha1PressureBias) / (float)NumberSamples_;
+    data_.Alpha2PressureBias += (*config_.Alpha2Pressure - data_.Alpha2PressureBias) / (float)NumberSamples_;
+    data_.Beta1PressureBias += (*config_.Beta1Pressure - data_.Beta1PressureBias) / (float)NumberSamples_;
+    data_.Beta2PressureBias += (*config_.Beta2Pressure - data_.Beta2PressureBias) / (float)NumberSamples_;
 
     NumberSamples_++;
   } else {
     Initialized_ = true;
   }
-
-  // Compute the Averages
-  data_.StaticPressureBias = data_.StaticPressureBias / (float)NumberSamples_;
-  data_.TipPressureBias = data_.TipPressureBias / (float)NumberSamples_;
-  data_.Alpha1PressureBias = data_.Alpha1PressureBias / (float)NumberSamples_;
-  data_.Alpha2PressureBias = data_.Alpha2PressureBias / (float)NumberSamples_;
-  data_.Beta1PressureBias = data_.Beta1PressureBias / (float)NumberSamples_;
-  data_.Beta2PressureBias = data_.Beta2PressureBias / (float)NumberSamples_;
-
-  // compute pressure altitude
-  data_.PressAlt0 += AirData_.getPressureAltitude(data_.StaticPressureBias);
-
 }
 
 bool FiveHole::Initialized() {
@@ -573,19 +552,42 @@ void FiveHole::Run(Mode mode) {
     data_.Agl_m = AirData_.getAGL(*config_.StaticPressure, data_.PressAlt0);
 
     // compute Alpha and Beta
-    data_.Alpha_rad = AirData_.getAngle(*config_.TipPressure - data_.TipPressureBias,
-      *config_.Alpha1Pressure - data_.Alpha1PressureBias,
-      *config_.Alpha2Pressure - data_.Alpha2PressureBias,
-      *config_.Beta1Pressure - data_.Beta1PressureBias,
-      *config_.Beta2Pressure - data_.Beta2PressureBias,
-      config_.kAlpha);
+    // if the airspeed is low, the non-dimensionalizing pressures on the side port will be very small and result in huge angles
+    if (data_.Ias_ms > 2.0f) {
+      // compute alpha
+      data_.Alpha_rad = AirData_.getAngle(*config_.TipPressure - data_.TipPressureBias,
+        *config_.Alpha1Pressure - data_.Alpha1PressureBias,
+        *config_.Alpha2Pressure - data_.Alpha2PressureBias,
+        *config_.Beta1Pressure - data_.Beta1PressureBias,
+        *config_.Beta2Pressure - data_.Beta2PressureBias,
+        config_.kAlpha);
 
-    data_.Beta_rad = AirData_.getAngle(*config_.TipPressure - data_.TipPressureBias,
-      *config_.Beta1Pressure - data_.Beta1PressureBias,
-      *config_.Beta2Pressure - data_.Beta2PressureBias,
-      *config_.Alpha1Pressure - data_.Alpha1PressureBias,
-      *config_.Alpha2Pressure - data_.Alpha2PressureBias,
-      config_.kBeta);
+      // limit alpha to +/-45 deg
+      if (data_.Alpha_rad > 0.7854f) {
+        data_.Alpha_rad = 0.7854f;
+      } else if (data_.Alpha_rad < -0.7854f) {
+        data_.Alpha_rad = -0.7854f;
+      }
+
+      // compute beta
+      data_.Beta_rad = AirData_.getAngle(*config_.TipPressure - data_.TipPressureBias,
+        *config_.Beta1Pressure - data_.Beta1PressureBias,
+        *config_.Beta2Pressure - data_.Beta2PressureBias,
+        *config_.Alpha1Pressure - data_.Alpha1PressureBias,
+        *config_.Alpha2Pressure - data_.Alpha2PressureBias,
+        config_.kBeta);
+
+      // limit beta to +/-45 deg
+      if (data_.Beta_rad > 0.7854f) {
+        data_.Beta_rad = 0.7854f;
+      } else if (data_.Beta_rad < -0.7854f) {
+        data_.Beta_rad = -0.7854f;
+      }
+
+    } else { // airspeed < theshold
+      data_.Alpha_rad = 0.0f;
+      data_.Beta_rad = 0.0f;
+    }
   }
 }
 
@@ -595,7 +597,6 @@ void FiveHole::Clear(DefinitionTree *DefinitionTreePtr) {
   data_.Mode = kStandby;
 
   data_.TipPressureBias = 0.0f;
-  data_.StaticPressureBias = 0.0f;
   data_.Ias_ms = 0.0f;
 
   data_.Agl_m = 0.0f;

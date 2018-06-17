@@ -41,6 +41,10 @@ void SensorProcessing::Configure(const rapidjson::Value& Config,DefinitionTree *
           BaselineSensorProcessing_.push_back(std::make_shared<IndicatedAirspeed>());
         } else if (Func["Type"] == "AGL") {
           BaselineSensorProcessing_.push_back(std::make_shared<AglAltitude>());
+        } else if (Func["Type"] == "PitotStatic") {
+          BaselineSensorProcessing_.push_back(std::make_shared<PitotStatic>());
+        } else if (Func["Type"] == "FiveHole") {
+          BaselineSensorProcessing_.push_back(std::make_shared<FiveHole>());
         } else if (Func["Type"] == "EKF15StateINS") {
           BaselineSensorProcessing_.push_back(std::make_shared<Ekf15StateIns>());
         } else if (Func["Type"] == "Filter") {
@@ -93,6 +97,10 @@ void SensorProcessing::Configure(const rapidjson::Value& Config,DefinitionTree *
               ResearchSensorProcessingGroups_[ResearchGroupKeys_.back()].push_back(std::make_shared<IndicatedAirspeed>());
             } else if (Func["Type"] == "AGL") {
               ResearchSensorProcessingGroups_[ResearchGroupKeys_.back()].push_back(std::make_shared<AglAltitude>());
+            } else if (Func["Type"] == "PitotStatic") {
+              ResearchSensorProcessingGroups_[ResearchGroupKeys_.back()].push_back(std::make_shared<PitotStatic>());
+            } else if (Func["Type"] == "FiveHole") {
+              ResearchSensorProcessingGroups_[ResearchGroupKeys_.back()].push_back(std::make_shared<FiveHole>());
             } else if (Func["Type"] == "EKF15StateINS") {
               ResearchSensorProcessingGroups_[ResearchGroupKeys_.back()].push_back(std::make_shared<Ekf15StateIns>());
             } else if (Func["Type"] == "Filter") {

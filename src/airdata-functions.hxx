@@ -162,7 +162,6 @@ class PitotStatic: public GenericFunction {
       float DifferentialPressureBias = 0.0f;
       float Ias_ms = 0.0f;
 
-      float StaticPressureBias = 0.0f;
       float PressAlt0 = 0.0f;
       float Agl_m = 0.0f;
     };
@@ -228,7 +227,6 @@ class FiveHole: public GenericFunction {
     struct Data {
       uint8_t Mode = kStandby;
 
-      float StaticPressureBias = 0.0f;
       float PressAlt0 = 0.0f;
       float Agl_m = 0.0f;
 

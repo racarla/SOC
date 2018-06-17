@@ -84,7 +84,13 @@ float AirData::getDensity(float p, float T) {
 float AirData::getAngle(float pTip, float pAngle1, float pAngle2, float pSide1, float pSide2, float kCal) {
 
   float qcn = pTip - 0.5 * (pSide1 + pSide2);
-  float angle = (pAngle1 - pAngle2) / (kCal * qcn);
+  float angle;
+
+  if (qcn != 0) { // Dived by zero protection
+    angle = (pAngle1 - pAngle2) / (kCal * qcn);
+  } else {
+    angle = 0.0;
+  }
 
   return angle;
 }
