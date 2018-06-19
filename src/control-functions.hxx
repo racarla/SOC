@@ -173,4 +173,53 @@ class SSClass: public GenericFunction {
     std::vector<std::string> InputKeys_, OutputKeys_, SaturatedKeys_;
     std::string ModeKey_, SampleTimeKey_;
 };
+
+/*
+Tecs Class - Total Energy Control System
+Example JSON configuration:
+{
+  "mass_kg": x,
+  "weight_bal": x,
+  "max_mps": x,
+  "min_mps": x
+}
+Where:
+   * mass_kg is the total aircraft weight in kg
+   * weight_bal is a value = [0.0 - 2.0] with 1.0 being a good starting point.
+     0.0 = elevator controls speed only, 2.0 = elevator controls altitude only
+   * min_mps: the system will not command a pitch angle that causes the
+     airspeed to drop below min_mps, even with zero throttle.
+   * max_mps: the system will not command a combination of pitch and throttle
+     that will cause the airspeed to exceed this value
+   * In either case it is possible to momentarily bust these limits, but the
+     system will always be driving the airspeed back within the specified limits
+
+Data types for all input and output values are float.
+
+*/
+
+class TecsClass: public GenericFunction {
+  public:
+    void Configure(const rapidjson::Value& Config,std::string RootPath,DefinitionTree *DefinitionTreePtr);
+    void Initialize();
+    bool Initialized();
+    void Run(Mode mode);
+    void Clear(DefinitionTree *DefinitionTreePtr);
+  private:
+    struct Config {
+      std::vector<float*> Inputs;
+    };
+    float *ref_vel_mps;
+    float *ref_agl_m;
+    float *vel_mps;
+    float *agl_m;
+    bool inited;
+    float mass_kg;
+    float weight_bal;
+    float max_mps;
+    float min_mps;
+    float error_total;
+    float error_diff;
+    const float g = 9.807f;     // acceleration due to gravity, m/s/s
+};
 #endif

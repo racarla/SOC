@@ -349,3 +349,141 @@ void SSClass::Clear(DefinitionTree *DefinitionTreePtr) {
   SaturatedKeys_.clear();
   SSClass_.Clear();
 }
+
+/* Tecs class methods, see control-functions.hxx for more information */
+
+void TecsClass::Configure(const rapidjson::Value& Config,std::string RootPath,DefinitionTree *DefinitionTreePtr) {
+  if (Config.HasMember("mass_kg")) {
+    mass_kg = Config["mass_kg"].GetFloat();
+  }
+  if (Config.HasMember("weight_bal")) {
+    weight_bal = Config["weight_bal"].GetFloat();
+  }
+  if (Config.HasMember("max_mps")) {
+    max_mps = Config["max_mps"].GetFloat();
+  }
+  if (Config.HasMember("min_mps")) {
+    min_mps = Config["min_mps"].GetFloat();
+  }
+  if (Config.HasMember("RefSpeed")) {
+    std::string RefSpeedKey = Config["RefSpeed"].GetString();
+    if (DefinitionTreePtr->GetValuePtr<float*>(RefSpeedKey)) {
+      ref_vel_mps = DefinitionTreePtr->GetValuePtr<float*>(RefSpeedKey);
+    } else {
+      throw std::runtime_error(std::string("ERROR")+std::string(": RefSpeed ")+RefSpeedKey+std::string(" not found in global data."));
+    }
+  } else {
+    throw std::runtime_error(std::string("ERROR")+std::string(": RefSpeed not specified in configuration."));
+  }
+  if (Config.HasMember("RefAltitude")) {
+    std::string RefAltitudeKey = Config["RefAltitude"].GetString();
+    if (DefinitionTreePtr->GetValuePtr<float*>(RefAltitudeKey)) {
+      ref_agl_m = DefinitionTreePtr->GetValuePtr<float*>(RefAltitudeKey);
+    } else {
+      throw std::runtime_error(std::string("ERROR")+std::string(": RefAltitude ")+RefAltitudeKey+std::string(" not found in global data."));
+    }
+  } else {
+    throw std::runtime_error(std::string("ERROR")+std::string(": RefAltitude not specified in configuration."));
+  }
+  if (Config.HasMember("FeedbackSpeed")) {
+    std::string FeedbackSpeedKey = Config["FeedbackSpeed"].GetString();
+    if (DefinitionTreePtr->GetValuePtr<float*>(FeedbackSpeedKey)) {
+      vel_mps = DefinitionTreePtr->GetValuePtr<float*>(FeedbackSpeedKey);
+    } else {
+      throw std::runtime_error(std::string("ERROR")+std::string(": FeedbackSpeed ")+FeedbackSpeedKey+std::string(" not found in global data."));
+    }
+  } else {
+    throw std::runtime_error(std::string("ERROR")+std::string(": FeedbackSpeed not specified in configuration."));
+  }
+  if (Config.HasMember("FeedbackAltitude")) {
+    std::string FeedbackAltitudeKey = Config["FeedbackAltitude"].GetString();
+    if (DefinitionTreePtr->GetValuePtr<float*>(FeedbackAltitudeKey)) {
+      agl_m = DefinitionTreePtr->GetValuePtr<float*>(FeedbackAltitudeKey);
+    } else {
+      throw std::runtime_error(std::string("ERROR")+std::string(": FeedbackAltitude ")+FeedbackAltitudeKey+std::string(" not found in global data."));
+    }
+  } else {
+    throw std::runtime_error(std::string("ERROR")+std::string(": FeedbackAltitude not specified in configuration."));
+  }
+  
+  if (Config.HasMember("OutputTotal")) {
+    std::string OutputName = Config["OutputTotal"].GetString();
+    std::string SysName = RootPath + "/" + OutputName;
+    DefinitionTreePtr->InitMember(SysName,&error_total,"Tecs Error Total",true,false);
+
+  } else {
+    throw std::runtime_error(std::string("ERROR")+RootPath+std::string(": Output not specified in configuration."));
+  }
+  if (Config.HasMember("OutputDiff")) {
+    std::string OutputName = Config["OutputDiff"].GetString();
+    std::string SysName = RootPath + "/" + OutputName;
+    DefinitionTreePtr->InitMember(SysName,&error_diff,"Tecs Error Diff",true,false);
+
+  } else {
+    throw std::runtime_error(std::string("ERROR")+RootPath+std::string(": Output not specified in configuration."));
+  }
+  
+  inited = false;
+}
+
+void TecsClass::Initialize() {
+  // sanity checks
+  if ( mass_kg < 0.01 ) {
+    mass_kg = 2.5;
+  }
+  if ( weight_bal < 0.0 ) {
+    weight_bal = 0.0;
+  } else if ( weight_bal > 2.0 ) {
+    weight_bal = 2.0;
+  }
+  inited = true;
+}
+bool TecsClass::Initialized() {return inited;}
+
+void TecsClass::Run(Mode mode) {
+  if ( !inited ) {
+    Initialize();
+  }
+
+  // Feedback energy
+  float energy_pot = mass_kg * g * (*agl_m);
+  float energy_kin = 0.5 * mass_kg * (*vel_mps) * (*vel_mps);
+    
+  // Reference energy
+  float target_pot = mass_kg * g * (*ref_agl_m);
+  float target_kin = 0.5 * mass_kg * (*ref_vel_mps) * (*ref_vel_mps);
+  
+  // Energy error
+  float error_pot = target_pot - energy_pot;
+  float error_kin = target_kin - energy_kin;
+    
+  // Compute min & max kinetic energy allowed (based on configured
+  // operational speed range)
+  float min_kinetic = 0.5 * mass_kg * min_mps * min_mps;
+  float max_kinetic = 0.5 * mass_kg * max_mps * max_mps;
+
+  // Set min & max kinetic energy errors allowed (prevents us from
+  // exceeding allowed kinetic energy range)
+  float min_error = min_kinetic - energy_kin;
+  float max_error = max_kinetic - energy_kin;
+
+  // if min_error > 0: we are underspeed
+  // if max_error < 0: we are overspeed
+    
+  // total energy error and (weighted) energy balance
+  float error_total = error_pot + error_kin;
+  float error_diff =  (2.0 - weight_bal) * error_kin - weight_bal * error_pot;
+    
+  // clamp error_diff to kinetic error range.  This prevents tecs from
+  // requesting a pitch attitude that would over/under-speed the
+  // aircraft.
+  if ( error_diff < min_error ) { error_diff = min_error; }
+  if ( error_diff > max_error ) { error_diff = max_error; }
+  
+  // clamp max total error to avoid an overspeed condition in a climb
+  // if max pitch angle is saturated.
+  if ( error_total > max_error ) { error_total = max_error; }
+}
+
+void TecsClass::Clear(DefinitionTree *DefinitionTreePtr) {
+}
