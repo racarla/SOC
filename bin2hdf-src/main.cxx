@@ -922,5 +922,18 @@ int main(int argc, char* argv[]) {
   }
   Logger.WriteData(GroupName,"cmdEff",data7D,"Control Effector Commands, Throt (nd), Elev, Rud, AilR, FlapR, FlapL, AilL",NumberRecords,7);
 
+  m = 0;
+  for (size_t k=0; k < NumberRecords; k++) {
+    data7D[m] = cntrlMgrLog[k].cmdEffDelay[0];
+    data7D[m+1] = cntrlMgrLog[k].cmdEffDelay[1];
+    data7D[m+2] = cntrlMgrLog[k].cmdEffDelay[2];
+    data7D[m+3] = cntrlMgrLog[k].cmdEffDelay[3];
+    data7D[m+4] = cntrlMgrLog[k].cmdEffDelay[4];
+    data7D[m+5] = cntrlMgrLog[k].cmdEffDelay[5];
+    data7D[m+6] = cntrlMgrLog[k].cmdEffDelay[6];
+    m = m + 7;
+  }
+  Logger.WriteData(GroupName,"cmdEffDelay",data7D,"Control Effector Delayed, Throt (nd), Elev, Rud, AilR, FlapR, FlapL, AilL",NumberRecords,7);
+
 	return 0;
 }

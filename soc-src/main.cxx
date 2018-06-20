@@ -52,8 +52,6 @@ int main(int argc, char* argv[]) {
   FmuData fmuData; // Struct
 //std::cout << "Fmu" << "\t";
 
-std::cout << kConfigSpeed << "\t" << kCtrlDelay << std::endl;
-
   // Data Logger
   Datalogger log;
 
@@ -137,6 +135,14 @@ std::cout << kConfigSpeed << "\t" << kCtrlDelay << std::endl;
 
 std::cout << "Speed: " << kConfigSpeed << std::endl;
 std::cout << "Delay Frames: " << kCtrlDelay << std::endl;
+
+  typedef Eigen::Matrix<float, -1, 1, 0, kMaxCntrlEff, 1> VecEff;
+  std::deque<VecEff> cmdEffDeque;
+
+  cntrlMgrOut.cmdEff.resize(7);
+  cntrlMgrOut.cmdEffDelay.resize(7);
+
+  cmdEffDeque.assign (kCtrlDelay, cntrlMgrOut.cmdEff);
 
   /* main loop */
   while (1) {
@@ -258,10 +264,6 @@ std::cout << "Delay Frames: " << kCtrlDelay << std::endl;
 
       // OUTPUT PROCESSING
       // send control surface commands
-      cntrlMgrOut.cmdEff.resize(7);
-      std::vector<uint8_t> cmdEffSerial;
-      cmdEffSerial.resize(cntrlMgrOut.cmdEff.size()*sizeof(float));
-
       cntrlMgrOut.cmdEff[0] = cntrlMgrOut.cmdCntrl[3]; // Throttle
       cntrlMgrOut.cmdEff[1] = cntrlMgrOut.cmdAlloc[0] + exciteMgrOut.cmdExcite[1]; // Elevator
       cntrlMgrOut.cmdEff[2] = cntrlMgrOut.cmdAlloc[1] + exciteMgrOut.cmdExcite[2]; // Rudder
@@ -271,9 +273,22 @@ std::cout << "Delay Frames: " << kCtrlDelay << std::endl;
       cntrlMgrOut.cmdEff[6] = cntrlMgrOut.cmdAlloc[5] + exciteMgrOut.cmdExcite[0]; // Ail L
 //std::cout << cntrlMgrOut.cmdEff.transpose() << "\t\t";
 
+      // Artificial added delay
+      if ((kCtrlDelay > 0) & (cntrlMgrOut.mode == kCntrlEngage)) {
+        // Push new data on the front, Pop off the back
+        cmdEffDeque.push_front(cntrlMgrOut.cmdEff);
+        cntrlMgrOut.cmdEffDelay = cmdEffDeque.back();
+        cmdEffDeque.pop_back();
+
+      } else {
+        cntrlMgrOut.cmdEffDelay = cntrlMgrOut.cmdEff;
+      }
+
       missMgrOut.tDurCntrl_ms = ((float) (clock() - frameStartCntrl)) * kTIC2MS;
 
-      memcpy(cmdEffSerial.data(), cntrlMgrOut.cmdEff.data(), cmdEffSerial.size());
+      std::vector<uint8_t> cmdEffSerial;
+      cmdEffSerial.resize(cntrlMgrOut.cmdEff.size()*sizeof(float));
+      memcpy(cmdEffSerial.data(), cntrlMgrOut.cmdEffDelay.data(), cmdEffSerial.size());
 
       // Write the Effector Commands to the FMU
       fmu.WriteMessage(kEffectorAngleCmd, cmdEffSerial.size(), cmdEffSerial.data());

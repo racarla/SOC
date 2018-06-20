@@ -21,13 +21,10 @@ void CntrlMgr::Init(const CntrlAllocDef& cntrlAllocDef)
   cntrlMgrOut_.cmdCntrlRes.setZero(kMaxCntrlCmd);
   cntrlMgrOut_.cmdCntrl.setZero(kMaxCntrlCmd);
   cntrlMgrOut_.cmdEff.setZero(kMaxCntrlEff);
-
+  cntrlMgrOut_.cmdEffDelay.setZero(kMaxCntrlEff);
 
   CntrlBaseDef();
   CntrlResDef();
-
-  measVecDeque_.assign (kCtrlDelay, cntrlMgrOut_.refVec);
-  dMeasVecDeque_.assign (kCtrlDelay, cntrlMgrOut_.refVec);
 
   cntrlAllocDef_ = cntrlAllocDef;
 
@@ -152,33 +149,13 @@ VecCmd CntrlMgr::CmdCntrlRes(const float& time_s, const FmuData& fmuData, const 
   dMeasVec[2] = fmuData.Mpu9250.Gyro_rads[2];
   dMeasVec[3] = 0.0;
 
-  // Artificial added delay
-  VecCmd measVecDelay(kMaxCntrlCmd);
-  VecCmd dMeasVecDelay(kMaxCntrlCmd);
-
-  if (kCtrlDelay > 0) {
-
-    // Push new data on the front, Pop off the back
-    measVecDeque_.push_front(measVec);
-    dMeasVecDeque_.push_front(dMeasVec);
-
-    measVecDelay = measVecDeque_.back();
-    dMeasVecDelay = dMeasVecDeque_.back();
-
-    measVecDeque_.pop_back();
-    dMeasVecDeque_.pop_back();
-
-  } else {
-    measVecDelay = measVec;
-    dMeasVecDelay = dMeasVec;
-  }
 
   // Run the Controllers
   cntrlMgrOut_.cmdCntrlRes.setZero(kMaxCntrlCmd); // Zero the Command - FIXIT shouldn't be required, variable size
-  cntrlMgrOut_.cmdCntrlRes[0] = resRoll_.Compute(cntrlMgrOut_.refVec[0], measVecDelay[0], dMeasVecDelay[0], dt_s);
-  cntrlMgrOut_.cmdCntrlRes[1] = resPitch_.Compute(cntrlMgrOut_.refVec[1], measVecDelay[1], dMeasVecDelay[1], dt_s);
-  cntrlMgrOut_.cmdCntrlRes[2] = resYaw_.Compute(cntrlMgrOut_.refVec[2], measVecDelay[2], dMeasVecDelay[2], dt_s);
-  cntrlMgrOut_.cmdCntrlRes[3] = resSpeed_.Compute(cntrlMgrOut_.refVec[3], measVecDelay[3], dt_s);
+  cntrlMgrOut_.cmdCntrlRes[0] = resRoll_.Compute(cntrlMgrOut_.refVec[0], measVec[0], dMeasVec[0], dt_s);
+  cntrlMgrOut_.cmdCntrlRes[1] = resPitch_.Compute(cntrlMgrOut_.refVec[1], measVec[1], dMeasVec[1], dt_s);
+  cntrlMgrOut_.cmdCntrlRes[2] = resYaw_.Compute(cntrlMgrOut_.refVec[2], measVec[2], dMeasVec[2], dt_s);
+  cntrlMgrOut_.cmdCntrlRes[3] = resSpeed_.Compute(cntrlMgrOut_.refVec[3], measVec[3], dt_s);
 
   return cntrlMgrOut_.cmdCntrlRes;
 }
@@ -320,6 +297,7 @@ CntrlMgrLog CntrlMgr::Log(const CntrlMgrOut& cntrlMgrOut)
 
   for (int i = 0; i < kMaxCntrlEff; i++) {
     cntrlMgrLog.cmdEff[i] = cntrlMgrOut.cmdEff[i];
+    cntrlMgrLog.cmdEffDelay[i] = cntrlMgrOut.cmdEffDelay[i];
   }
 
   for (int i = 0; i < kMaxAllocObj; i++) {

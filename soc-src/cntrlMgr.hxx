@@ -32,7 +32,6 @@ History:
 #endif
 
 extern int kConfigSpeed; // Reference speed setpoint
-extern int kCtrlDelay; // Controller Delay, number of frames
 
 
 #include "cntrlFunc.hxx"
@@ -58,6 +57,7 @@ struct CntrlMgrOut {
   VecAllocObj vObj;
   VecAllocEff cmdAlloc;
   VecEff cmdEff;
+  VecEff cmdEffDelay;
 };
 
 struct CntrlMgrLog {
@@ -67,6 +67,7 @@ struct CntrlMgrLog {
   float cmdCntrlRes[kMaxCntrlCmd] = {0};
   float cmdCntrl[kMaxCntrlCmd] = {0};
   float cmdEff[kMaxCntrlEff] = {0};
+  float cmdEffDelay[kMaxCntrlEff] = {0};
 
   float vObj[kMaxAllocObj] = {0};
   float cmdAlloc[kMaxAllocEff] = {0};
@@ -114,10 +115,6 @@ class CntrlMgr {
 
   void CntrlBaseDef();
   void CntrlResDef();
-
-  std::deque<VecCmd> measVecDeque_;
-  std::deque<VecCmd> dMeasVecDeque_;
-
 
   CntrlAllocDef cntrlAllocDef_;
 };
