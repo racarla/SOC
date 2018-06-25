@@ -62,7 +62,13 @@ sensor-processing.o \
 fmu.o \
 configuration.o \
 definition-tree.o \
-flightcode.o
+flightcode.o \
+netBuffer.o \
+netChannel.o \
+netChat.o \
+netSocket.o \
+strutils.o \
+telnet.o
 
 # datalog server objects
 OBJECTS_DATALOG := \
