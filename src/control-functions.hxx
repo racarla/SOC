@@ -36,6 +36,7 @@ on the methods and modes. */
 PID Class - PID and PID2 control law
 Example JSON configuration:
 {
+  "Type": "PID",
   "Output": "OutputName",
   "Reference": "ReferenceName",
   "Feedback": "FeedbackName",
@@ -100,6 +101,7 @@ class PIDClass: public GenericFunction {
 SS Class - State Space
 Example JSON configuration:
 {
+  "Type": "SS",
   "Name": "Name",
   "Inputs": ["InputNames"],
   "Outputs": ["OutputNames"],
@@ -170,18 +172,25 @@ class SSClass: public GenericFunction {
     __SSClass SSClass_;
     Config config_;
     Data data_;
-    std::vector<std::string> InputKeys_, OutputKeys_, SaturatedKeys_;
-    std::string ModeKey_, SampleTimeKey_;
+    std::vector<std::string>  InputKeys_, OutputKeys_, ModeKeys_, SaturatedKeys_;
+    std::string SampleTimeKey_;
 };
 
 /*
 Tecs Class - Total Energy Control System
 Example JSON configuration:
 {
+  "Type": "Tecs",
   "mass_kg": x,
   "weight_bal": x,
   "max_mps": x,
-  "min_mps": x
+  "min_mps": x,
+  "RefSpeed": "RefSpeed",
+  "RefAltitude": "RefAltitude",
+  "FeedbackSpeed": "FeedbackSpeed",
+  "FeedbackAltitude": "FeedbackAltitude",
+  "OutputTotal": "OutputTotal",
+  "OutputDiff": "OutputDiff"
 }
 Where:
    * mass_kg is the total aircraft weight in kg
@@ -206,20 +215,22 @@ class TecsClass: public GenericFunction {
     void Run(Mode mode);
     void Clear(DefinitionTree *DefinitionTreePtr);
   private:
-    struct Config {
-      std::vector<float*> Inputs;
-    };
     float *ref_vel_mps;
     float *ref_agl_m;
     float *vel_mps;
     float *agl_m;
-    bool inited;
-    float mass_kg;
-    float weight_bal;
-    float max_mps;
-    float min_mps;
     float error_total;
     float error_diff;
+
     const float g = 9.807f;     // acceleration due to gravity, m/s/s
+    bool initFlag = false;
+    float mass_kg = 0.0;
+    float weight_bal = 1.0;
+    float min_mps = 0.0;
+    float max_mps;
+    uint8_t mode = kStandby;
+    int8_t error_totalSat = 0;
+    int8_t error_diffSat = 0;
+
 };
 #endif

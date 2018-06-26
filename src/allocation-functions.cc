@@ -45,19 +45,24 @@ void PseudoInverseAllocation::Configure(const rapidjson::Value& Config,std::stri
     for (size_t i=0; i < Config["Outputs"].Size(); i++) {
       const rapidjson::Value& Output = Config["Outputs"][i];
       std::string OutputName = Output.GetString();
+      std::string SystemName = RootPath + "/" + OutputName;
+
       // pointer to log run mode data
-      ModeKeys_.push_back(RootPath +"/"+OutputName+"/Mode");
+      ModeKeys_.push_back(SystemName+"/Mode");
       DefinitionTreePtr->InitMember(ModeKeys_.back(),&data_.Mode,"Run mode",true,false);
+
       // pointer to log saturation data
-      SaturatedKeys_.push_back(RootPath +"/"+OutputName+"/Saturated");
+      SaturatedKeys_.push_back(SystemName+"/Saturated");
       DefinitionTreePtr->InitMember(SaturatedKeys_.back(),&data_.Saturated(i),"Allocation saturation, 0 if not saturated, 1 if saturated on the upper limit, and -1 if saturated on the lower limit",true,false);
+
       // pointer to log output
-      OutputKeys_.push_back(RootPath +"/"+OutputName+"/"+OutputName);
+      OutputKeys_.push_back(SystemName+"/"+OutputName);
       DefinitionTreePtr->InitMember(OutputKeys_.back(),&data_.uCmd(i),"Allocator output",true,false);
     }
   } else {
     throw std::runtime_error(std::string("ERROR")+RootPath+std::string(": Outputs not specified in configuration."));
   }
+
   // grab effectiveness
   if (Config.HasMember("Effectiveness")) {
     // resize effectiveness matrix
@@ -70,6 +75,7 @@ void PseudoInverseAllocation::Configure(const rapidjson::Value& Config,std::stri
   } else {
     throw std::runtime_error(std::string("ERROR")+RootPath+std::string(": Effectiveness not specified in configuration."));
   }
+
   // grab limits
   if (Config.HasMember("Limits")) {
     if (Config["Limits"].HasMember("Lower")&&Config["Limits"].HasMember("Upper")) {

@@ -94,7 +94,7 @@ int main(int argc, char* argv[]) {
   if (AircraftConfiguration.HasMember("Telemetry")) {
     std::cout << "\tConfiguring telemetry..." << std::flush;
     Telemetry.Configure(AircraftConfiguration["Telemetry"],&GlobalData);
-    std::cout << "done!" << std::endl;  
+    std::cout << "done!" << std::endl;
   }
   std::cout << "\tConfiguring datalog..." << std::flush;
   Datalog.RegisterGlobalData(GlobalData);
@@ -130,6 +130,14 @@ int main(int argc, char* argv[]) {
         Excitation.RunArmed();
         // run armed control laws
         Control.RunArmed();
+
+float cmdTotEnergy = *GlobalData.GetValuePtr<float*>("/Control/cmdTotEnergy");
+float cmdMotor_nd = *GlobalData.GetValuePtr<float*>("/Control/cmdMotor_nd");
+float cmdDiffEnergy = *GlobalData.GetValuePtr<float*>("/Control/cmdDiffEnergy");
+float cmdPitch_rads = *GlobalData.GetValuePtr<float*>("/Control/cmdPitch_rads");
+
+std::cout << cmdTotEnergy << "\t" << cmdMotor_nd << "\t" << cmdDiffEnergy << "\t" << cmdPitch_rads << std::endl;
+
       }
       // run telemetry
       Telemetry.Send();
