@@ -458,7 +458,6 @@ void TelemetryServer :: sending_packs(uint8_t * package, uint8_t IDnum, uint8_t 
    air1.temp_degC = DataRef.StaticPress.Temperature_C*100;
    const double mps2kt = 1.9438444924406046432;
    air1.airspeed_smoothed_kt = DataRef.Airspeed.Airspeed_ms * mps2kt * 100;
-   std::cout << "airspeed m/s = " << DataRef.Airspeed.Airspeed_ms << std::endl;
    air1.altitude_smoothed_m = DataRef.Alt.Alt_m;
    air1.altitude_true_m = DataRef.Alt.Alt_m;
    air1.pressure_vertical_speed_fps=1;//maybe find?
@@ -531,13 +530,13 @@ void TelemetryServer :: sending_packs(uint8_t * package, uint8_t IDnum, uint8_t 
    ap1.airspeed_kt;
    ap1.flight_timer;
    ap1.target_waypoint_idx;
-if( sizeof(fill1.latitude_deg) != 0 && num2 !=0) {
-   ap1.wp_lon = DataRef.Attitude.Lon*(180/M_PI);
-   ap1.wp_lat = DataRef.Attitude.Lat*(180/M_PI);;
-   num2 = 0;
-}
+   if( sizeof(fill1.latitude_deg) != 0 && num2 !=0) {
+       ap1.wp_lon = DataRef.Attitude.Lon*(180/M_PI);
+       ap1.wp_lat = DataRef.Attitude.Lat*(180/M_PI);;
+       num2 = 0;
+   }
    ap1.wp_index;
-   ap1.routesize;
+   ap1.routesize = 1;
    ap1.sequence_num;
 
 
