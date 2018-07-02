@@ -228,7 +228,7 @@ void Ekf15StateIns::Run(Mode mode) {
     data_.Gxb = uNavINS_.getGyroBiasX_rads();
     data_.Gyb = uNavINS_.getGyroBiasY_rads();
     data_.Gzb = uNavINS_.getGyroBiasZ_rads();
-    data_.Pitch = uNavINS_.getPitch_rad();  
+    data_.Pitch = uNavINS_.getPitch_rad();
     data_.Roll = uNavINS_.getRoll_rad();
     data_.Yaw = uNavINS_.getYaw_rad();
     data_.Heading = uNavINS_.getHeading_rad();
@@ -238,7 +238,7 @@ void Ekf15StateIns::Run(Mode mode) {
     data_.Alt = uNavINS_.getAltitude_m();
     data_.Vn = uNavINS_.getVelNorth_ms();
     data_.Ve = uNavINS_.getVelEast_ms();
-    data_.Vd = uNavINS_.getVelDown_ms();  
+    data_.Vd = uNavINS_.getVelDown_ms();
     data_.Ax = *config_.ImuAx - data_.Axb;
     data_.Ay = *config_.ImuAy - data_.Ayb;
     data_.Az = *config_.ImuAz - data_.Azb;

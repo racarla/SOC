@@ -100,6 +100,9 @@ int main(int argc, char* argv[]) {
   Datalog.RegisterGlobalData(GlobalData);
   std::cout << "done!" << std::endl;
   std::cout << "Entering main loop." << std::endl;
+
+GlobalData.PrettyPrint("/");
+
   /* main loop */
   while(1) {
     if (Fmu.ReceiveSensorData()) {
@@ -141,7 +144,7 @@ float alt_m = *GlobalData.GetValuePtr<float*>("/Sensor-Processing/hBaro_m");
 float cmdDiffEnergy = *GlobalData.GetValuePtr<float*>("/Control/cmdDiffEnergy");
 float cmdPitch_rads = *GlobalData.GetValuePtr<float*>("/Control/cmdPitch_rads");
 
-std::cout << refV_ms << "\t" << vel_mps << "\t" <<  cmdTotEnergy << "\t" << cmdMotor_nd << "\t\t"  << refAlt_m << "\t" << alt_m << "\t" << cmdDiffEnergy << "\t" << cmdPitch_rads << std::endl;
+// std::cout << refV_ms << "\t" << vel_mps << "\t" <<  cmdTotEnergy << "\t" << cmdMotor_nd << "\t\t"  << refAlt_m << "\t" << alt_m << "\t" << cmdDiffEnergy << "\t" << cmdPitch_rads << std::endl;
 
       }
       // run telemetry

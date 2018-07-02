@@ -102,6 +102,18 @@ void DefinitionTree::GetKeys(std::string Name,std::vector<std::string> *KeysPtr)
   }
 }
 
+/* print definition tree member keys at a given tree level */
+void DefinitionTree::PrettyPrint(std::string Prefix) {
+    std::cout << Prefix << std::endl;
+    for (auto const& element : Data_) {
+        std::size_t pos = element.first.find(Prefix);
+        if ( pos != std::string::npos) {
+            std::string tail = element.first.substr(pos + 1);
+            std::cout << "  " << tail << std::endl;
+        }
+    }
+}
+
 /* Erases definition tree members at a given tree level */
 void DefinitionTree::Erase(std::string Name) {
   for (auto const& element : Data_) {

@@ -528,6 +528,10 @@ void TecsClass::Run(Mode mode) {
   // if max pitch angle is saturated.
   if ( error_total > max_error ) { error_total = max_error; }
 
+
+std::cout << *vel_mps << "\t" << *agl_m << std::endl;
+
+
 }
 
 void TecsClass::Clear(DefinitionTree *DefinitionTreePtr) {
