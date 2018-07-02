@@ -19,6 +19,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SO
 */
 
 #include "control-functions.hxx"
+#include <iostream>
 
 /* PID class methods, see control-functions.hxx for more information */
 void PIDClass::Configure(const rapidjson::Value& Config,std::string RootPath,DefinitionTree *DefinitionTreePtr) {
@@ -212,18 +213,17 @@ void SSClass::Configure(const rapidjson::Value& Config,std::string RootPath,Defi
     for (size_t i=0; i < Config["Outputs"].Size(); i++) {
       const rapidjson::Value& Output = Config["Outputs"][i];
       OutputName = Output.GetString();
-      SystemName = RootPath + "/" + OutputName;
 
       // pointer to log run mode data
-      ModeKeys_.push_back(SystemName + "/Mode");
+      ModeKeys_.push_back(SystemName + "/" + OutputName + "/Mode");
       DefinitionTreePtr->InitMember(ModeKeys_.back(),&data_.Mode,"Run mode",true,false);
 
       // pointer to log saturation data
-      SaturatedKeys_.push_back(SystemName + "/Saturated");
+      SaturatedKeys_.push_back(SystemName + "/" + OutputName + "/Saturated");
       DefinitionTreePtr->InitMember(SaturatedKeys_.back(),&data_.ySat(i),"Output saturation, 0 if not saturated, 1 if saturated on the upper limit, and -1 if saturated on the lower limit",true,false);
 
       // pointer to log output
-      OutputKeys_.push_back(SystemName + "/" + OutputName);
+      OutputKeys_.push_back(SystemName + "/" + OutputName + "/" + OutputName);
       DefinitionTreePtr->InitMember(OutputKeys_.back(),&data_.y(i),"SS output",true,false);
     }
   } else {
@@ -233,7 +233,7 @@ void SSClass::Configure(const rapidjson::Value& Config,std::string RootPath,Defi
   // grab A
   if (Config.HasMember("A")) {
     // resize A matrix
-    config_.A.resize(Config["A"][0].Size(),Config["A"].Size());
+    config_.A.resize(Config["A"].Size(),Config["A"][0].Size());
     for (size_t m=0; m < Config["A"].Size(); m++) {
       for (size_t n=0; n < Config["A"][m].Size(); n++) {
         config_.A(m,n) = Config["A"][m][n].GetFloat();
@@ -249,7 +249,7 @@ void SSClass::Configure(const rapidjson::Value& Config,std::string RootPath,Defi
   // grab B
   if (Config.HasMember("B")) {
     // resize B matrix
-    config_.B.resize(Config["B"][0].Size(),Config["B"].Size());
+    config_.B.resize(Config["B"].Size(),Config["B"][0].Size());
     for (size_t m=0; m < Config["B"].Size(); m++) {
       for (size_t n=0; n < Config["B"][m].Size(); n++) {
         config_.B(m,n) = Config["B"][m][n].GetFloat();
@@ -259,10 +259,13 @@ void SSClass::Configure(const rapidjson::Value& Config,std::string RootPath,Defi
     throw std::runtime_error(std::string("ERROR")+SystemName+std::string(": B not specified in configuration."));
   }
 
+  // resize input vector
+  config_.u.resize(config_.B.cols());
+
   // grab C
   if (Config.HasMember("C")) {
     // resize C matrix
-    config_.C.resize(Config["C"][0].Size(),Config["C"].Size());
+    config_.C.resize(Config["C"].Size(),Config["C"][0].Size());
     for (size_t m=0; m < Config["C"].Size(); m++) {
       for (size_t n=0; n < Config["C"][m].Size(); n++) {
         config_.C(m,n) = Config["C"][m][n].GetFloat();
@@ -275,7 +278,7 @@ void SSClass::Configure(const rapidjson::Value& Config,std::string RootPath,Defi
   // grab D
   if (Config.HasMember("D")) {
     // resize D matrix
-    config_.D.resize(Config["D"][0].Size(),Config["D"].Size());
+    config_.D.resize(Config["D"].Size(),Config["D"][0].Size());
     for (size_t m=0; m < Config["D"].Size(); m++) {
       for (size_t n=0; n < Config["D"][m].Size(); n++) {
         config_.D(m,n) = Config["D"][m][n].GetFloat();
@@ -479,6 +482,8 @@ void TecsClass::Initialize() {
 bool TecsClass::Initialized() {return initFlag;}
 
 void TecsClass::Run(Mode mode) {
+  const float g = 9.807f;     // acceleration due to gravity, m/s/s
+
   if ( initFlag == false ) {
     Initialize();
   }

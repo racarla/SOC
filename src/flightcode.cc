@@ -131,12 +131,17 @@ int main(int argc, char* argv[]) {
         // run armed control laws
         Control.RunArmed();
 
+float refV_ms = *GlobalData.GetValuePtr<float*>("/Control/refV_ms");
+float vel_mps = *GlobalData.GetValuePtr<float*>("/Sensor-Processing/vIAS_ms");
 float cmdTotEnergy = *GlobalData.GetValuePtr<float*>("/Control/cmdTotEnergy");
 float cmdMotor_nd = *GlobalData.GetValuePtr<float*>("/Control/cmdMotor_nd");
+
+float refAlt_m = *GlobalData.GetValuePtr<float*>("/Control/refAlt_m");
+float alt_m = *GlobalData.GetValuePtr<float*>("/Sensor-Processing/hBaro_m");
 float cmdDiffEnergy = *GlobalData.GetValuePtr<float*>("/Control/cmdDiffEnergy");
 float cmdPitch_rads = *GlobalData.GetValuePtr<float*>("/Control/cmdPitch_rads");
 
-std::cout << cmdTotEnergy << "\t" << cmdMotor_nd << "\t" << cmdDiffEnergy << "\t" << cmdPitch_rads << std::endl;
+std::cout << refV_ms << "\t" << vel_mps << "\t" <<  cmdTotEnergy << "\t" << cmdMotor_nd << "\t\t"  << refAlt_m << "\t" << alt_m << "\t" << cmdDiffEnergy << "\t" << cmdPitch_rads << std::endl;
 
       }
       // run telemetry

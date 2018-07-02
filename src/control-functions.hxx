@@ -222,7 +222,6 @@ class TecsClass: public GenericFunction {
     float error_total;
     float error_diff;
 
-    const float g = 9.807f;     // acceleration due to gravity, m/s/s
     bool initFlag = false;
     float mass_kg = 0.0;
     float weight_bal = 1.0;
