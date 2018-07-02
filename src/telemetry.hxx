@@ -416,7 +416,6 @@ class TelemetryServer {
 
    int count;
    int num2 = 1;
-   int portCode = FileDesc_;
 
    void update(const Data &DataRef);
 

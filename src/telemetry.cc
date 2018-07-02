@@ -1,3 +1,6 @@
+#include <iostream>
+using std::cout;
+using std::endl;
 
 #include "telemetry.hxx"
 
@@ -405,13 +408,13 @@ void TelemetryServer :: sending_packs(uint8_t * package, uint8_t IDnum, uint8_t 
    buf[2] = IDnum;
    buf[3] = size;
 
-   write(portCode, buf, 4);
-   write(portCode, package, size);
+   write(FileDesc_, buf, 4);
+   write(FileDesc_, package, size);
    
    buf[0] = checksum0;
    buf[1] = checksum1;
    
-   write(portCode, buf, 2);
+   write(FileDesc_, buf, 2);
 }
 
    void TelemetryServer :: update(const Data &DataRef)
