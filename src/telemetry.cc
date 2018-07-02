@@ -456,7 +456,9 @@ void TelemetryServer :: sending_packs(uint8_t * package, uint8_t IDnum, uint8_t 
    air1.timestamp = DataRef.Time.Time_us/1000000.0;
    air1.pressure_mbar = DataRef.StaticPress.Pressure_Pa/10.0;
    air1.temp_degC = DataRef.StaticPress.Temperature_C*100;
-   air1.airspeed_smoothed_kt = DataRef.Airspeed.Airspeed_ms*100;
+   const double mps2kt = 1.9438444924406046432;
+   // air1.airspeed_smoothed_kt = DataRef.Airspeed.Airspeed_ms * mps2kt * 100;
+   air1.airspeed_smoothed_kt = 17.0 * mps2kt * 100;
    air1.altitude_smoothed_m = DataRef.Alt.Alt_m;
    air1.altitude_true_m = DataRef.Alt.Alt_m;
    air1.pressure_vertical_speed_fps=1;//maybe find?
