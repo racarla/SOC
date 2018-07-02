@@ -106,6 +106,7 @@ int main(int argc, char* argv[]) {
   netInit();                    // do this before creating telnet instance
   UGTelnet telnet( 6500, &GlobalData );
   telnet.open();
+  std::cout << "Telnet interface opened on port 6500" << std::endl;
   
   /* main loop */
   while(1) {

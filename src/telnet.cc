@@ -229,6 +229,7 @@ PropsChannel::foundTerminator()
 		}
 	    } else {
                 dir = path;
+
             }
 
 	    if ( dir.length() ) {

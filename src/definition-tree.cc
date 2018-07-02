@@ -18,6 +18,8 @@ DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
+#include <iostream>
+
 #include "definition-tree.hxx"
 
 /* Defines new definition tree member given a variable definition struct */
@@ -100,6 +102,30 @@ void DefinitionTree::GetKeys(std::string Name,std::vector<std::string> *KeysPtr)
       KeysPtr->push_back(element.first);
     }
   }
+}
+
+/* Gets list of definition tree member keys at a given tree level */
+void DefinitionTree::GetChildren(std::string Name,std::vector<std::string> *KeysPtr) {
+    KeysPtr->clear();
+    for (auto const& element : Data_) {
+        std::size_t pos = element.first.find(Name);
+        if ( pos != std::string::npos) {
+            std::string tail = element.first.substr(pos + 1);
+            KeysPtr->push_back(tail);
+        }
+    }
+}
+
+/* Print list of definition tree member keys at a given tree level */
+void DefinitionTree::PrettyPrint(std::string Prefix) {
+    std::cout << Prefix << std::endl;
+    for (auto const& element : Data_) {
+        std::size_t pos = element.first.find(Prefix);
+        if ( pos != std::string::npos) {
+            std::string tail = element.first.substr(pos + 1);
+            std::cout << "  " << tail << std::endl;
+        }
+    }
 }
 
 /* Erases definition tree members at a given tree level */
