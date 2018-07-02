@@ -106,8 +106,8 @@ Example JSON configuration:
   "Inputs": ["InputNames"],
   "Outputs": ["OutputNames"],
   "Sample-Time": "SampleTime" or X,
-  "Ad": [[X]],
-  "Bd": [[X]],
+  "A": [[X]],
+  "B": [[X]],
   "C": [[X]],
   "D": [[X]],
   "Limits": {

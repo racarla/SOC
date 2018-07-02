@@ -244,12 +244,12 @@ void SSClass::Configure(const rapidjson::Value& Config,std::string RootPath,Defi
   }
 
   // resize state vector
-  config_.x.resize(config_.A.size());
+  config_.x.resize(config_.A.rows());
 
   // grab B
   if (Config.HasMember("B")) {
     // resize B matrix
-    config_.B.resize(Config["B"].Size(),Config["B"][0].Size());
+    config_.B.resize(Config["B"].Size(), Config["B"][0].Size());
     for (size_t m=0; m < Config["B"].Size(); m++) {
       for (size_t n=0; n < Config["B"][m].Size(); n++) {
         config_.B(m,n) = Config["B"][m][n].GetFloat();
@@ -326,8 +326,9 @@ void SSClass::Configure(const rapidjson::Value& Config,std::string RootPath,Defi
     throw std::runtime_error(std::string("ERROR")+SystemName+std::string(": Limits not specified in configuration."));
   }
 
-
   // configure SS Class
+  data_.y.resize(config_.C.rows());
+  data_.ySat.resize(config_.C.rows());
   SSClass_.Configure(config_.A, config_.B, config_.C, config_.D, SatFlag, config_.yMax, config_.yMin);
 }
 
