@@ -1,7 +1,3 @@
-#include <iostream>
-using std::cout;
-using std::endl;
-
 #include "telemetry.hxx"
 
 /* Opens a socket for telemetry */
@@ -271,12 +267,15 @@ void TelemetryServer::ReceivePacket() {
     }
   }
   if ((rxUart)&&(rxBaud)&&(!uartLatch)) {
-    if ((FileDesc_=open(Uart.c_str(),O_RDWR|O_NOCTTY|O_NONBLOCK))<0) {
+    if ((FileDesc_=open(Uart.c_str(),O_RDWR|O_NOCTTY))<0) {
       throw std::runtime_error(std::string("ERROR")+std::string(": UART failed to open."));
     } else {
       std::cout << "Starting telemetry UART" << std::endl;
       std::cout << "UART: " << Uart << std::endl;
       std::cout << "Baud: " << Baud << std::endl;
+      if ( (speed_t)Baud != B115200 ) {
+          std::cout << "We are probably using a bogus baud ..." << std::endl;
+      }
     }
     struct termios Options;
     tcgetattr(FileDesc_,&Options);
@@ -509,7 +508,6 @@ void TelemetryServer :: sending_packs(uint8_t * package, uint8_t IDnum, uint8_t 
    fill1.az_bias = DataRef.Attitude.Azb*1000;
    fill1.sequence_num = 1;
    fill1.status = 0;
-
 
 
    ap_status ap1;
