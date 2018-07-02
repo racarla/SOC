@@ -63,6 +63,7 @@ class DefinitionTree {
   private:
     std::map<std::string,VariableDefinition> Data_;
     std::string GetType(const struct VariableDefinition *VariableDefinitionPtr);
+    std::string GetValue(const struct VariableDefinition *VariableDefinitionPtr);
 };
 
 #endif

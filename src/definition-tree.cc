@@ -110,7 +110,7 @@ void DefinitionTree::PrettyPrint(std::string Prefix) {
         if ( pos != std::string::npos) {
             std::string tail = element.first.substr(pos + 1);
             std::cout << "  " << tail << " (" << GetType(&element.second)
-                      << ")" << std::endl;
+                      << ") = " << GetValue(&element.second) << std::endl;
         }
     }
 }
@@ -141,8 +141,29 @@ std::string DefinitionTree::GetType(const struct VariableDefinition *VariableDef
     }
 }
 
-
-
+std::string DefinitionTree::GetValue(const struct VariableDefinition *VariableDefinitionPtr) {
+    if ( auto val = std::get_if<uint64_t*>(&VariableDefinitionPtr->Value) ) {
+        return std::to_string(**val);
+    } else if ( auto val = std::get_if<uint32_t*>(&VariableDefinitionPtr->Value) ) {
+        return std::to_string(**val);
+    } else if ( auto val = std::get_if<uint16_t*>(&VariableDefinitionPtr->Value) ) {
+        return std::to_string(**val);
+    } else if ( auto val = std::get_if<uint8_t*>(&VariableDefinitionPtr->Value) ) {
+        return std::to_string(**val);
+    } else if ( auto val = std::get_if<int64_t*>(&VariableDefinitionPtr->Value) ) {
+        return std::to_string(**val);
+    } else if ( auto val = std::get_if<int32_t*>(&VariableDefinitionPtr->Value) ) {
+        return std::to_string(**val);
+    } else if ( auto val = std::get_if<int16_t*>(&VariableDefinitionPtr->Value) ) {
+        return std::to_string(**val);
+    } else if ( auto val = std::get_if<int8_t*>(&VariableDefinitionPtr->Value) ) {
+        return std::to_string(**val);
+    } else if ( auto val = std::get_if<float*>(&VariableDefinitionPtr->Value) ) {
+        return std::to_string(**val);
+    } else if ( auto val = std::get_if<double*>(&VariableDefinitionPtr->Value) ) {
+        return std::to_string(**val);
+    }
+}
 
 /* Erases definition tree members at a given tree level */
 void DefinitionTree::Erase(std::string Name) {
