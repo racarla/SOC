@@ -273,13 +273,20 @@ void TelemetryServer::ReceivePacket() {
       std::cout << "Starting telemetry UART" << std::endl;
       std::cout << "UART: " << Uart << std::endl;
       std::cout << "Baud: " << Baud << std::endl;
-      if ( (speed_t)Baud != B115200 ) {
-          std::cout << "We are probably using a bogus baud ..." << std::endl;
-      }
+    }
+    int baud_bits = B115200;
+    if ( Baud == 115200 ) {
+	baud_bits = B115200;
+    } else if ( Baud == 230400 ) {
+	baud_bits = B230400;
+    } else if ( Baud == 500000 ) {
+	baud_bits = B500000;
+     } else {
+	printf("unsupported baud rate = %d\n", Baud);
     }
     struct termios Options;
     tcgetattr(FileDesc_,&Options);
-    Options.c_cflag = (speed_t)Baud | CS8 | CREAD | CLOCAL;
+    Options.c_cflag = baud_bits | CS8 | CREAD | CLOCAL;
     Options.c_iflag = IGNPAR;
     Options.c_oflag = 0;
     Options.c_lflag = 0;
