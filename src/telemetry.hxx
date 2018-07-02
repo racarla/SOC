@@ -140,12 +140,12 @@ struct gpsPack
 struct ap_status 
 {
    uint8_t index;
-   int8_t frame_time;
-   uint8_t flags;//?
+   double frame_time;
+   uint8_t flags; //?
    int16_t groundtrack_deg;
    int16_t roll_deg;
    uint16_t Target_msl_ft;
-   uint16_t ground_m;  
+   int16_t ground_m;  
    int16_t pitch_deg;
    int16_t airspeed_kt;
    uint16_t flight_timer;

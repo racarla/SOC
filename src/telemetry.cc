@@ -520,7 +520,7 @@ void TelemetryServer :: sending_packs(uint8_t * package, uint8_t IDnum, uint8_t 
    ap_status ap1;
    ap1.index;
    ap1.frame_time;
-   ap1.flags;//?
+   ap1.flags; //?
    ap1.groundtrack_deg;
    ap1.roll_deg;
    ap1.Target_msl_ft;
