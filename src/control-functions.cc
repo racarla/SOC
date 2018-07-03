@@ -43,7 +43,7 @@ void PIDClass::Configure(const rapidjson::Value& Config,std::string RootPath,Def
     DefinitionTreePtr->InitMember(ModeKey_,&data_.Mode,"Run mode",true,false);
 
     // pointer to log command data
-    OutputKey_ = SystemName;
+    OutputKey_ = SystemName + "/" + OutputName;
     DefinitionTreePtr->InitMember(OutputKey_,&data_.Output,"Control law output",true,false);
 
   } else {
