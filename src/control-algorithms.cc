@@ -1,8 +1,7 @@
 
 #include "control-algorithms.hxx"
-#include <iostream>
 
-void __PIDClass::Configure(float Kp, float Ki, float Kd, float Tf, float b, float c, bool SatFlag, float OutMax, float OutMin) {
+void __PIDClass::Configure(float Kp, float Ki, float Kd, float b, float c, float Tf, bool SatFlag, float OutMax, float OutMin) {
   Clear();  // Set Defaults
 
   Kp_ = Kp;
@@ -20,8 +19,10 @@ void __PIDClass::Run(GenericFunction::Mode mode,float Reference,float Feedback,f
 
   // error for proportional
   ProportionalError_ = b_ * Reference - Feedback;
+
   // error for integral
   IntegralError_ = Reference - Feedback;
+
   // error for derivative
   DerivativeError_ = c_ * Reference - Feedback;
 
@@ -56,7 +57,8 @@ void __PIDClass::Run(GenericFunction::Mode mode,float Reference,float Feedback,f
 void __PIDClass::InitializeState(float Command) {
   // Protect for Ki == 0
   if (Ki_ != 0.0f) {
-    IntegralErrorState_ = (Command - (Kp_*ProportionalError_ + Kd_*DerivativeErrorState_)) / Ki_;
+    // IntegralErrorState_ = (Command - (Kp_*ProportionalError_ + Kd_*DerivativeErrorState_)) / Ki_;
+    IntegralErrorState_ = (Command - (Kp_*ProportionalError_)) / Ki_; // Ignore the derivative term to reduce noise on limits
   } else {
     IntegralErrorState_ = 0.0f;
   }

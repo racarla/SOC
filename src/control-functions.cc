@@ -19,11 +19,10 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SO
 */
 
 #include "control-functions.hxx"
-#include <iostream>
 
 /* PID class methods, see control-functions.hxx for more information */
 void PIDClass::Configure(const rapidjson::Value& Config,std::string RootPath,DefinitionTree *DefinitionTreePtr) {
-  float Kp = 0;
+  float Kp = 1;
   float Ki = 0;
   float Kd = 0;
   float b = 1;
@@ -215,15 +214,15 @@ void SSClass::Configure(const rapidjson::Value& Config,std::string RootPath,Defi
       OutputName = Output.GetString();
 
       // pointer to log run mode data
-      ModeKeys_.push_back(SystemName + "/" + OutputName + "/Mode");
+      ModeKeys_.push_back(RootPath + SystemName + "/" + OutputName + "/Mode");
       DefinitionTreePtr->InitMember(ModeKeys_.back(),&data_.Mode,"Run mode",true,false);
 
       // pointer to log saturation data
-      SaturatedKeys_.push_back(SystemName + "/" + OutputName + "/Saturated");
+      SaturatedKeys_.push_back(RootPath + SystemName + "/" + OutputName + "/Saturated");
       DefinitionTreePtr->InitMember(SaturatedKeys_.back(),&data_.ySat(i),"Output saturation, 0 if not saturated, 1 if saturated on the upper limit, and -1 if saturated on the lower limit",true,false);
 
       // pointer to log output
-      OutputKeys_.push_back(SystemName + "/" + OutputName + "/" + OutputName);
+      OutputKeys_.push_back(RootPath + SystemName + "/" + OutputName + "/" + OutputName);
       DefinitionTreePtr->InitMember(OutputKeys_.back(),&data_.y(i),"SS output",true,false);
     }
   } else {
@@ -527,11 +526,6 @@ void TecsClass::Run(Mode mode) {
   // clamp max total error to avoid an overspeed condition in a climb
   // if max pitch angle is saturated.
   if ( error_total > max_error ) { error_total = max_error; }
-
-
-std::cout << *vel_mps << "\t" << *agl_m << std::endl;
-
-
 }
 
 void TecsClass::Clear(DefinitionTree *DefinitionTreePtr) {

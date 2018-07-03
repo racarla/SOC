@@ -66,9 +66,9 @@ void TelemetryClient::Configure(const rapidjson::Value& Config,DefinitionTree *D
     DataPtr_.Attitude.Lon = DefinitionTreePtr->GetValuePtr<double*>(Sensor+"/Longitude_rad");
     DataPtr_.Attitude.Lat = DefinitionTreePtr->GetValuePtr<double*>(Sensor+"/Latitude_rad");
     DataPtr_.Attitude.Alt = DefinitionTreePtr->GetValuePtr<double*>(Sensor+"/Altitude_m");
-    DataPtr_.Attitude.Vn= DefinitionTreePtr->GetValuePtr<double*>(Sensor+"/NorthVelocity_ms");
-    DataPtr_.Attitude.Ve = DefinitionTreePtr->GetValuePtr<double*>(Sensor+"/EastVelocity_ms");
-    DataPtr_.Attitude.Vd = DefinitionTreePtr->GetValuePtr<double*>(Sensor+"/DownVelocity_ms");
+    DataPtr_.Attitude.Vn= DefinitionTreePtr->GetValuePtr<float*>(Sensor+"/NorthVelocity_ms");
+    DataPtr_.Attitude.Ve = DefinitionTreePtr->GetValuePtr<float*>(Sensor+"/EastVelocity_ms");
+    DataPtr_.Attitude.Vd = DefinitionTreePtr->GetValuePtr<float*>(Sensor+"/DownVelocity_ms");
     useAttitude = true;
   }
   if (Config.HasMember("Gps")) {
@@ -132,7 +132,7 @@ void TelemetryClient::Send() {
     Data_.Alt.Alt_m = *DataPtr_.Alt.Alt_m;
   }
   if (useAttitude) {
-    Data_.Attitude.Ax = *DataPtr_.Attitude.Ax;
+    Data_.Attitude.Ax = *(DataPtr_.Attitude.Ax);
     Data_.Attitude.Axb = *DataPtr_.Attitude.Axb;
     Data_.Attitude.Ay = *DataPtr_.Attitude.Ay;
     Data_.Attitude.Ayb = *DataPtr_.Attitude.Ayb;
@@ -175,7 +175,7 @@ void TelemetryClient::Send() {
     Data_.Gps.HAcc = *DataPtr_.Gps.HAcc;
     Data_.Gps.VAcc = *DataPtr_.Gps.VAcc;
     Data_.Gps.SAcc = *DataPtr_.Gps.SAcc;
-    Data_.Gps.pDOP = *DataPtr_.Gps.pDOP;  
+    Data_.Gps.pDOP = *DataPtr_.Gps.pDOP;
   }
   if (useImu) {
     Data_.Imu.Ax = *DataPtr_.Imu.Ax;
@@ -247,7 +247,7 @@ void TelemetryServer::ReceivePacket() {
   ssize_t MessageSize = recv(TelemetrySocket_,Buffer.data(),Buffer.size(),0);
   if (MessageSize > 0) {
     for (size_t i=0; i < MessageSize; i++) {
-      if (ParseMessage(Buffer[i],&Type,&Payload)) { 
+      if (ParseMessage(Buffer[i],&Type,&Payload)) {
         if (Type == UartPacket) {
           Uart.resize(Payload.size());
           for (size_t j=0; j < Payload.size(); j++) {
@@ -416,10 +416,10 @@ void TelemetryServer :: sending_packs(uint8_t * package, uint8_t IDnum, uint8_t 
 
    write(FileDesc_, buf, 4);
    write(FileDesc_, package, size);
-   
+
    buf[0] = checksum0;
    buf[1] = checksum1;
-   
+
    write(FileDesc_, buf, 2);
 }
 
@@ -431,11 +431,11 @@ void TelemetryServer :: sending_packs(uint8_t * package, uint8_t IDnum, uint8_t 
    if (count<=5){
       return;
    }
- 
+
    count = 0;
 
-   gpsPack gps1; 
-   gps1.index = 0; 
+   gpsPack gps1;
+   gps1.index = 0;
    gps1.timestamp = DataRef.Time.Time_us/1000000.0;
    gps1.lat_deg = DataRef.Gps.Lat*(180/M_PI);//pi?
    gps1.long_deg = DataRef.Gps.Lon*(180/M_PI);
@@ -443,14 +443,14 @@ void TelemetryServer :: sending_packs(uint8_t * package, uint8_t IDnum, uint8_t 
    gps1.vn_ms = DataRef.Gps.Vn*100;
    gps1.ve_ms = DataRef.Gps.Ve*100;
    gps1.vd_ms = DataRef.Gps.Vd*100;
-   gps1.unix_time_sec = DataRef.Time.Time_us/1000000.0; 
+   gps1.unix_time_sec = DataRef.Time.Time_us/1000000.0;
    gps1.satellites = DataRef.Gps.NumberSatellites;
    gps1.horiz_accuracy_m = DataRef.Gps.HAcc*100;
    gps1.vert_accuracy_m = DataRef.Gps.VAcc*100;
    gps1.pdop = DataRef.Gps.pDOP*100;
    gps1.fixType = DataRef.Gps.Fix;
-   
-   
+
+
    airPack air1;
    air1.index = 0;
    air1.timestamp = DataRef.Time.Time_us/1000000.0;
@@ -465,7 +465,7 @@ void TelemetryServer :: sending_packs(uint8_t * package, uint8_t IDnum, uint8_t 
    air1.wind_speed_kt=1;//no
    air1.pitot_scale_factor=1;//no
    air1.status = 0;
-   
+
    pilotPack pilot1;
    pilot1.index = 0;
    pilot1.time = DataRef.Time.Time_us/1000000.0;
@@ -478,7 +478,7 @@ void TelemetryServer :: sending_packs(uint8_t * package, uint8_t IDnum, uint8_t 
    pilot1.chan[6] = DataRef.Sbus.Channels[6]*20000;
    pilot1.chan[7] = 0;
    pilot1.status = 0;
-  
+
 
    ImunodePack Imunode1;
    Imunode1.index = 0;
@@ -494,7 +494,7 @@ void TelemetryServer :: sending_packs(uint8_t * package, uint8_t IDnum, uint8_t 
    Imunode1.hz = DataRef.Imu.Hz;
    Imunode1.temp_C = DataRef.Imu.Temperature_C;
    Imunode1.status = 0;
-   
+
 
    filterPack fill1;
    fill1.index = 0;
@@ -525,7 +525,7 @@ void TelemetryServer :: sending_packs(uint8_t * package, uint8_t IDnum, uint8_t 
    ap1.groundtrack_deg;
    ap1.roll_deg;
    ap1.Target_msl_ft;
-   ap1.ground_m;  
+   ap1.ground_m;
    ap1.pitch_deg;
    ap1.airspeed_kt;
    ap1.flight_timer;
@@ -561,10 +561,10 @@ if (fill1.latitude_deg != 0 && num2 != 0) {
    ap1.route_size;
    ap1.sequence_num;
    ap1.index = 65535;
-   
-   
+
+
    numactPack numact1;
-   numact1.index; 
+   numact1.index;
    numact1.timestamp = fmuData.Time_us;
    numact1.aileron;
    numact1.elevator;
@@ -589,7 +589,7 @@ if (fill1.latitude_deg != 0 && num2 != 0) {
 
    uint8_t IDnum;
    uint8_t size;
-//ap 
+//ap
    IDnum = 32;
    size = sizeof(ap1);
    sending_packs((uint8_t *)(&ap1), IDnum, size);
@@ -602,7 +602,7 @@ if (fill1.latitude_deg != 0 && num2 != 0) {
    size = sizeof(air1);
    sending_packs((uint8_t *)(&air1), IDnum, size);
 //pilotcontrol BdhhhhhhhhB
-   IDnum = 20; 
+   IDnum = 20;
    size = sizeof(pilot1);
    sending_packs((uint8_t *)(&pilot1), IDnum, size);
 //imudata BdfffffffffhB
@@ -610,17 +610,17 @@ if (fill1.latitude_deg != 0 && num2 != 0) {
    size = sizeof(Imunode1);
    sending_packs((uint8_t *)(&Imunode1), IDnum, size);
 //filterdata BdddfhhhhhhhhhhhhBB
-   IDnum = 31; 
+   IDnum = 31;
    size = sizeof(fill1);
    sending_packs((uint8_t *)(&fill1), IDnum, size);
 /*
 //actdata BdhhHhhhhhB
    size = sizeof(numact1);
-   IDnum = 21; 
+   IDnum = 21;
    sending_packs((uint8_t *)(&numact1), IDnum, size);
 //health BdHHHHHH
    size = sizeof(health1);
    IDnum = 19; //change
    sending_packs((uint8_t *)(&health1), IDnum, size);
-*/ 
+*/
    };

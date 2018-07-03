@@ -123,28 +123,35 @@ GlobalData.PrettyPrint("/");
           for (size_t i=0; i < Control.ActiveControlLevels(); i++) {
             // run excitation
             Excitation.RunEngaged(Control.GetActiveLevel(i));
+
             // run control
             Control.RunEngaged(i);
           }
           // send effector commands to FMU
           Fmu.SendEffectorCommands(Effectors.Run());
         }
+
+// float refV_ms = *GlobalData.GetValuePtr<float*>("/Control/refV_ms");
+// float vel_mps = *GlobalData.GetValuePtr<float*>("/Sensor-Processing/vIAS_ms");
+// float cmdTotEnergy = *GlobalData.GetValuePtr<float*>("/Control/cmdTotEnergy");
+// float cmdMotor_nd = *GlobalData.GetValuePtr<float*>("/Control/cmdMotor_nd");
+//
+// float refAlt_m = *GlobalData.GetValuePtr<float*>("/Control/refAlt_m");
+// float alt_m = *GlobalData.GetValuePtr<float*>("/Sensor-Processing/hBaro_m");
+// float cmdDiffEnergy = *GlobalData.GetValuePtr<float*>("/Control/cmdDiffEnergy");
+// float cmdPitch_rads = *GlobalData.GetValuePtr<float*>("/Control/cmdPitch_rads");
+//
+// // std::cout << refV_ms << "\t" << vel_mps << "\t" <<  cmdTotEnergy << "\t" << cmdMotor_nd << "\t\t"  << refAlt_m << "\t" << alt_m << "\t" << cmdDiffEnergy << "\t" << cmdPitch_rads << std::endl;
+//
+// float refVD_ms = *GlobalData.GetValuePtr<float*>("/Control/refVd_ms");
+// float vD_ms = *GlobalData.GetValuePtr<float*>("/Sensor-Processing/DownVelocity_ms");
+//
+// std::cout << refV_ms << "\t" << vel_mps << "\t" <<  cmdPitch_rads * 180.0f/3.14159f << "\t\t"  << refVD_ms << "\t" << vD_ms << "\t" << cmdMotor_nd << std::endl;
+
         // run armed excitations
         Excitation.RunArmed();
         // run armed control laws
         Control.RunArmed();
-
-float refV_ms = *GlobalData.GetValuePtr<float*>("/Control/refV_ms");
-float vel_mps = *GlobalData.GetValuePtr<float*>("/Sensor-Processing/vIAS_ms");
-float cmdTotEnergy = *GlobalData.GetValuePtr<float*>("/Control/cmdTotEnergy");
-float cmdMotor_nd = *GlobalData.GetValuePtr<float*>("/Control/cmdMotor_nd");
-
-float refAlt_m = *GlobalData.GetValuePtr<float*>("/Control/refAlt_m");
-float alt_m = *GlobalData.GetValuePtr<float*>("/Sensor-Processing/hBaro_m");
-float cmdDiffEnergy = *GlobalData.GetValuePtr<float*>("/Control/cmdDiffEnergy");
-float cmdPitch_rads = *GlobalData.GetValuePtr<float*>("/Control/cmdPitch_rads");
-
-// std::cout << refV_ms << "\t" << vel_mps << "\t" <<  cmdTotEnergy << "\t" << cmdMotor_nd << "\t\t"  << refAlt_m << "\t" << alt_m << "\t" << cmdDiffEnergy << "\t" << cmdPitch_rads << std::endl;
 
       }
       // run telemetry
