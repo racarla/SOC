@@ -89,6 +89,7 @@ class MissionManager {
     std::string EnagagedController_ = "Fmu";
     std::string ArmedController_ = "Fmu";
     std::string EnagagedExcitation_ = "None";
+    bool EngagedExcitationFlag_ = false;
 
     std::map<std::string,TestPointDefinition> TestPoints_;
 };
