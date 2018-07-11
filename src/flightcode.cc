@@ -110,15 +110,15 @@ GlobalData.PrettyPrint("/");
         // run mission
         Mission.Run();
         // get and set engaged sensor processing
-        SenProc.SetEngagedSensorProcessing(Mission.GetEnagagedSensorProcessing());
+        SenProc.SetEngagedSensorProcessing(Mission.GetEngagedSensorProcessing());
         // run sensor processing
         SenProc.Run();
         // get and set engaged and armed controllers
-        Control.SetEngagedController(Mission.GetEnagagedController());
+        Control.SetEngagedController(Mission.GetEngagedController());
         Control.SetArmedController(Mission.GetArmedController());
         // get and set engaged excitation
-        Excitation.SetEngagedExcitation(Mission.GetEnagagedExcitation());
-        if (Mission.GetEnagagedController()!="Fmu") {
+        Excitation.SetEngagedExcitation(Mission.GetEngagedExcitation());
+        if (Mission.GetEngagedController()!="Fmu") {
           // loop through control levels running excitations and control laws
           for (size_t i=0; i < Control.ActiveControlLevels(); i++) {
             // run excitation

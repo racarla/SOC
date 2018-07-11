@@ -121,6 +121,14 @@ void MissionManager::Configure(const rapidjson::Value& Config, DefinitionTree *D
     }
   }
 
+  // Add signals to the definition tree
+  DefinitionTreePtr->InitMember("/Mission/trig",(uint8_t*) &Trigger_,"Trigger event",true,false);
+  DefinitionTreePtr->InitMember("/Mission/testID",&CurrentTestPointIndex_,"Current test point index",true,false);
+  DefinitionTreePtr->InitMember("/Mission/socEngage",(uint8_t*) &SocEngage_,"SOC control flag",true,false);
+  DefinitionTreePtr->InitMember("/Mission/ctrlSel",(uint8_t*) &CtrlSelect_,"Control selection",true,false);
+  DefinitionTreePtr->InitMember("/Mission/testSel",(uint8_t*) &TestSelect_,"Test selection",true,false);
+  DefinitionTreePtr->InitMember("/Mission/excitEngage",(uint8_t*) &EngagedExcitationFlag_,"Excitation engage flag",true,false);
+
   // build a map of the test point data
   if (Config.HasMember("Test-Points")) {
     const rapidjson::Value& TestPoints = Config["Test-Points"];
@@ -267,15 +275,15 @@ void MissionManager::Run() {
   // Test Selection
   if (TestSelect_ == 0) { // Excitation selected
     if (Trigger_ == true) {
-      if (EnagagedExcitation_ == "None") { // Engage the Excitation
-        EnagagedExcitation_ = TestPoints_[std::to_string(CurrentTestPointIndex_)].Excitation;
+      if (EngagedExcitation_ == "None") { // Engage the Excitation
+        EngagedExcitation_ = TestPoints_[std::to_string(CurrentTestPointIndex_)].Excitation;
       } else { // Dis-Engage the Excitation
-        EnagagedExcitation_ = "None";
+        EngagedExcitation_ = "None";
       }
       Trigger_ = false;
     }
   } else if (TestSelect_ == 1) { // Increment selected
-    EnagagedExcitation_ = "None";
+    EngagedExcitation_ = "None";
 
     if (Trigger_ == true) { // Increment the Test Point, switches engaged controller
       CurrentTestPointIndex_ = NextTestPointIndex_;
@@ -287,7 +295,7 @@ void MissionManager::Run() {
       Trigger_ = false;
     }
   } else if (TestSelect_ == -1) { // Decrement selected
-    EnagagedExcitation_ = "None";
+    EngagedExcitation_ = "None";
 
     if (Trigger_ == true) { // Decrement the Test Point to 0, switches engaged controller
       CurrentTestPointIndex_ = 0;
@@ -300,33 +308,40 @@ void MissionManager::Run() {
   if (SocEngage_ == true) {
     if (CtrlSelect_ == true) { // SOC Research
       EngagedSensorProcessing_ = TestPoints_[std::to_string(CurrentTestPointIndex_)].SensorProcessing;
-      EnagagedController_ = TestPoints_[std::to_string(CurrentTestPointIndex_)].Control;
+      EngagedController_ = TestPoints_[std::to_string(CurrentTestPointIndex_)].Control;
       ArmedController_ = TestPoints_[std::to_string(NextTestPointIndex_)].Control;
-      // EnagagedExcitation_ = "None";
+      // EngagedExcitation_ = "None";
 
     } else { // In SOC Baseline, arm the next controller, no excitation
       EngagedSensorProcessing_ = "Baseline";
-      EnagagedController_ = config_.BaselineController;
+      EngagedController_ = config_.BaselineController;
       ArmedController_ = TestPoints_[std::to_string(CurrentTestPointIndex_)].Control;
-      EnagagedExcitation_ = "None";
+      EngagedExcitation_ = "None";
     }
 
   } else { // FMU Mode
     EngagedSensorProcessing_ = "Baseline";
-    EnagagedController_ = "Fmu";
+    EngagedController_ = "Fmu";
     ArmedController_ = config_.BaselineController;
-    EnagagedExcitation_ = "None";
+    EngagedExcitation_ = "None";
   }
+
+  if (EngagedExcitation_ == "None") {
+    EngagedExcitationFlag_ = false;
+  } else {
+    EngagedExcitationFlag_ = true;
+  }
+
 }
 
 /* returns the string of the sensor processing group that is engaged */
-std::string MissionManager::GetEnagagedSensorProcessing() {
+std::string MissionManager::GetEngagedSensorProcessing() {
   return EngagedSensorProcessing_;
 }
 
 /* returns the string of the control group that is engaged */
-std::string MissionManager::GetEnagagedController() {
-  return EnagagedController_;
+std::string MissionManager::GetEngagedController() {
+  return EngagedController_;
 }
 
 /* returns the string of the control group that is armed */
@@ -335,6 +350,6 @@ std::string MissionManager::GetArmedController() {
 }
 
 /* returns the string of the excitation group that is engaged */
-std::string MissionManager::GetEnagagedExcitation() {
-  return EnagagedExcitation_;
+std::string MissionManager::GetEngagedExcitation() {
+  return EngagedExcitation_;
 }
