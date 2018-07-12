@@ -41,35 +41,31 @@ void PseudoInverseAllocation::Configure(const rapidjson::Value& Config,std::stri
   if (Config.HasMember("Outputs")) {
     // resize output matrix
     data_.uCmd.resize(Config["Outputs"].Size(),1);
-    data_.Saturated.resize(Config["Outputs"].Size(),1);
+    data_.uSat.resize(Config["Outputs"].Size(),1);
     for (size_t i=0; i < Config["Outputs"].Size(); i++) {
       const rapidjson::Value& Output = Config["Outputs"][i];
       std::string OutputName = Output.GetString();
-      std::string SystemName = RootPath + "/" + OutputName;
 
       // pointer to log run mode data
-      ModeKeys_.push_back(SystemName+"/Mode");
-      DefinitionTreePtr->InitMember(ModeKeys_.back(),&data_.Mode,"Run mode",true,false);
+      DefinitionTreePtr->InitMember(RootPath + "/Mode", &data_.Mode, "Run mode", true, false);
 
       // pointer to log saturation data
-      SaturatedKeys_.push_back(SystemName+"/Saturated");
-      DefinitionTreePtr->InitMember(SaturatedKeys_.back(),&data_.Saturated(i),"Allocation saturation, 0 if not saturated, 1 if saturated on the upper limit, and -1 if saturated on the lower limit",true,false);
+      // DefinitionTreePtr->InitMember(RootPath + "/Saturated" + "/" + OutputName, &data_.uSat(i), "Allocation saturation, 0 if not saturated, 1 if saturated on the upper limit, and -1 if saturated on the lower limit", true, false);
 
       // pointer to log output
-      OutputKeys_.push_back(SystemName+"/"+OutputName);
-      DefinitionTreePtr->InitMember(OutputKeys_.back(),&data_.uCmd(i),"Allocator output",true,false);
+      DefinitionTreePtr->InitMember(RootPath + "/" + OutputName, &data_.uCmd(i), "Allocator output", true, false);
     }
   } else {
-    throw std::runtime_error(std::string("ERROR")+RootPath+std::string(": Outputs not specified in configuration."));
+    throw std::runtime_error(std::string("ERROR") + RootPath + std::string(": Outputs not specified in configuration."));
   }
 
-  // grab effectiveness
+  // grab Effectiveness
   if (Config.HasMember("Effectiveness")) {
-    // resize effectiveness matrix
-    config_.Effectiveness.resize(Config["Effectiveness"][0].Size(),Config["Effectiveness"].Size());
-    for (size_t n=0; n < Config["Effectiveness"].Size(); n++) {
-      for (size_t m=0; m < Config["Effectiveness"][n].Size(); m++) {
-        config_.Effectiveness(m,n) = Config["Effectiveness"][n][m].GetFloat();
+    // resize Effectiveness matrix
+    config_.Effectiveness.resize(Config["Effectiveness"].Size(), Config["Effectiveness"][0].Size());
+    for (size_t m=0; m < Config["Effectiveness"].Size(); m++) {
+      for (size_t n=0; n < Config["Effectiveness"][m].Size(); n++) {
+        config_.Effectiveness(m,n) = Config["Effectiveness"][m][n].GetFloat();
       }
     }
   } else {
@@ -114,12 +110,12 @@ void PseudoInverseAllocation::Run(Mode mode) {
   for (size_t i=0; i < data_.uCmd.rows(); i++) {
     if (data_.uCmd(i) <= config_.LowerLimit(i)) {
       data_.uCmd(i) = config_.LowerLimit(i);
-      data_.Saturated(i) = -1;
+      data_.uSat(i) = -1;
     } else if (data_.uCmd(i) >= config_.UpperLimit(i)) {
       data_.uCmd(i) = config_.UpperLimit(i);
-      data_.Saturated(i) = 1;
+      data_.uSat(i) = 1;
     } else {
-      data_.Saturated(i) = 0;
+      data_.uSat(i) = 0;
     }
   }
 }
@@ -131,9 +127,6 @@ void PseudoInverseAllocation::Clear(DefinitionTree *DefinitionTreePtr) {
   config_.UpperLimit.resize(0);
   data_.Mode = (uint8_t) kStandby;
   data_.uCmd.resize(0);
-  data_.Saturated.resize(0);
+  data_.uSat.resize(0);
   InputKeys_.clear();
-  OutputKeys_.clear();
-  SaturatedKeys_.clear();
-  ModeKeys_.clear();
 }
