@@ -152,7 +152,7 @@ void __PIDClass::Clear() {
 
 
 /* State Space */
-void __SSClass::Configure(Eigen::MatrixXf A, Eigen::MatrixXf B, Eigen::MatrixXf C, Eigen::MatrixXf D, bool SatFlag, Eigen::VectorXf yMax, Eigen::VectorXf yMin) {
+void __SSClass::Configure(Eigen::MatrixXf A, Eigen::MatrixXf B, Eigen::MatrixXf C, Eigen::MatrixXf D, float dt, bool SatFlag, Eigen::VectorXf yMax, Eigen::VectorXf yMin) {
   Clear(); // Clear and set to defaults
 
   A_ = A;
@@ -176,7 +176,11 @@ void __SSClass::Configure(Eigen::MatrixXf A, Eigen::MatrixXf B, Eigen::MatrixXf 
 
   // Compute the Inverse of C
   // Pseduo-Inverse using singular value decomposition
-  CA_inv_ = (C_ * A_).jacobiSvd(Eigen::ComputeThinU | Eigen::ComputeThinV).solve( Eigen::MatrixXf::Identity(numY, numY)); // Jacobi SVD
+  Eigen::MatrixXf Ix = Eigen::MatrixXf::Identity(numX, numX);
+  Eigen::MatrixXf Iy = Eigen::MatrixXf::Identity(numY, numY);
+  CA_inv_ = (C_ * (A_*dt + Ix)).jacobiSvd(Eigen::ComputeThinU | Eigen::ComputeThinV).solve(Iy); // Jacobi SVD
+
+  // Pre-compute C*B
   CB_ = C_*B_;
   CB_.resize(numY, numU);
 }
@@ -210,11 +214,14 @@ void __SSClass::Run(GenericFunction::Mode mode, Eigen::VectorXf u, float dt, Eig
 }
 
 void __SSClass::InitializeState(Eigen::VectorXf u, float dt) {
-  x_ = (1.0f/dt) * CA_inv_ * (y_ - (CB_*dt + D_) * u);
+  x_ = CA_inv_ * (y_ - (CB_*dt + D_) * u);
 }
 
 void __SSClass::UpdateState(Eigen::VectorXf u, float dt) {
-  x_ = dt * (A_*x_ + B_*u);
+
+  uint8_t numX = A_.rows();
+  Eigen::MatrixXf Ix = Eigen::MatrixXf::Identity(numX, numX);
+  x_ = (A_*dt + Ix)*x_ + B_*u*dt;
 }
 
 void __SSClass::OutputEquation(Eigen::VectorXf u, float dt) {

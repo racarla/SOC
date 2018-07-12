@@ -182,8 +182,7 @@ void SSClass::Configure(const rapidjson::Value& Config,std::string RootPath,Defi
     SystemName = Config["Name"].GetString();
 
     // pointer to log run mode data
-    ModeKeys_.push_back(RootPath + SystemName + "/Mode");
-    DefinitionTreePtr->InitMember(ModeKeys_.back(),&data_.Mode,"Run mode",true,false);
+    DefinitionTreePtr->InitMember(RootPath + SystemName + "/Mode", &data_.Mode, "Run mode", true, false);
 
   } else {
     throw std::runtime_error(std::string("ERROR")+RootPath+std::string(": Name not specified in configuration."));
@@ -213,17 +212,12 @@ void SSClass::Configure(const rapidjson::Value& Config,std::string RootPath,Defi
       const rapidjson::Value& Output = Config["Outputs"][i];
       OutputName = Output.GetString();
 
-      // pointer to log run mode data
-      ModeKeys_.push_back(RootPath + SystemName + "/" + OutputName + "/Mode");
-      DefinitionTreePtr->InitMember(ModeKeys_.back(),&data_.Mode,"Run mode",true,false);
+      // pointer to log output
+      DefinitionTreePtr->InitMember(RootPath + SystemName + "/" + OutputName, &data_.y(i), "SS output", true, false);
 
       // pointer to log saturation data
-      SaturatedKeys_.push_back(RootPath + SystemName + "/" + OutputName + "/Saturated");
-      DefinitionTreePtr->InitMember(SaturatedKeys_.back(),&data_.ySat(i),"Output saturation, 0 if not saturated, 1 if saturated on the upper limit, and -1 if saturated on the lower limit",true,false);
+      DefinitionTreePtr->InitMember(RootPath + SystemName + "/Saturated" + "/" + OutputName, &data_.ySat(i), "Output saturation, 0 if not saturated, 1 if saturated on the upper limit, and -1 if saturated on the lower limit", true, false);
 
-      // pointer to log output
-      OutputKeys_.push_back(RootPath + SystemName + "/" + OutputName + "/" + OutputName);
-      DefinitionTreePtr->InitMember(OutputKeys_.back(),&data_.y(i),"SS output",true,false);
     }
   } else {
     throw std::runtime_error(std::string("ERROR")+RootPath+std::string(": Outputs not specified in configuration."));
@@ -260,6 +254,7 @@ void SSClass::Configure(const rapidjson::Value& Config,std::string RootPath,Defi
 
   // resize input vector
   config_.u.resize(config_.B.cols());
+  config_.u.setZero(config_.B.cols());
 
   // grab C
   if (Config.HasMember("C")) {
@@ -287,21 +282,23 @@ void SSClass::Configure(const rapidjson::Value& Config,std::string RootPath,Defi
     throw std::runtime_error(std::string("ERROR")+SystemName+std::string(": D not specified in configuration."));
   }
 
-  // grab stample time
-  if (Config.HasMember("Sample-Time")) {
-    if (Config["Sample-Time"].IsString()) {
-      SampleTimeKey_ = Config["Sample-Time"].GetString();
-      if (DefinitionTreePtr->GetValuePtr<float*>(SampleTimeKey_)) {
-        config_.dt = DefinitionTreePtr->GetValuePtr<float*>(SampleTimeKey_);
-      } else {
-        throw std::runtime_error(std::string("ERROR")+SystemName+std::string(": Sample time ")+SampleTimeKey_+std::string(" not found in global data."));
-      }
-    } else {
-      config_.UseSampleTime = true;
-      config_.SampleTime = Config["Sample-Time"].GetFloat();
-    }
+  // grab stample time (required)
+  if (Config.HasMember("dt")) {
+    config_.dt = Config["dt"].GetFloat();
+    config_.UseFixedTimeSample = true;
   } else {
-    throw std::runtime_error(std::string("ERROR")+SystemName+std::string(": Sample time not specified in configuration."));
+    throw std::runtime_error(std::string("ERROR")+SystemName+std::string(": dt not specified in configuration."));
+  }
+
+  // grab time source input (optional)
+  if (Config.HasMember("Time-Source")) {
+    TimeSourceKey_ = Config["Time-Source"].GetString();
+    if (DefinitionTreePtr->GetValuePtr<float*>(TimeSourceKey_)) {
+      config_.TimeSource = DefinitionTreePtr->GetValuePtr<float*>(TimeSourceKey_);
+      config_.UseFixedTimeSample = false;
+    } else {
+      throw std::runtime_error(std::string("ERROR")+SystemName+std::string(": Time-Source ")+TimeSourceKey_+std::string(" not found in global data."));
+    }
   }
 
   // grab limits
@@ -321,14 +318,12 @@ void SSClass::Configure(const rapidjson::Value& Config,std::string RootPath,Defi
     } else {
       throw std::runtime_error(std::string("ERROR")+SystemName+std::string(": Either upper or lower limit not specified in configuration."));
     }
-  } else {
-    throw std::runtime_error(std::string("ERROR")+SystemName+std::string(": Limits not specified in configuration."));
   }
 
   // configure SS Class
   data_.y.resize(config_.C.rows());
   data_.ySat.resize(config_.C.rows());
-  SSClass_.Configure(config_.A, config_.B, config_.C, config_.D, SatFlag, config_.yMax, config_.yMin);
+  SSClass_.Configure(config_.A, config_.B, config_.C, config_.D, config_.dt, SatFlag, config_.yMax, config_.yMin);
 }
 
 void SSClass::Initialize() {}
@@ -338,9 +333,15 @@ void SSClass::Run(Mode mode) {
   // mode
   data_.Mode = (uint8_t) mode;
 
-  // sample time
-  if(!config_.UseSampleTime) {
-    config_.SampleTime = *config_.dt;
+  // sample time computation
+  float dt = 0;
+  if (config_.UseFixedTimeSample == false) {
+    dt = *config_.TimeSource - config_.timePrev;
+    config_.timePrev = *config_.TimeSource;
+    if (dt > 2*config_.dt) {dt = config_.dt;} // Catch large dt
+    if (dt <= 0) {dt = config_.dt;} // Catch negative and zero dt
+  } else {
+    dt = config_.dt;
   }
 
   // inputs to Eigen3 vector
@@ -349,27 +350,22 @@ void SSClass::Run(Mode mode) {
   }
 
   // Call Algorithm
-  SSClass_.Run(mode, config_.u, config_.SampleTime, &data_.y, &data_.ySat);
+  SSClass_.Run(mode, config_.u, dt, &data_.y, &data_.ySat);
 }
 
 void SSClass::Clear(DefinitionTree *DefinitionTreePtr) {
-  config_.UseSampleTime = false;
+  config_.UseFixedTimeSample = false;
   data_.Mode = kStandby;
   config_.A.resize(0,0);
   config_.B.resize(0,0);
   config_.C.resize(0,0);
   config_.D.resize(0,0);
-  DefinitionTreePtr->Erase(SampleTimeKey_);
-  ModeKeys_.clear();
-  SampleTimeKey_.clear();
   InputKeys_.clear();
-  OutputKeys_.clear();
-  SaturatedKeys_.clear();
+  TimeSourceKey_.clear();
   SSClass_.Clear();
 }
 
 /* Tecs class methods, see control-functions.hxx for more information */
-
 void TecsClass::Configure(const rapidjson::Value& Config,std::string RootPath,DefinitionTree *DefinitionTreePtr) {
 
   std::string SystemName, OutputName;

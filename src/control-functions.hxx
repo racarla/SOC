@@ -126,20 +126,13 @@ Where:
 
 Data types for all input and output values are float.
 
-The implemented algorithm assumes a discrete state space model, with variable dt.
-x[k+1] = dt * (Ad*x + Bd*u);
+The implemented algorithm uses a discrete state space model, with variable dt.
+The A and B matrices supplied are the continuous form, a simple zero-order hold is used to compute the discrete form.
+xDot = A*x + B*u;
 y = C*x + D*u;
-  where:  Ad = (Ac + I);
-          Bd = B;
-
-If providing a value (dt) or source (dt = t - tPrev) for Sample-Time:
-Compute the discrete SS from the continuous SS as:
-  sysD = c2d(sysC, 1, 'zoh'); % use dt = 1 for c2d to allow variable sample time
-
-If the c2d was performed with a non-one value, dt,
-  sysD = c2d(sysC, dt, 'zoh'); % use dt as nominal framerate for c2d to allow variable sample time
-the set Sample-Time to 1.0.
-
+  where:  Ad = (Ac*dt + I);
+          Bd = B*dt;
+Thus, x[k+1] = Ad*x + Bd*u;
 */
 
 class SSClass: public GenericFunction {
@@ -160,9 +153,10 @@ class SSClass: public GenericFunction {
       Eigen::MatrixXf D;
       Eigen::VectorXf yMin;
       Eigen::VectorXf yMax;
-      float *dt;
-      float SampleTime;
-      bool UseSampleTime = false;
+      float dt = 0;
+      float* TimeSource = 0;
+      float timePrev = 0;
+      bool UseFixedTimeSample = false;
     };
     struct Data {
       uint8_t Mode = kStandby;
@@ -172,8 +166,8 @@ class SSClass: public GenericFunction {
     __SSClass SSClass_;
     Config config_;
     Data data_;
-    std::vector<std::string>  InputKeys_, OutputKeys_, ModeKeys_, SaturatedKeys_;
-    std::string SampleTimeKey_;
+    std::vector<std::string> InputKeys_;
+    std::string TimeSourceKey_;
 };
 
 /*
