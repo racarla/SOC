@@ -20,8 +20,8 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SO
 
 #include "control-functions.hxx"
 
-/* PID class methods, see control-functions.hxx for more information */
-void PIDClass::Configure(const rapidjson::Value& Config,std::string RootPath,DefinitionTree *DefinitionTreePtr) {
+/* PID2 class methods, see control-functions.hxx for more information */
+void PID2Class::Configure(const rapidjson::Value& Config,std::string RootPath,DefinitionTree *DefinitionTreePtr) {
   float Kp = 1;
   float Ki = 0;
   float Kd = 0;
@@ -36,15 +36,13 @@ void PIDClass::Configure(const rapidjson::Value& Config,std::string RootPath,Def
 
   if (Config.HasMember("Output")) {
     OutputName = Config["Output"].GetString();
-    SystemName = RootPath + "/" + OutputName;
+    SystemName = RootPath;
 
     // pointer to log run mode data
-    ModeKey_ = SystemName + "/Mode";
-    DefinitionTreePtr->InitMember(ModeKey_,&data_.Mode,"Run mode",true,false);
+    DefinitionTreePtr->InitMember(RootPath + "/Mode", &data_.Mode, "Run mode", true, false);
 
     // pointer to log command data
-    OutputKey_ = SystemName + "/" + OutputName;
-    DefinitionTreePtr->InitMember(OutputKey_,&data_.Output,"Control law output",true,false);
+    DefinitionTreePtr->InitMember(RootPath + "/" + OutputName, &data_.Output, "Control law output", true, false);
 
   } else {
     throw std::runtime_error(std::string("ERROR")+RootPath+std::string(": Output not specified in configuration."));
@@ -79,6 +77,10 @@ void PIDClass::Configure(const rapidjson::Value& Config,std::string RootPath,Def
     }
     if (Gains.HasMember("Derivative")) {
       Kd = Gains["Derivative"].GetFloat();
+
+      if (Config.HasMember("Time-Constant")) {
+        Tf = Config["Time-Constant"].GetFloat();
+      }
     }
     if (Gains.HasMember("Integral")) {
       Ki = Gains["Integral"].GetFloat();
@@ -96,7 +98,7 @@ void PIDClass::Configure(const rapidjson::Value& Config,std::string RootPath,Def
         throw std::runtime_error(std::string("ERROR")+SystemName+std::string(": Sample time ")+SampleTimeKey_+std::string(" not found in global data."));
       }
     } else {
-      config_.UseSampleTime = true;
+      config_.UseFixedTimeSample = true;
       config_.SampleTime = Config["Sample-Time"].GetFloat();
     }
   } else {
@@ -113,15 +115,11 @@ void PIDClass::Configure(const rapidjson::Value& Config,std::string RootPath,Def
     }
   }
 
-  if (Config.HasMember("Time-Constant")) {
-    Tf = Config["Time-Constant"].GetFloat();
-  }
-
   if (Config.HasMember("Limits")) {
     SaturateOutput = true;
     // pointer to log saturation data
-    SaturatedKey_ = SystemName+"/Saturated";
-    DefinitionTreePtr->InitMember(SaturatedKey_,&data_.Saturated,"Control law saturation, 0 if not saturated, 1 if saturated on the upper limit, and -1 if saturated on the lower limit",true,false);
+    DefinitionTreePtr->InitMember(SystemName + "/Saturated", &data_.Saturated, "Control law saturation, 0 if not saturated, 1 if saturated on the upper limit, and -1 if saturated on the lower limit", true, false);
+
     if (Config["Limits"].HasMember("Lower")&&Config["Limits"].HasMember("Upper")) {
       UpperLimit = Config["Limits"]["Upper"].GetFloat();
       LowerLimit = Config["Limits"]["Lower"].GetFloat();
@@ -130,8 +128,123 @@ void PIDClass::Configure(const rapidjson::Value& Config,std::string RootPath,Def
     }
   }
 
-  // configure PID Class
-  PIDClass_.Configure(Kp,Ki,Kd,b,c,Tf,SaturateOutput,UpperLimit,LowerLimit);
+  // configure PID2 Class
+  PID2Class_.Configure(Kp,Ki,Kd,b,c,Tf,SaturateOutput,UpperLimit,LowerLimit);
+}
+
+void PID2Class::Initialize() {}
+bool PID2Class::Initialized() {return true;}
+
+void PID2Class::Run(Mode mode) {
+  // mode
+  data_.Mode = (uint8_t) mode;
+
+  // sample time
+  if(!config_.UseFixedTimeSample) {
+    config_.SampleTime = *config_.dt;
+  }
+
+  // Run
+  PID2Class_.Run(mode,*config_.Reference,*config_.Feedback,config_.SampleTime,&data_.Output,&data_.Saturated);
+}
+
+void PID2Class::Clear(DefinitionTree *DefinitionTreePtr) {
+  config_.UseFixedTimeSample = false;
+  data_.Mode = kStandby;
+  data_.Saturated = 0;
+  data_.Output = 0.0f;
+  ReferenceKey_.clear();
+  FeedbackKey_.clear();
+  PID2Class_.Clear();
+}
+
+/* PID class methods, see control-functions.hxx for more information */
+void PIDClass::Configure(const rapidjson::Value& Config,std::string RootPath,DefinitionTree *DefinitionTreePtr) {
+  float Kp = 1;
+  float Ki = 0;
+  float Kd = 0;
+  float Tf = 0;
+  float UpperLimit = 0;
+  float LowerLimit = 0;
+  bool SaturateOutput = false;
+  std::string OutputName;
+  std::string SystemName;
+
+  if (Config.HasMember("Output")) {
+    OutputName = Config["Output"].GetString();
+    SystemName = RootPath;
+
+    // pointer to log run mode data
+    DefinitionTreePtr->InitMember(RootPath + "/Mode", &data_.Mode, "Run mode", true, false);
+
+    // pointer to log command data
+    DefinitionTreePtr->InitMember(RootPath + "/" + OutputName, &data_.Output, "Control law output", true, false);
+
+  } else {
+    throw std::runtime_error(std::string("ERROR")+RootPath+std::string(": Output not specified in configuration."));
+  }
+
+  if (Config.HasMember("Reference")) {
+    ReferenceKey_ = Config["Reference"].GetString();
+    if (DefinitionTreePtr->GetValuePtr<float*>(ReferenceKey_)) {
+      config_.Reference = DefinitionTreePtr->GetValuePtr<float*>(ReferenceKey_);
+    } else {
+      throw std::runtime_error(std::string("ERROR")+SystemName+std::string(": Reference ")+ReferenceKey_+std::string(" not found in global data."));
+    }
+  } else {
+    throw std::runtime_error(std::string("ERROR")+SystemName+std::string(": Reference not specified in configuration."));
+  }
+
+  if (Config.HasMember("Gains")) {
+    const rapidjson::Value& Gains = Config["Gains"];
+    if (Gains.HasMember("Proportional")) {
+      Kp = Gains["Proportional"].GetFloat();
+    }
+    if (Gains.HasMember("Derivative")) {
+      Kd = Gains["Derivative"].GetFloat();
+
+      if (Config.HasMember("Time-Constant")) {
+        Tf = Config["Time-Constant"].GetFloat();
+      }
+    }
+    if (Gains.HasMember("Integral")) {
+      Ki = Gains["Integral"].GetFloat();
+    }
+  } else {
+    throw std::runtime_error(std::string("ERROR")+SystemName+std::string(": Gains not specified in configuration."));
+  }
+
+  if (Config.HasMember("Sample-Time")) {
+    if (Config["Sample-Time"].IsString()) {
+      SampleTimeKey_ = Config["Sample-Time"].GetString();
+      if (DefinitionTreePtr->GetValuePtr<float*>(SampleTimeKey_)) {
+        config_.dt = DefinitionTreePtr->GetValuePtr<float*>(SampleTimeKey_);
+      } else {
+        throw std::runtime_error(std::string("ERROR")+SystemName+std::string(": Sample time ")+SampleTimeKey_+std::string(" not found in global data."));
+      }
+    } else {
+      config_.UseFixedTimeSample = true;
+      config_.SampleTime = Config["Sample-Time"].GetFloat();
+    }
+  } else {
+    throw std::runtime_error(std::string("ERROR")+SystemName+std::string(": Sample time not specified in configuration."));
+  }
+
+  if (Config.HasMember("Limits")) {
+    SaturateOutput = true;
+    // pointer to log saturation data
+    DefinitionTreePtr->InitMember(SystemName + "/Saturated", &data_.Saturated, "Control law saturation, 0 if not saturated, 1 if saturated on the upper limit, and -1 if saturated on the lower limit", true, false);
+
+    if (Config["Limits"].HasMember("Lower")&&Config["Limits"].HasMember("Upper")) {
+      UpperLimit = Config["Limits"]["Upper"].GetFloat();
+      LowerLimit = Config["Limits"]["Lower"].GetFloat();
+    } else {
+      throw std::runtime_error(std::string("ERROR")+SystemName+std::string(": Either upper or lower limit not specified in configuration."));
+    }
+  }
+
+  // configure using PID2 algorithm Class
+  PID2Class_.Configure(Kp,Ki,Kd,1.0,1.0,Tf,SaturateOutput,UpperLimit,LowerLimit);
 }
 
 void PIDClass::Initialize() {}
@@ -142,29 +255,23 @@ void PIDClass::Run(Mode mode) {
   data_.Mode = (uint8_t) mode;
 
   // sample time
-  if(!config_.UseSampleTime) {
+  if(!config_.UseFixedTimeSample) {
     config_.SampleTime = *config_.dt;
   }
 
   // Run
-  PIDClass_.Run(mode,*config_.Reference,*config_.Feedback,config_.SampleTime,&data_.Output,&data_.Saturated);
+  PID2Class_.Run(mode,*config_.Reference, 0.0, config_.SampleTime, &data_.Output, &data_.Saturated);
 }
 
 void PIDClass::Clear(DefinitionTree *DefinitionTreePtr) {
-  config_.UseSampleTime = false;
+  config_.UseFixedTimeSample = false;
   data_.Mode = kStandby;
   data_.Saturated = 0;
   data_.Output = 0.0f;
-  DefinitionTreePtr->Erase(ModeKey_);
-  DefinitionTreePtr->Erase(SaturatedKey_);
-  DefinitionTreePtr->Erase(OutputKey_);
   ReferenceKey_.clear();
-  FeedbackKey_.clear();
-  ModeKey_.clear();
-  SaturatedKey_.clear();
-  OutputKey_.clear();
-  PIDClass_.Clear();
+  PID2Class_.Clear();
 }
+
 
 /* SS class methods, see control-functions.hxx for more information */
 void SSClass::Configure(const rapidjson::Value& Config,std::string RootPath,DefinitionTree *DefinitionTreePtr) {

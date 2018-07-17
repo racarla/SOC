@@ -62,6 +62,9 @@ void ControlLaws::Configure(const rapidjson::Value& Config, DefinitionTree *Defi
                 if (Func["Type"] == "Sum") {
                   SocControlGroups_[SocGroupKeys_.back()][level].push_back(std::make_shared<SumClass>());
                 }
+                if (Func["Type"] == "PID2") {
+                  SocControlGroups_[SocGroupKeys_.back()][level].push_back(std::make_shared<PID2Class>());
+                }
                 if (Func["Type"] == "PID") {
                   SocControlGroups_[SocGroupKeys_.back()][level].push_back(std::make_shared<PIDClass>());
                 }

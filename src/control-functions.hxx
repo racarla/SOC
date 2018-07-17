@@ -33,10 +33,10 @@ configuration below. See generic-function.hxx for more information
 on the methods and modes. */
 
 /*
-PID Class - PID and PID2 control law
+PID2 Class - PID2 control law
 Example JSON configuration:
 {
-  "Type": "PID",
+  "Type": "PID2",
   "Output": "OutputName",
   "Reference": "ReferenceName",
   "Feedback": "FeedbackName",
@@ -71,7 +71,7 @@ Where:
 Data types for all input and output values are float.
 */
 
-class PIDClass: public GenericFunction {
+class PID2Class: public GenericFunction {
   public:
     void Configure(const rapidjson::Value& Config,std::string RootPath,DefinitionTree *DefinitionTreePtr);
     void Initialize();
@@ -84,17 +84,73 @@ class PIDClass: public GenericFunction {
       float *Feedback;
       float *dt;
       float SampleTime;
-      bool UseSampleTime = false;
+      bool UseFixedTimeSample = false;
     };
     struct Data {
       uint8_t Mode = kStandby;
       float Output = 0.0f;
       int8_t Saturated = 0;
     };
-    __PIDClass PIDClass_;
+    __PID2Class PID2Class_;
     Config config_;
     Data data_;
-    std::string ReferenceKey_,FeedbackKey_,SampleTimeKey_,ModeKey_,SaturatedKey_,OutputKey_;
+    std::string ReferenceKey_,FeedbackKey_,SampleTimeKey_;
+};
+
+/*
+PID Class - PID control law
+Example JSON configuration:
+{
+  "Type": "PID",
+  "Output": "OutputName",
+  "Reference": "ReferenceName",
+  "Sample-Time": "SampleTime" or X,
+  "Time-Constant": X,
+  "Gains": {
+    "Proportional": Kp,
+    "Integral": Ki,
+    "Derivative": Kd,
+  },
+  "Limits": {
+    "Upper": X,
+    "Lower": X
+  }
+}
+Where:
+   * Output gives a convenient name for the block (i.e. PitchControl).
+   * Reference is the full path name of the reference signal.
+   * Sample-Time is either: the full path name of the sample time signal in seconds,
+     or a fixed value sample time in seconds.
+   * Time-Constant is the time constant for the derivative filter.
+     If a time constant is not specified, then no filtering is used.
+   * Gains specifies the proportional derivative and integral gains.
+   * Limits are optional and saturate the output if defined.
+Data types for all input and output values are float.
+*/
+
+class PIDClass: public GenericFunction {
+  public:
+    void Configure(const rapidjson::Value& Config,std::string RootPath,DefinitionTree *DefinitionTreePtr);
+    void Initialize();
+    bool Initialized();
+    void Run(Mode mode);
+    void Clear(DefinitionTree *DefinitionTreePtr);
+  private:
+    struct Config {
+      float *Reference;
+      float *dt;
+      float SampleTime;
+      bool UseFixedTimeSample = false;
+    };
+    struct Data {
+      uint8_t Mode = kStandby;
+      float Output = 0.0f;
+      int8_t Saturated = 0;
+    };
+    __PID2Class PID2Class_;
+    Config config_;
+    Data data_;
+    std::string ReferenceKey_,SampleTimeKey_;
 };
 
 /*
