@@ -81,7 +81,6 @@ void FlightManagementUnit::Configure(const rapidjson::Value& Config, DefinitionT
   size_t i=0;
   while(i < 100) {
     if (ReceiveSensorData()) {
-      std::cout << (int) i << std::endl;
       i++;
     }
   }

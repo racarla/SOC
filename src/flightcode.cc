@@ -147,8 +147,8 @@ float vel_mps = *GlobalData.GetValuePtr<float*>("/Sensor-Processing/vIAS_ms");
 // float cmdDiffEnergy = *GlobalData.GetValuePtr<float*>("/Control/cmdDiffEnergy");
 // float cmdPitch_rads = *GlobalData.GetValuePtr<float*>("/Control/cmdPitch_rads");
 //
-float posLTE1 = *GlobalData.GetValuePtr<float*>("/Sensors/Surf/posLTE1");
-float az = *GlobalData.GetValuePtr<float*>("/Sensors/Imu/Left-Mid/AccelZ_mss");
+float cmdLTE5 = *GlobalData.GetValuePtr<float*>("/Control/cmdLTE5_rad");
+float cmdRoll = *GlobalData.GetValuePtr<float*>("/Sensors/Sbus/Channels/3");
 //
 // // std::cout << refV_ms << "\t" << vel_mps << "\t" <<  cmdTotEnergy << "\t" << cmdMotor_nd << "\t\t"  << refAlt_m << "\t" << alt_m << "\t" << cmdDiffEnergy << "\t" << cmdPitch_rads << std::endl;
 //
@@ -156,7 +156,7 @@ float az = *GlobalData.GetValuePtr<float*>("/Sensors/Imu/Left-Mid/AccelZ_mss");
 // float vD_ms = *GlobalData.GetValuePtr<float*>("/Sensor-Processing/DownVelocity_ms");
 //
 // std::cout << refV_ms << "\t" << vel_mps << "\t" <<  cmdPitch_rads * 180.0f/3.14159f << "\t\t"  << refVD_ms << "\t" << vD_ms << "\t" << cmdMotor_nd << std::endl;
-std::cout <<  vel_mps << "\t" << posLTE1 << "\t" << az << std::endl;
+std::cout <<  vel_mps << "\t" << cmdRoll << "\t" << cmdLTE5 << std::endl;
 
         // run armed excitations
         Excitation.RunArmed();
