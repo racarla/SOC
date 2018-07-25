@@ -36,10 +36,10 @@ void ConstantClass::Configure(const rapidjson::Value& Config,std::string RootPat
     throw std::runtime_error(std::string("ERROR")+OutputName+std::string(": Constant value not specified in configuration."));
   }
   // pointer to log run mode data
-  ModeKey_ = OutputName+"/Mode";
+  ModeKey_ = RootPath+"/Mode";
   DefinitionTreePtr->InitMember(ModeKey_,&data_.Mode,"Control law mode",true,false);
   // pointer to log command data
-  OutputKey_ = OutputName+"/"+Config["Output"].GetString();
+  OutputKey_ = OutputName;
   DefinitionTreePtr->InitMember(OutputKey_,&data_.Output,"Control law output",true,false);
 }
 
@@ -88,7 +88,7 @@ void GainClass::Configure(const rapidjson::Value& Config,std::string RootPath,De
   if (Config.HasMember("Limits")) {
     config_.SaturateOutput = true;
     // pointer to log saturation data
-    SaturatedKey_ = OutputName+"/Saturated";
+    SaturatedKey_ = RootPath+"/Saturated";
     DefinitionTreePtr->InitMember(SaturatedKey_,&data_.Saturated,"Control law saturation, 0 if not saturated, 1 if saturated on the upper limit, and -1 if saturated on the lower limit",true,false);
     if (Config["Limits"].HasMember("Lower")&&Config["Limits"].HasMember("Upper")) {
       config_.UpperLimit = Config["Limits"]["Upper"].GetFloat();
@@ -98,10 +98,10 @@ void GainClass::Configure(const rapidjson::Value& Config,std::string RootPath,De
     }
   }
   // pointer to log run mode data
-  ModeKey_ = OutputName+"/Mode";
+  ModeKey_ = RootPath+"/Mode";
   DefinitionTreePtr->InitMember(ModeKey_,&data_.Mode,"Control law mode",true,false);
   // pointer to log command data
-  OutputKey_ = OutputName+"/"+Config["Output"].GetString();
+  OutputKey_ = RootPath+"/"+Config["Output"].GetString();
   DefinitionTreePtr->InitMember(OutputKey_,&data_.Output,"Control law output",true,false);
 }
 
@@ -169,7 +169,7 @@ void SumClass::Configure(const rapidjson::Value& Config,std::string RootPath,Def
   if (Config.HasMember("Limits")) {
     config_.SaturateOutput = true;
     // pointer to log saturation data
-    SaturatedKey_ = OutputName+"/Saturated";
+    SaturatedKey_ = RootPath+"/Saturated";
     DefinitionTreePtr->InitMember(SaturatedKey_,&data_.Saturated,"Control law saturation, 0 if not saturated, 1 if saturated on the upper limit, and -1 if saturated on the lower limit",true,false);
     if (Config["Limits"].HasMember("Lower")&&Config["Limits"].HasMember("Upper")) {
       config_.UpperLimit = Config["Limits"]["Upper"].GetFloat();
@@ -180,11 +180,11 @@ void SumClass::Configure(const rapidjson::Value& Config,std::string RootPath,Def
   }
 
   // pointer to log run mode data
-  ModeKey_ = OutputName+"/Mode";
+  ModeKey_ = RootPath+"/Mode";
   DefinitionTreePtr->InitMember(ModeKey_,&data_.Mode,"Run mode",true,false);
 
   // pointer to log command data
-  OutputKey_ = OutputName+"/"+Config["Output"].GetString();
+  OutputKey_ = RootPath+"/"+Config["Output"].GetString();
   DefinitionTreePtr->InitMember(OutputKey_,&data_.Output,"Control law output",true,false);
 }
 

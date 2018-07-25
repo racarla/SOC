@@ -41,34 +41,37 @@ void FlightManagementUnit::Begin() {
 /* Updates FMU configuration given a JSON value and registers data with global defs */
 void FlightManagementUnit::Configure(const rapidjson::Value& Config, DefinitionTree *DefinitionTreePtr) {
   std::vector<uint8_t> Payload;
+
   // switch FMU to configuration mode
   SendModeCommand(kConfigMode);
+
   // clear the serial buffer
   while ((read(FmuFileDesc_,&RxByte_,sizeof(RxByte_)))>0) {}
+
   // configure FMU sensors
   if (Config.HasMember("Sensors")) {
-    sleep(3);
     std::cout << "\t\tSending Sensors config to FMU..." << std::endl;
     ConfigureSensors(Config["Sensors"]);
   }
+
   // configuring FMU mission manager
   if (Config.HasMember("Mission-Manager")) {
-    sleep(3);
     std::cout << "\t\tSending Mission-Manager config to FMU..." << std::endl;
     ConfigureMissionManager(Config["Mission-Manager"]);
   }
+
   // configuring FMU control laws
   if (Config.HasMember("Control")) {
-    sleep(3);
     std::cout << "\t\tSending Control config to FMU..." << std::endl;
     ConfigureControlLaws(Config["Control"]);
   }
+
   // configuring FMU effectors
   if (Config.HasMember("Effectors")) {
-    sleep(3);
     std::cout << "\t\tSending Effector config to FMU..." << std::endl;
     ConfigureEffectors(Config["Effectors"]);
   }
+
   // switch FMU to run mode
   SendModeCommand(kRunMode);
   sleep(1);
@@ -78,9 +81,11 @@ void FlightManagementUnit::Configure(const rapidjson::Value& Config, DefinitionT
   size_t i=0;
   while(i < 100) {
     if (ReceiveSensorData()) {
+      std::cout << (int) i << std::endl;
       i++;
     }
   }
+
   // register sensor data with global definition tree
   if (Config.HasMember("Sensors")) {
     std::cout << "\t\tRegistering Sensors with DefinitionTree..." << std::endl;
@@ -149,6 +154,7 @@ bool FlightManagementUnit::ReceiveSensorData() {
       SensorData_.Ams5915.resize(NumberAms5915Sensor);
       SensorData_.Sbus.resize(NumberSbusSensor);
       SensorData_.Analog.resize(NumberAnalogSensor);
+
       // sensor data
       memcpy(SensorData_.Time_us.data(),Payload.data()+PayloadLocation,SensorData_.Time_us.size()*sizeof(SensorData_.Time_us[0]));
       PayloadLocation += SensorData_.Time_us.size()*sizeof(SensorData_.Time_us[0]);
@@ -212,6 +218,7 @@ void FlightManagementUnit::ConfigureSensors(const rapidjson::Value& Config) {
         Payload.push_back((uint8_t)ConfigString[j]);
       }
       SendMessage(Message::kConfigMesg,Payload);
+      sleep(3);
     }
   }
 }
@@ -228,6 +235,7 @@ void FlightManagementUnit::ConfigureMissionManager(const rapidjson::Value& Confi
     Payload.push_back((uint8_t)ConfigString[j]);
   }
   SendMessage(Message::kConfigMesg,Payload);
+  sleep(3);
 }
 
 /* Configures the FMU control laws */
@@ -251,6 +259,7 @@ void FlightManagementUnit::ConfigureControlLaws(const rapidjson::Value& Config) 
         Payload.push_back((uint8_t)ConfigString[j]);
       }
       SendMessage(Message::kConfigMesg,Payload);
+      sleep(3);
     }
   }
 }
@@ -271,6 +280,7 @@ void FlightManagementUnit::ConfigureEffectors(const rapidjson::Value& Config) {
       Payload.push_back((uint8_t)ConfigString[j]);
     }
     SendMessage(Message::kConfigMesg,Payload);
+    sleep(3);
   }
 }
 

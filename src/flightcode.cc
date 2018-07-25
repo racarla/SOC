@@ -109,15 +109,20 @@ GlobalData.PrettyPrint("/");
       if (SenProc.Configured()&&SenProc.Initialized()) {
         // run mission
         Mission.Run();
+
         // get and set engaged sensor processing
         SenProc.SetEngagedSensorProcessing(Mission.GetEngagedSensorProcessing());
+
         // run sensor processing
         SenProc.Run();
+
         // get and set engaged and armed controllers
         Control.SetEngagedController(Mission.GetEngagedController());
         Control.SetArmedController(Mission.GetArmedController());
+
         // get and set engaged excitation
         Excitation.SetEngagedExcitation(Mission.GetEngagedExcitation());
+
         if (Mission.GetEngagedController()!="Fmu") {
           // loop through control levels running excitations and control laws
           for (size_t i=0; i < Control.ActiveControlLevels(); i++) {
@@ -127,12 +132,13 @@ GlobalData.PrettyPrint("/");
             // run control
             Control.RunEngaged(i);
           }
+
           // send effector commands to FMU
           Fmu.SendEffectorCommands(Effectors.Run());
         }
 
 // float refV_ms = *GlobalData.GetValuePtr<float*>("/Control/refV_ms");
-// float vel_mps = *GlobalData.GetValuePtr<float*>("/Sensor-Processing/vIAS_ms");
+float vel_mps = *GlobalData.GetValuePtr<float*>("/Sensor-Processing/vIAS_ms");
 // float cmdTotEnergy = *GlobalData.GetValuePtr<float*>("/Control/cmdTotEnergy");
 // float cmdMotor_nd = *GlobalData.GetValuePtr<float*>("/Control/cmdMotor_nd");
 //
@@ -141,21 +147,26 @@ GlobalData.PrettyPrint("/");
 // float cmdDiffEnergy = *GlobalData.GetValuePtr<float*>("/Control/cmdDiffEnergy");
 // float cmdPitch_rads = *GlobalData.GetValuePtr<float*>("/Control/cmdPitch_rads");
 //
+float posLTE1 = *GlobalData.GetValuePtr<float*>("/Sensors/Surf/posLTE1");
+float az = *GlobalData.GetValuePtr<float*>("/Sensors/Imu/Left-Mid/AccelZ_mss");
+//
 // // std::cout << refV_ms << "\t" << vel_mps << "\t" <<  cmdTotEnergy << "\t" << cmdMotor_nd << "\t\t"  << refAlt_m << "\t" << alt_m << "\t" << cmdDiffEnergy << "\t" << cmdPitch_rads << std::endl;
 //
 // float refVD_ms = *GlobalData.GetValuePtr<float*>("/Control/refVd_ms");
 // float vD_ms = *GlobalData.GetValuePtr<float*>("/Sensor-Processing/DownVelocity_ms");
 //
 // std::cout << refV_ms << "\t" << vel_mps << "\t" <<  cmdPitch_rads * 180.0f/3.14159f << "\t\t"  << refVD_ms << "\t" << vD_ms << "\t" << cmdMotor_nd << std::endl;
+std::cout <<  vel_mps << "\t" << posLTE1 << "\t" << az << std::endl;
 
         // run armed excitations
         Excitation.RunArmed();
+
         // run armed control laws
         Control.RunArmed();
-
       }
       // run telemetry
       Telemetry.Send();
+
       // run datalog
       Datalog.LogBinaryData();
     }
