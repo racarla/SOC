@@ -29,12 +29,10 @@ void Pulse::Configure(const rapidjson::Value& Config,std::string RootPath,Defini
   if (Config.HasMember("Signal")) {
     SignalName = Config["Signal"].GetString();
     OutputName = RootPath + SignalName.substr(SignalName.rfind("/"));
-    // pointer to log run mode data
-    ModeKey_ = OutputName+"/Mode";
-    DefinitionTreePtr->InitMember(ModeKey_,&data_.Mode,"Run mode",true,false);
+
     // pointer to log excitation data
-    OutputKey_ = OutputName+"/Excitation";
-    DefinitionTreePtr->InitMember(OutputKey_,&data_.Excitation,"Excitation system output",true,false);
+    DefinitionTreePtr->InitMember(OutputName,&data_.Excitation,"Excitation system output",true,false);
+
     if (DefinitionTreePtr->GetValuePtr<float*>(SignalName)) {
       config_.Signal = DefinitionTreePtr->GetValuePtr<float*>(SignalName);
     } else {
@@ -112,10 +110,6 @@ void Pulse::Clear(DefinitionTree *DefinitionTreePtr) {
   Time0_us = 0;
   ElapsedTime_us = 0;
   TimeLatch = false;
-  DefinitionTreePtr->Erase(ModeKey_);
-  DefinitionTreePtr->Erase(OutputKey_);
-  ModeKey_.clear();
-  OutputKey_.clear();
 }
 
 void Doublet::Configure(const rapidjson::Value& Config,std::string RootPath,DefinitionTree *DefinitionTreePtr) {
@@ -127,12 +121,10 @@ void Doublet::Configure(const rapidjson::Value& Config,std::string RootPath,Defi
   if (Config.HasMember("Signal")) {
     SignalName = Config["Signal"].GetString();
     OutputName = RootPath + SignalName.substr(SignalName.rfind("/"));
-    // pointer to log run mode data
-    ModeKey_ = OutputName+"/Mode";
-    DefinitionTreePtr->InitMember(ModeKey_,&data_.Mode,"Run mode",true,false);
+
     // pointer to log excitation data
-    OutputKey_ = OutputName+"/Excitation";
-    DefinitionTreePtr->InitMember(OutputKey_,&data_.Excitation,"Excitation system output",true,false);
+    DefinitionTreePtr->InitMember(OutputName,&data_.Excitation,"Excitation system output",true,false);
+
     if (DefinitionTreePtr->GetValuePtr<float*>(SignalName)) {
       config_.Signal = DefinitionTreePtr->GetValuePtr<float*>(SignalName);
     } else {
@@ -213,10 +205,6 @@ void Doublet::Clear(DefinitionTree *DefinitionTreePtr) {
   Time0_us = 0;
   ElapsedTime_us = 0;
   TimeLatch = false;
-  DefinitionTreePtr->Erase(ModeKey_);
-  DefinitionTreePtr->Erase(OutputKey_);
-  ModeKey_.clear();
-  OutputKey_.clear();
 }
 
 void Doublet121::Configure(const rapidjson::Value& Config,std::string RootPath,DefinitionTree *DefinitionTreePtr) {
@@ -228,12 +216,10 @@ void Doublet121::Configure(const rapidjson::Value& Config,std::string RootPath,D
   if (Config.HasMember("Signal")) {
     SignalName = Config["Signal"].GetString();
     OutputName = RootPath + SignalName.substr(SignalName.rfind("/"));
-    // pointer to log run mode data
-    ModeKey_ = OutputName+"/Mode";
-    DefinitionTreePtr->InitMember(ModeKey_,&data_.Mode,"Run mode",true,false);
+
     // pointer to log excitation data
-    OutputKey_ = OutputName+"/Excitation";
-    DefinitionTreePtr->InitMember(OutputKey_,&data_.Excitation,"Excitation system output",true,false);
+    DefinitionTreePtr->InitMember(OutputName,&data_.Excitation,"Excitation system output",true,false);
+
     if (DefinitionTreePtr->GetValuePtr<float*>(SignalName)) {
       config_.Signal = DefinitionTreePtr->GetValuePtr<float*>(SignalName);
     } else {
@@ -317,10 +303,6 @@ void Doublet121::Clear(DefinitionTree *DefinitionTreePtr) {
   Time0_us = 0;
   ElapsedTime_us = 0;
   TimeLatch = false;
-  DefinitionTreePtr->Erase(ModeKey_);
-  DefinitionTreePtr->Erase(OutputKey_);
-  ModeKey_.clear();
-  OutputKey_.clear();
 }
 
 void Doublet3211::Configure(const rapidjson::Value& Config,std::string RootPath,DefinitionTree *DefinitionTreePtr) {
@@ -332,12 +314,10 @@ void Doublet3211::Configure(const rapidjson::Value& Config,std::string RootPath,
   if (Config.HasMember("Signal")) {
     SignalName = Config["Signal"].GetString();
     OutputName = RootPath + SignalName.substr(SignalName.rfind("/"));
-    // pointer to log run mode data
-    ModeKey_ = OutputName+"/Mode";
-    DefinitionTreePtr->InitMember(ModeKey_,&data_.Mode,"Run mode",true,false);
+
     // pointer to log excitation data
-    OutputKey_ = OutputName+"/Excitation";
-    DefinitionTreePtr->InitMember(OutputKey_,&data_.Excitation,"Excitation system output",true,false);
+    DefinitionTreePtr->InitMember(OutputName,&data_.Excitation,"Excitation system output",true,false);
+
     if (DefinitionTreePtr->GetValuePtr<float*>(SignalName)) {
       config_.Signal = DefinitionTreePtr->GetValuePtr<float*>(SignalName);
     } else {
@@ -424,10 +404,6 @@ void Doublet3211::Clear(DefinitionTree *DefinitionTreePtr) {
   Time0_us = 0;
   ElapsedTime_us = 0;
   TimeLatch = false;
-  DefinitionTreePtr->Erase(ModeKey_);
-  DefinitionTreePtr->Erase(OutputKey_);
-  ModeKey_.clear();
-  OutputKey_.clear();
 }
 
 void LinearChirp::Configure(const rapidjson::Value& Config,std::string RootPath,DefinitionTree *DefinitionTreePtr) {
@@ -439,12 +415,10 @@ void LinearChirp::Configure(const rapidjson::Value& Config,std::string RootPath,
   if (Config.HasMember("Signal")) {
     SignalName = Config["Signal"].GetString();
     OutputName = RootPath + SignalName.substr(SignalName.rfind("/"));
-    // pointer to log run mode data
-    ModeKey_ = OutputName+"/Mode";
-    DefinitionTreePtr->InitMember(ModeKey_,&data_.Mode,"Run mode",true,false);
+
     // pointer to log excitation data
-    OutputKey_ = OutputName+"/Excitation";
-    DefinitionTreePtr->InitMember(OutputKey_,&data_.Excitation,"Excitation system output",true,false);
+    DefinitionTreePtr->InitMember(OutputName,&data_.Excitation,"Excitation system output",true,false);
+
     if (DefinitionTreePtr->GetValuePtr<float*>(SignalName)) {
       config_.Signal = DefinitionTreePtr->GetValuePtr<float*>(SignalName);
     } else {
@@ -544,10 +518,6 @@ void LinearChirp::Clear(DefinitionTree *DefinitionTreePtr) {
   Time0_us = 0;
   ElapsedTime_us = 0;
   TimeLatch = false;
-  DefinitionTreePtr->Erase(ModeKey_);
-  DefinitionTreePtr->Erase(OutputKey_);
-  ModeKey_.clear();
-  OutputKey_.clear();
 }
 
 void MultiSine::Configure(const rapidjson::Value& Config,std::string RootPath,DefinitionTree *DefinitionTreePtr) {
@@ -559,12 +529,10 @@ void MultiSine::Configure(const rapidjson::Value& Config,std::string RootPath,De
   if (Config.HasMember("Signal")) {
     SignalName = Config["Signal"].GetString();
     OutputName = RootPath + SignalName.substr(SignalName.rfind("/"));
-    // pointer to log run mode data
-    ModeKey_ = OutputName+"/Mode";
-    DefinitionTreePtr->InitMember(ModeKey_,&data_.Mode,"Run mode",true,false);
+
     // pointer to log excitation data
-    OutputKey_ = OutputName+"/Excitation";
-    DefinitionTreePtr->InitMember(OutputKey_,&data_.Excitation,"Excitation system output",true,false);
+    DefinitionTreePtr->InitMember(OutputName,&data_.Excitation,"Excitation system output",true,false);
+
     if (DefinitionTreePtr->GetValuePtr<float*>(SignalName)) {
       config_.Signal = DefinitionTreePtr->GetValuePtr<float*>(SignalName);
     } else {
@@ -668,8 +636,4 @@ void MultiSine::Clear(DefinitionTree *DefinitionTreePtr) {
   Time0_us = 0;
   ElapsedTime_us = 0;
   TimeLatch = false;
-  DefinitionTreePtr->Erase(ModeKey_);
-  DefinitionTreePtr->Erase(OutputKey_);
-  ModeKey_.clear();
-  OutputKey_.clear();
 }

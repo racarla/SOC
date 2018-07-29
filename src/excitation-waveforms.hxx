@@ -32,7 +32,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SO
 configuration below. See generic-function.hxx for more information
 on the methods and modes. */
 
-/* 
+/*
 Pulse Class - Adds a pulse to the signal for the specified duration
 Example JSON configuration:
 {
@@ -45,7 +45,7 @@ Example JSON configuration:
   "Scale-Factor": X
   }
 }
-Where: 
+Where:
    * Signal gives the name of the input and output
    * Time is the full path to the current system time in us
    * Start time is when the excitation will start after engage in seconds
@@ -76,13 +76,12 @@ private:
   };
   Config config_;
   Data data_;
-  std::string ModeKey_,OutputKey_;
   uint64_t Time0_us = 0;
   float ElapsedTime_us = 0;
   bool TimeLatch = false;
 };
 
-/* 
+/*
 Doublet Class - Adds a doublet to the signal for the specified duration
 Example JSON configuration:
 {
@@ -94,7 +93,7 @@ Example JSON configuration:
   "Amplitude": X
   }
 }
-Where: 
+Where:
    * Signal gives the name of the input and output
    * Time is the full path to the current system time in us
    * Start time is when the excitation will start after engage in seconds
@@ -125,13 +124,12 @@ private:
   };
   Config config_;
   Data data_;
-  std::string ModeKey_,OutputKey_;
   uint64_t Time0_us = 0;
   float ElapsedTime_us = 0;
   bool TimeLatch = false;
 };
 
-/* 
+/*
 Doublet121 Class - Adds a 1-2-1 doublet to the signal for the specified duration
 Example JSON configuration:
 {
@@ -143,7 +141,7 @@ Example JSON configuration:
   "Amplitude": X
   }
 }
-Where: 
+Where:
    * Signal gives the name of the input and output
    * Time is the full path to the current system time in us
    * Start time is when the excitation will start after engage in seconds
@@ -174,13 +172,12 @@ private:
   };
   Config config_;
   Data data_;
-  std::string ModeKey_,OutputKey_;
   uint64_t Time0_us = 0;
   float ElapsedTime_us = 0;
   bool TimeLatch = false;
 };
 
-/* 
+/*
 Doublet3211 Class - Adds a 3-2-1-1 doublet to the signal for the specified duration
 Example JSON configuration:
 {
@@ -192,7 +189,7 @@ Example JSON configuration:
   "Amplitude": X
   }
 }
-Where: 
+Where:
    * Signal gives the name of the input and output
    * Time is the full path to the current system time in us
    * Start time is when the excitation will start after engage in seconds
@@ -223,13 +220,12 @@ private:
   };
   Config config_;
   Data data_;
-  std::string ModeKey_,OutputKey_;
   uint64_t Time0_us = 0;
   float ElapsedTime_us = 0;
   bool TimeLatch = false;
 };
 
-/* 
+/*
 Linear Chirp Class - Adds a linear chirp to the signal for the specified duration
 Example JSON configuration:
 {
@@ -242,7 +238,7 @@ Example JSON configuration:
   "Frequency": [start,end]
   }
 }
-Where: 
+Where:
    * Signal gives the name of the input and output
    * Time is the full path to the current system time in us
    * Start time is when the excitation will start after engage in seconds
@@ -274,13 +270,12 @@ private:
   };
   Config config_;
   Data data_;
-  std::string ModeKey_,OutputKey_;
   uint64_t Time0_us = 0;
   float ElapsedTime_us = 0;
   bool TimeLatch = false;
 };
 
-/* 
+/*
 MultiSine Class - Adds a multisine to the signal for the specified duration
 Example JSON configuration:
 {
@@ -294,7 +289,7 @@ Example JSON configuration:
   "Phase": [X]
   }
 }
-Where: 
+Where:
    * Signal gives the name of the input and output
    * Time is the full path to the current system time in us
    * Start time is when the excitation will start after engage in seconds
@@ -327,7 +322,6 @@ private:
   };
   Config config_;
   Data data_;
-  std::string ModeKey_,OutputKey_;
   uint64_t Time0_us = 0;
   float ElapsedTime_us = 0;
   bool TimeLatch = false;
