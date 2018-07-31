@@ -127,7 +127,6 @@ void MissionManager::Configure(const rapidjson::Value& Config, DefinitionTree *D
   DefinitionTreePtr->InitMember("/Mission/ctrlSel",(uint8_t*) &CtrlSelect_,"Control selection",true,false);
   DefinitionTreePtr->InitMember("/Mission/testSel",(uint8_t*) &TestSelect_,"Test selection",true,false);
   DefinitionTreePtr->InitMember("/Mission/excitEngage",(uint8_t*) &EngagedExcitationFlag_,"Excitation engage flag",true,false);
-  DefinitionTreePtr->InitMember("/Mission/trig",(uint8_t*) &Trigger_,"Trigger event",true,false);
 
   // build a map of the test point data
   if (Config.HasMember("Test-Points")) {
