@@ -40,6 +40,7 @@ class BfsMessage:
     _LengthBuffer = []
     _Checksum = [0,0]
     DataTypes = ("Uint64Key","Uint32Key","Uint16Key","Uint8Key","Int64Key","Int32Key","Int16Key","Int8Key","FloatKey","DoubleKey","Uint64Desc","Uint32Desc","Uint16Desc","Uint8Desc","Int64Desc","Int32Desc","Int16Desc","Int8Desc","FloatDesc","DoubleDesc","Data")
+    
     def Parse(Self,ByteRead):
         Header = bytearray([0x42,0x46])
         HeaderLength = 5;
@@ -121,10 +122,12 @@ parser = argparse.ArgumentParser()
 parser.add_argument("file", help="convert flight data binary to HDF5 format, enter binary file name as argument")
 parser.add_argument("--output", help="specify output file name", action="store")
 args = parser.parse_args()
+
 print("Bolder Flight Systems")
 print("Flight Data Binary to HDF5 Converter")
-print("Version 1.0.0")
+print("Version 1.0.1")
 print("")
+
 print("Converting:", args.file)
 # Open binary file
 try:
@@ -147,7 +150,7 @@ else:
     while os.path.isfile(DataLogName):
         FileNameCounter += 1
         DataLogName = DataLogBaseName + "%03d" % FileNameCounter + DataLogType
-print("Data log file:", DataLogName)
+print("Data log file name:", DataLogName)
 try:
     DataLogFile = h5py.File(DataLogName,'w-',libver='earliest')
 except:
@@ -186,13 +189,14 @@ FloatData = []
 DoubleKeys = []
 DoubleDesc = []
 DoubleData = []
+
 # parse byte array
 counter = 0
 FileContentsBinary = bytearray(FileContents)
 print('parsing binary file...')
 for k in range(0,len(FileContentsBinary)):
-    if counter > 100:
-        break
+    #if counter > 100:
+    #    break
     ReadByte = FileContentsBinary[k]
     result = DataLogMessage.Parse(ReadByte)
     if result != None:
@@ -347,7 +351,7 @@ for k in range(0,len(FileContentsBinary)):
             if (counter % 500) == 0:
                 print("Scanning:", "%.0f seconds" % (counter/50))
                 
-print("Constructing hdf5 file...")
+print("Writing hdf5 file...")
 for i in range (len(Uint64Keys)):
     d = DataLogFile.create_dataset(Uint64Keys[i], (counter, 1),
                                    data=np.array(Uint64Data[i]), dtype='uint64')
@@ -389,5 +393,4 @@ for i in range (len(DoubleKeys)):
                                    data=np.array(DoubleData[i]), dtype='double')
     d.attrs["Description"] = DoubleDesc[i]
 DataLogFile.close()
-print("done!")
-print("Created data log file:", DataLogName)
+print("Finished writing hdf5 file:", DataLogName)
