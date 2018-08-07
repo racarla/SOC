@@ -157,22 +157,44 @@ try:
 except:
     print("Could not create output file:", args.output)
     sys.exit()
+
+# build up our in memory data structures
+# storage is a top level map for each type
+# types is an ordered list of type names (the order is important in places)
+# for each type we store:
+#   the numpy type string
+#   the pack/unpack type code
+#   the sizeof in bytes
+#   a list of keys for each column of this data type
+#   a list of descriptions for each column of this data type
+#   a list of data values (another list) for each column of this data type
+
+storage = {}
+types = []
+def init_type(type, np_type, packstr, sizeof):
+    global storage
+    global types
+    types.append(type)
+    storage[type] = { 'np_type': np_type,
+                      'packstr': packstr,
+                      'sizeof': sizeof,
+                      'keys': [],
+                      'desc': [],
+                      'data': [] }
     
+init_type('Uint64', np_type='uint64', packstr='Q', sizeof=8)
+init_type('Uint32', np_type='uint32', packstr='I', sizeof=4)
+init_type('Uint16', np_type='uint16', packstr='H', sizeof=2)
+init_type('Uint8', np_type='uint8', packstr='B', sizeof=1)
+init_type('Int64', np_type='int64', packstr='q', sizeof=8)
+init_type('Int32', np_type='int32', packstr='i', sizeof=4)
+init_type('Int16', np_type='int16', packstr='h', sizeof=2)
+init_type('Int8', np_type='int8', packstr='b', sizeof=1)
+init_type('Float', np_type='float', packstr='f', sizeof=4)
+init_type('Double', np_type='double', packstr='d', sizeof=8)
+
 # instance of BfsMessage class to parse file
 DataLogMessage = BfsMessage()
-storage = {}
-types = [ 'Uint64', 'Uint32', 'Uint16', 'Uint8',
-          'Int64', 'Int32', 'Int16', 'Int8',
-          'Float', 'Double' ]
-np_types = [ 'uint64', 'uint32', 'uint16', 'uint8',
-          'int64', 'int32', 'int16', 'int8',
-          'float', 'double' ]
-packstr = [ 'Q', 'I', 'H', 'B',
-            'q', 'i', 'h', 'b',
-            'f', 'd' ]
-sizes = [ 8, 4, 2, 1, 8, 4, 2, 1, 4, 8 ]
-for t in types:
-    storage[t] = { 'keys': [], 'desc': [], 'data': [] }
 
 # parse byte array
 counter = 0
@@ -182,8 +204,9 @@ pdesc = re.compile('(.+)Desc')
 FileContentsBinary = bytearray(FileContents)
 print('parsing binary file...')
 for k in range(0,len(FileContentsBinary)):
-    if counter > 100:
-        break
+    #for testing/debugging
+    #if counter > 100:
+    #    break
     ReadByte = FileContentsBinary[k]
     result = DataLogMessage.Parse(ReadByte)
     if result != None:
@@ -210,22 +233,22 @@ for k in range(0,len(FileContentsBinary)):
             storage[dtype]['desc'].append(Desc)
         if DataLogMessage.DataTypes[DataType] == 'Data':
             offset = 0
-            for j, t in enumerate(types):
-                form = '@' + packstr[j]
+            for t in types:
+                form = '@' + storage[t]['packstr']
                 for i in range (len(storage[t]['keys'])):
                     storage[t]['data'][i].append(struct.unpack_from(form, bytearray(Payload),offset)[0])
-                offset += sizes[j]
+                offset += storage[t]['sizeof']
             # DataLogFile.flush()
             counter += 1
             if (counter % 500) == 0:
                 print("Scanning:", "%.0f seconds" % (counter/50))
                 
 print("Writing hdf5 file...")
-for j, t in enumerate(types):
+for t in types:
     for i in range (len(storage[t]['keys'])):
         d = DataLogFile.create_dataset(storage[t]['keys'][i], (counter, 1),
                                        data=np.array(storage[t]['data'][i]),
-                                       dtype=np_types[j])
+                                       dtype=storage[t]['np_type'])
         d.attrs["Description"] = storage[t]['desc'][i]
 DataLogFile.close()
 print("Finished writing hdf5 file:", DataLogName)
