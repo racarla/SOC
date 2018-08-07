@@ -181,7 +181,9 @@ def init_type(type, np_type, packstr, sizeof):
                       'keys': [],
                       'desc': [],
                       'data': [] }
-    
+
+# the order of initialization is important here and must match the order
+# in the binary data file.
 init_type('Uint64', np_type='uint64', packstr='Q', sizeof=8)
 init_type('Uint32', np_type='uint32', packstr='I', sizeof=4)
 init_type('Uint16', np_type='uint16', packstr='H', sizeof=2)
