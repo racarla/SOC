@@ -26,6 +26,7 @@ import h5py
 import numpy as np
 import struct
 import argparse
+import os
 import sys
 
 # class for parsing Bfs messages
@@ -115,14 +116,6 @@ class BfsMessage:
             Checksum[1] = (Checksum[1] + Checksum[0]) % 256
         return Checksum
 
-# function to see if file name exists
-def FileExists(FileName):
-    try:
-        h5py.File(FileName,'r')
-        return True
-    except:
-        return False
-
 # Parse input argument, file name to open
 parser = argparse.ArgumentParser()
 parser.add_argument("file", help="convert flight data binary to HDF5 format, enter binary file name as argument")
@@ -151,7 +144,7 @@ else:
     DataLogBaseName = "data"
     DataLogType = ".h5";
     DataLogName = DataLogBaseName + "%03d" % FileNameCounter + DataLogType
-    while FileExists(DataLogName):
+    while os.path.isfile(DataLogName):
         FileNameCounter += 1
         DataLogName = DataLogBaseName + "%03d" % FileNameCounter + DataLogType
 print("Data log file:", DataLogName)
@@ -353,36 +346,47 @@ for k in range(0,len(FileContentsBinary)):
             counter += 1
             if (counter % 500) == 0:
                 print("Scanning:", "%.0f seconds" % (counter/50))
+                
 print("Constructing hdf5 file...")
 for i in range (len(Uint64Keys)):
-    d = DataLogFile.create_dataset(Uint64Keys[i], (counter, 1), data=np.array(Uint64Data[i]), dtype='uint64')
+    d = DataLogFile.create_dataset(Uint64Keys[i], (counter, 1),
+                                   data=np.array(Uint64Data[i]), dtype='uint64')
     d.attrs["Description"] = Uint64Desc[i]
 for i in range (len(Uint32Keys)):
-    d = DataLogFile.create_dataset(Uint32Keys[i], (counter, 1), data=np.array(Uint32Data[i]), dtype='uint32')
+    d = DataLogFile.create_dataset(Uint32Keys[i], (counter, 1),
+                                   data=np.array(Uint32Data[i]), dtype='uint32')
     d.attrs["Description"] = Uint32Desc[i]
 for i in range (len(Uint16Keys)):
-    d = DataLogFile.create_dataset(Uint16Keys[i], (counter, 1), data=np.array(Uint16Data[i]), dtype='uint16')
+    d = DataLogFile.create_dataset(Uint16Keys[i], (counter, 1),
+                                   data=np.array(Uint16Data[i]), dtype='uint16')
     d.attrs["Description"] = Uint16Desc[i]
 for i in range (len(Uint8Keys)):
-    d = DataLogFile.create_dataset(Uint8Keys[i], (counter, 1), data=np.array(Uint8Data[i]), dtype='uint8')
+    d = DataLogFile.create_dataset(Uint8Keys[i], (counter, 1),
+                                   data=np.array(Uint8Data[i]), dtype='uint8')
     d.attrs["Description"] = Uint8Desc[i]
 for i in range (len(Int64Keys)):
-    d = DataLogFile.create_dataset(Int64Keys[i], (counter, 1), data=np.array(Int64Data[i]), dtype='int64')
+    d = DataLogFile.create_dataset(Int64Keys[i], (counter, 1),
+                                   data=np.array(Int64Data[i]), dtype='int64')
     d.attrs["Description"] = Int64Desc[i]
 for i in range (len(Int32Keys)):
-    d = DataLogFile.create_dataset(Int32Keys[i], (counter, 1), data=np.array(Int32Data[i]), dtype='int32')
+    d = DataLogFile.create_dataset(Int32Keys[i], (counter, 1),
+                                   data=np.array(Int32Data[i]), dtype='int32')
     d.attrs["Description"] = Int32Desc[i]
 for i in range (len(Int16Keys)):
-    d = DataLogFile.create_dataset(Int16Keys[i], (counter, 1), data=np.array(Int16Data[i]), dtype='int16')
+    d = DataLogFile.create_dataset(Int16Keys[i], (counter, 1),
+                                   data=np.array(Int16Data[i]), dtype='int16')
     d.attrs["Description"] = Int16Desc[i]
 for i in range (len(Int8Keys)):
-    d = DataLogFile.create_dataset(Int8Keys[i], (counter, 1), data=np.array(Int8Data[i]), dtype='int8')
+    d = DataLogFile.create_dataset(Int8Keys[i], (counter, 1),
+                                   data=np.array(Int8Data[i]), dtype='int8')
     d.attrs["Description"] = Int8Desc[i]
 for i in range (len(FloatKeys)):
-    d = DataLogFile.create_dataset(FloatKeys[i], (counter, 1), data=np.array(FloatData[i]), dtype='float')
+    d = DataLogFile.create_dataset(FloatKeys[i], (counter, 1),
+                                   data=np.array(FloatData[i]), dtype='float')
     d.attrs["Description"] = FloatDesc[i]
 for i in range (len(DoubleKeys)):
-    d = DataLogFile.create_dataset(DoubleKeys[i], (counter, 1), data=np.array(DoubleData[i]), dtype='double')
+    d = DataLogFile.create_dataset(DoubleKeys[i], (counter, 1),
+                                   data=np.array(DoubleData[i]), dtype='double')
     d.attrs["Description"] = DoubleDesc[i]
 DataLogFile.close()
 print("done!")
