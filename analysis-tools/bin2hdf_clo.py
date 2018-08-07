@@ -27,6 +27,7 @@ import numpy as np
 import struct
 import argparse
 import os
+import re
 import sys
 
 # class for parsing Bfs messages
@@ -159,44 +160,30 @@ except:
     
 # instance of BfsMessage class to parse file
 DataLogMessage = BfsMessage()
-Uint64Keys = []
-Uint64Desc = []
-Uint64Data = []
-Uint32Keys = []
-Uint32Desc = []
-Uint32Data = []
-Uint16Keys = []
-Uint16Desc = []
-Uint16Data = []
-Uint8Keys = []
-Uint8Desc = []
-Uint8Data = []
-Int64Keys = []
-Int64Desc = []
-Int64Data = []
-Int32Keys = []
-Int32Desc = []
-Int32Data = []
-Int16Keys = []
-Int16Desc = []
-Int16Data = []
-Int8Keys = []
-Int8Desc = []
-Int8Data = []
-FloatKeys = []
-FloatDesc = []
-FloatData = []
-DoubleKeys = []
-DoubleDesc = []
-DoubleData = []
+storage = {}
+types = [ 'Uint64', 'Uint32', 'Uint16', 'Uint8',
+          'Int64', 'Int32', 'Int16', 'Int8',
+          'Float', 'Double' ]
+np_types = [ 'uint64', 'uint32', 'uint16', 'uint8',
+          'int64', 'int32', 'int16', 'int8',
+          'float', 'double' ]
+packstr = [ 'Q', 'I', 'H', 'B',
+            'q', 'i', 'h', 'b',
+            'f', 'd' ]
+sizes = [ 8, 4, 2, 1, 8, 4, 2, 1, 4, 8 ]
+for t in types:
+    storage[t] = { 'keys': [], 'desc': [], 'data': [] }
 
 # parse byte array
 counter = 0
+pkey = re.compile('(.+)Key')
+pdesc = re.compile('(.+)Desc')
+
 FileContentsBinary = bytearray(FileContents)
 print('parsing binary file...')
 for k in range(0,len(FileContentsBinary)):
-    #if counter > 100:
-    #    break
+    if counter > 100:
+        break
     ReadByte = FileContentsBinary[k]
     result = DataLogMessage.Parse(ReadByte)
     if result != None:
@@ -204,193 +191,41 @@ for k in range(0,len(FileContentsBinary)):
     else:
         ValidMessage = False
     if ValidMessage:
-        if DataLogMessage.DataTypes[DataType] == 'Uint64Key':
+        # match 'Key' token
+        mkey = pkey.match(DataLogMessage.DataTypes[DataType])
+        if mkey != None:
             KeyName = ""
             for i in range(0,len(Payload)):
                 KeyName += chr(Payload[i])
-            Uint64Keys.append(KeyName)
-            Uint64Data.append([])
-        if DataLogMessage.DataTypes[DataType] == 'Uint32Key':
-            KeyName = ""
-            for i in range(0,len(Payload)):
-                KeyName += chr(Payload[i])
-            Uint32Keys.append(KeyName)
-            Uint32Data.append([])
-        if DataLogMessage.DataTypes[DataType] == 'Uint16Key':
-            KeyName = ""
-            for i in range(0,len(Payload)):
-                KeyName += chr(Payload[i])
-            Uint16Keys.append(KeyName)
-            Uint16Data.append([])
-        if DataLogMessage.DataTypes[DataType] == 'Uint8Key':
-            KeyName = ""
-            for i in range(0,len(Payload)):
-                KeyName += chr(Payload[i])
-            Uint8Keys.append(KeyName)
-            Uint8Data.append([])
-        if DataLogMessage.DataTypes[DataType] == 'Int64Key':
-            KeyName = ""
-            for i in range(0,len(Payload)):
-                KeyName += chr(Payload[i])
-            Int64Keys.append(KeyName)
-            Int64Data.append([])
-        if DataLogMessage.DataTypes[DataType] == 'Int32Key':
-            KeyName = ""
-            for i in range(0,len(Payload)):
-                KeyName += chr(Payload[i])
-            Int32Keys.append(KeyName)
-            Int32Data.append([])
-        if DataLogMessage.DataTypes[DataType] == 'Int16Key':
-            KeyName = ""
-            for i in range(0,len(Payload)):
-                KeyName += chr(Payload[i])
-            Int16Keys.append(KeyName)
-            Int16Data.append([])
-        if DataLogMessage.DataTypes[DataType] == 'Int8Key':
-            KeyName = ""
-            for i in range(0,len(Payload)):
-                KeyName += chr(Payload[i])
-            Int8Keys.append(KeyName)
-            Int8Data.append([])
-        if DataLogMessage.DataTypes[DataType] == 'FloatKey':
-            KeyName = ""
-            for i in range(0,len(Payload)):
-                KeyName += chr(Payload[i])
-            FloatKeys.append(KeyName)
-            FloatData.append([])
-        if DataLogMessage.DataTypes[DataType] == 'DoubleKey':
-            KeyName = ""
-            for i in range(0,len(Payload)):
-                KeyName += chr(Payload[i])
-            DoubleKeys.append(KeyName)
-            DoubleData.append([])
-        if DataLogMessage.DataTypes[DataType] == 'Uint64Desc':
+            mtype = mkey[1]
+            storage[mtype]['keys'].append(KeyName)
+            storage[mtype]['data'].append([])
+        # match 'Desc' token
+        mdesc = pdesc.match(DataLogMessage.DataTypes[DataType])
+        if mdesc != None:
             Desc = ""
             for i in range(0,len(Payload)):
                 Desc += chr(Payload[i])
-            Uint64Desc.append(Desc)
-        if DataLogMessage.DataTypes[DataType] == 'Uint32Desc':
-            Desc = ""
-            for i in range(0,len(Payload)):
-                Desc += chr(Payload[i])
-            Uint32Desc.append(Desc)
-        if DataLogMessage.DataTypes[DataType] == 'Uint16Desc':
-            Desc = ""
-            for i in range(0,len(Payload)):
-                Desc += chr(Payload[i])
-            Uint16Desc.append(Desc)
-        if DataLogMessage.DataTypes[DataType] == 'Uint8Desc':
-            Desc = ""
-            for i in range(0,len(Payload)):
-                Desc += chr(Payload[i])
-            Uint8Desc.append(Desc)
-        if DataLogMessage.DataTypes[DataType] == 'Int64Desc':
-            Desc = ""
-            for i in range(0,len(Payload)):
-                Desc += chr(Payload[i])
-            Int64Desc.append(Desc)
-        if DataLogMessage.DataTypes[DataType] == 'Int32Desc':
-            Desc = ""
-            for i in range(0,len(Payload)):
-                Desc += chr(Payload[i])
-            Int32Desc.append(Desc)
-        if DataLogMessage.DataTypes[DataType] == 'Int16Desc':
-            Desc = ""
-            for i in range(0,len(Payload)):
-                Desc += chr(Payload[i])
-            Int16Desc.append(Desc)
-        if DataLogMessage.DataTypes[DataType] == 'Int8Desc':
-            Desc = ""
-            for i in range(0,len(Payload)):
-                Desc += chr(Payload[i])
-            Int8Desc.append(Desc)
-        if DataLogMessage.DataTypes[DataType] == 'FloatDesc':
-            Desc = ""
-            for i in range(0,len(Payload)):
-                Desc += chr(Payload[i])
-            FloatDesc.append(Desc)
-        if DataLogMessage.DataTypes[DataType] == 'DoubleDesc':
-            Desc = ""
-            for i in range(0,len(Payload)):
-                Desc += chr(Payload[i])
-            DoubleDesc.append(Desc)
+            dtype = mdesc[1]
+            storage[dtype]['desc'].append(Desc)
         if DataLogMessage.DataTypes[DataType] == 'Data':
             offset = 0
-            for i in range (len(Uint64Keys)):
-                Uint64Data[i].append(struct.unpack_from('@Q',bytearray(Payload),offset)[0])
-                offset += 8
-            for i in range (len(Uint32Keys)):
-                Uint32Data[i].append(struct.unpack_from('@I',bytearray(Payload),offset)[0])
-                offset += 4
-            for i in range (len(Uint16Keys)):
-                Uint16Data[i].append(struct.unpack_from('@H',bytearray(Payload),offset)[0])
-                offset += 2
-            for i in range (len(Uint8Keys)):
-                Uint8Data[i].append(struct.unpack_from('@B',bytearray(Payload),offset)[0])
-                offset += 1
-            for i in range (len(Int64Keys)):
-                Int64Data[i].append(struct.unpack_from('@q',bytearray(Payload),offset)[0])
-                offset += 8
-            for i in range (len(Int32Keys)):
-                Int32Data[i].append(struct.unpack_from('@i',bytearray(Payload),offset)[0])
-                offset += 4
-            for i in range (len(Int16Keys)):
-                Int16Data[i].append*(struct.unpack_from('@h',bytearray(Payload),offset)[0])
-                offset += 2
-            for i in range (len(Int8Keys)):
-                Int8Data[i].append(struct.unpack_from('@b',bytearray(Payload),offset)[0])
-                offset += 1
-            for i in range (len(FloatKeys)):
-                FloatData[i].append(struct.unpack_from('@f',bytearray(Payload),offset)[0])
-                offset += 4
-            for i in range (len(DoubleKeys)):
-                DoubleData[i].append(struct.unpack_from('@d',bytearray(Payload),offset)[0])
-                offset += 8
+            for j, t in enumerate(types):
+                form = '@' + packstr[j]
+                for i in range (len(storage[t]['keys'])):
+                    storage[t]['data'][i].append(struct.unpack_from(form, bytearray(Payload),offset)[0])
+                offset += sizes[j]
             # DataLogFile.flush()
             counter += 1
             if (counter % 500) == 0:
                 print("Scanning:", "%.0f seconds" % (counter/50))
                 
 print("Writing hdf5 file...")
-for i in range (len(Uint64Keys)):
-    d = DataLogFile.create_dataset(Uint64Keys[i], (counter, 1),
-                                   data=np.array(Uint64Data[i]), dtype='uint64')
-    d.attrs["Description"] = Uint64Desc[i]
-for i in range (len(Uint32Keys)):
-    d = DataLogFile.create_dataset(Uint32Keys[i], (counter, 1),
-                                   data=np.array(Uint32Data[i]), dtype='uint32')
-    d.attrs["Description"] = Uint32Desc[i]
-for i in range (len(Uint16Keys)):
-    d = DataLogFile.create_dataset(Uint16Keys[i], (counter, 1),
-                                   data=np.array(Uint16Data[i]), dtype='uint16')
-    d.attrs["Description"] = Uint16Desc[i]
-for i in range (len(Uint8Keys)):
-    d = DataLogFile.create_dataset(Uint8Keys[i], (counter, 1),
-                                   data=np.array(Uint8Data[i]), dtype='uint8')
-    d.attrs["Description"] = Uint8Desc[i]
-for i in range (len(Int64Keys)):
-    d = DataLogFile.create_dataset(Int64Keys[i], (counter, 1),
-                                   data=np.array(Int64Data[i]), dtype='int64')
-    d.attrs["Description"] = Int64Desc[i]
-for i in range (len(Int32Keys)):
-    d = DataLogFile.create_dataset(Int32Keys[i], (counter, 1),
-                                   data=np.array(Int32Data[i]), dtype='int32')
-    d.attrs["Description"] = Int32Desc[i]
-for i in range (len(Int16Keys)):
-    d = DataLogFile.create_dataset(Int16Keys[i], (counter, 1),
-                                   data=np.array(Int16Data[i]), dtype='int16')
-    d.attrs["Description"] = Int16Desc[i]
-for i in range (len(Int8Keys)):
-    d = DataLogFile.create_dataset(Int8Keys[i], (counter, 1),
-                                   data=np.array(Int8Data[i]), dtype='int8')
-    d.attrs["Description"] = Int8Desc[i]
-for i in range (len(FloatKeys)):
-    d = DataLogFile.create_dataset(FloatKeys[i], (counter, 1),
-                                   data=np.array(FloatData[i]), dtype='float')
-    d.attrs["Description"] = FloatDesc[i]
-for i in range (len(DoubleKeys)):
-    d = DataLogFile.create_dataset(DoubleKeys[i], (counter, 1),
-                                   data=np.array(DoubleData[i]), dtype='double')
-    d.attrs["Description"] = DoubleDesc[i]
+for j, t in enumerate(types):
+    for i in range (len(storage[t]['keys'])):
+        d = DataLogFile.create_dataset(storage[t]['keys'][i], (counter, 1),
+                                       data=np.array(storage[t]['data'][i]),
+                                       dtype=np_types[j])
+        d.attrs["Description"] = storage[t]['desc'][i]
 DataLogFile.close()
 print("Finished writing hdf5 file:", DataLogName)
