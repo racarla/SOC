@@ -49,7 +49,7 @@ class BfsMessage:
             if ByteRead == Header[Self._ParserState]:
                 Self._Buffer.append(ByteRead)
                 Self._ParserState += 1
-                return False, Self._ReturnDataType, Self._ReturnPayload
+            return False, Self._ReturnDataType, Self._ReturnPayload
         elif Self._ParserState == 2:
             Self._Buffer.append(ByteRead)
             Self._ParserState += 1
@@ -74,7 +74,6 @@ class BfsMessage:
             Self._Checksum = Self.CalcChecksum(Self._Buffer)
             if ByteRead == Self._Checksum[0]:
                 Self._ParserState += 1
-                return False, Self._ReturnDataType, Self._ReturnPayload
             else:
                 Self._ParserState = 0
                 Self._Length = 0
@@ -82,7 +81,7 @@ class BfsMessage:
                 Self._Payload = []
                 Self._LengthBuffer = []
                 Self._Checksum = [0,0]
-                return False, Self._ReturnDataType, Self._ReturnPayload
+            return False, Self._ReturnDataType, Self._ReturnPayload
         elif Self._ParserState == (Self._Length + HeaderLength + 1):
             if ByteRead == Self._Checksum[1]:
                 Self._ReturnPayload = Self._Payload
@@ -210,11 +209,7 @@ for k in range(0,len(FileContentsBinary)):
     #if counter > 500:
     #    break
     ReadByte = FileContentsBinary[k]
-    result = DataLogMessage.Parse(ReadByte)
-    if result != None:
-        ValidMessage, DataType, Payload = result
-    else:
-        ValidMessage = False
+    ValidMessage, DataType, Payload = DataLogMessage.Parse(ReadByte)
     if ValidMessage:
         # match 'Key' token
         mkey = pkey.match(DataLogMessage.DataTypes[DataType])
@@ -235,6 +230,7 @@ for k in range(0,len(FileContentsBinary)):
                 Desc += chr(Payload[i])
             dtype = mdesc[1]
             storage[dtype]['desc'].append(Desc)
+        # match 'Data' token
         if DataLogMessage.DataTypes[DataType] == 'Data':
             offset = 0
             for t in types:
@@ -243,7 +239,6 @@ for k in range(0,len(FileContentsBinary)):
                 for i in range(len(vals)):
                     storage[t]['data'][i].append(vals[i])
                 offset += storage[t]['sizeof']
-            # DataLogFile.flush()
             counter += 1
             if (counter % 500) == 0:
                 print("Scanning:", "%.0f seconds" % (counter/50))
