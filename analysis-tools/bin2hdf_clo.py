@@ -164,36 +164,36 @@ except:
 # for each type we store:
 #   the numpy type string
 #   the pack/unpack type code
-#   the sizeof in bytes
 #   a list of keys for each column of this data type
 #   a list of descriptions for each column of this data type
 #   a list of data values (another list) for each column of this data type
 
 storage = {}
 types = []
-def init_type(type, np_type, packstr, sizeof):
+def init_type(type, np_type, packcode):
     global storage
     global types
     types.append(type)
     storage[type] = { 'np_type': np_type,
-                      'packstr': packstr,
-                      'sizeof': sizeof,
+                      'packcode': packcode,
+                      'packstr': '',
+                      'sizeof': 0,
                       'keys': [],
                       'desc': [],
                       'data': [] }
 
 # the order of initialization is important here and must match the order
 # in the binary data file.
-init_type('Uint64', np_type='uint64', packstr='Q', sizeof=8)
-init_type('Uint32', np_type='uint32', packstr='I', sizeof=4)
-init_type('Uint16', np_type='uint16', packstr='H', sizeof=2)
-init_type('Uint8', np_type='uint8', packstr='B', sizeof=1)
-init_type('Int64', np_type='int64', packstr='q', sizeof=8)
-init_type('Int32', np_type='int32', packstr='i', sizeof=4)
-init_type('Int16', np_type='int16', packstr='h', sizeof=2)
-init_type('Int8', np_type='int8', packstr='b', sizeof=1)
-init_type('Float', np_type='float', packstr='f', sizeof=4)
-init_type('Double', np_type='double', packstr='d', sizeof=8)
+init_type('Uint64', np_type='uint64', packcode='Q')
+init_type('Uint32', np_type='uint32', packcode='I')
+init_type('Uint16', np_type='uint16', packcode='H')
+init_type('Uint8', np_type='uint8', packcode='B')
+init_type('Int64', np_type='int64', packcode='q')
+init_type('Int32', np_type='int32', packcode='i')
+init_type('Int16', np_type='int16', packcode='h')
+init_type('Int8', np_type='int8', packcode='b')
+init_type('Float', np_type='float', packcode='f')
+init_type('Double', np_type='double', packcode='d')
 
 # instance of BfsMessage class to parse file
 DataLogMessage = BfsMessage()
@@ -207,8 +207,8 @@ FileContentsBinary = bytearray(FileContents)
 print('parsing binary file...')
 for k in range(0,len(FileContentsBinary)):
     #for testing/debugging
-    # if counter > 500:
-    #     break
+    #if counter > 500:
+    #    break
     ReadByte = FileContentsBinary[k]
     result = DataLogMessage.Parse(ReadByte)
     if result != None:
@@ -225,6 +225,8 @@ for k in range(0,len(FileContentsBinary)):
             mtype = mkey[1]
             storage[mtype]['keys'].append(KeyName)
             storage[mtype]['data'].append([])
+            storage[mtype]['packstr'] += storage[mtype]['packcode']
+            storage[mtype]['sizeof'] = struct.calcsize(storage[mtype]['packstr'])
         # match 'Desc' token
         mdesc = pdesc.match(DataLogMessage.DataTypes[DataType])
         if mdesc != None:
@@ -236,10 +238,11 @@ for k in range(0,len(FileContentsBinary)):
         if DataLogMessage.DataTypes[DataType] == 'Data':
             offset = 0
             for t in types:
-                form = '@' + storage[t]['packstr']
-                for i in range (len(storage[t]['keys'])):
-                    storage[t]['data'][i].append(struct.unpack_from(form, bytearray(Payload),offset)[0])
-                    offset += storage[t]['sizeof']
+                vals = struct.unpack_from(storage[t]['packstr'],
+                                          bytearray(Payload), offset)
+                for i in range(len(vals)):
+                    storage[t]['data'][i].append(vals[i])
+                offset += storage[t]['sizeof']
             # DataLogFile.flush()
             counter += 1
             if (counter % 500) == 0:
