@@ -207,8 +207,8 @@ FileContentsBinary = bytearray(FileContents)
 print('parsing binary file...')
 for k in range(0,len(FileContentsBinary)):
     #for testing/debugging
-    #if counter > 100:
-    #    break
+    # if counter > 500:
+    #     break
     ReadByte = FileContentsBinary[k]
     result = DataLogMessage.Parse(ReadByte)
     if result != None:
@@ -239,7 +239,7 @@ for k in range(0,len(FileContentsBinary)):
                 form = '@' + storage[t]['packstr']
                 for i in range (len(storage[t]['keys'])):
                     storage[t]['data'][i].append(struct.unpack_from(form, bytearray(Payload),offset)[0])
-                offset += storage[t]['sizeof']
+                    offset += storage[t]['sizeof']
             # DataLogFile.flush()
             counter += 1
             if (counter % 500) == 0:
