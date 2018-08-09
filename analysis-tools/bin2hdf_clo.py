@@ -38,9 +38,13 @@ class BfsMessage:
     payload = []
     length_buf = []
     checksum = [0,0]
-    DataTypes = ("Uint64Key","Uint32Key","Uint16Key","Uint8Key","Int64Key","Int32Key","Int16Key","Int8Key","FloatKey","DoubleKey","Uint64Desc","Uint32Desc","Uint16Desc","Uint8Desc","Int64Desc","Int32Desc","Int16Desc","Int8Desc","FloatDesc","DoubleDesc","Data")
+    DataTypes = ("Uint64Key", "Uint32Key", "Uint16Key", "Uint8Key", "Int64Key",
+                 "Int32Key", "Int16Key", "Int8Key", "FloatKey", "DoubleKey",
+                 "Uint64Desc", "Uint32Desc", "Uint16Desc", "Uint8Desc",
+                 "Int64Desc", "Int32Desc", "Int16Desc", "Int8Desc",
+                 "FloatDesc", "DoubleDesc", "Data")
     
-    def Parse(self,ByteRead):
+    def Parse(self, ByteRead):
         Header = bytearray([0x42,0x46])
         HeaderLength = 5;
         if self.state < 2:
@@ -66,7 +70,7 @@ class BfsMessage:
         elif self.state == 4:
             self.buf.append(ByteRead)
             self.length_buf.append(ByteRead)
-            self.length = struct.unpack_from('@H',bytearray(self.length_buf),0)[0]
+            self.length = struct.unpack_from('@H', bytearray(self.length_buf), 0)[0]
             self.state += 1
             return None, None
         elif self.state < (self.length + HeaderLength):
@@ -93,9 +97,9 @@ class BfsMessage:
             self.state = 0
             return None, None
 
-    def CalcChecksum(self,ByteArray):
+    def CalcChecksum(self, ByteArray):
         Checksum = [0,0]
-        for i in range(0,len(ByteArray)):
+        for i in range(0, len(ByteArray)):
             Checksum[0] = (Checksum[0] + ByteArray[i]) % 256
             Checksum[1] = (Checksum[1] + Checksum[0]) % 256
         return Checksum
@@ -135,7 +139,7 @@ else:
         DataLogName = DataLogBaseName + "%03d" % FileNameCounter + DataLogType
 print("Data log file name:", DataLogName)
 try:
-    DataLogFile = h5py.File(DataLogName,'w-',libver='earliest')
+    DataLogFile = h5py.File(DataLogName, 'w-', libver='earliest')
 except:
     print("Could not create output file:", args.output)
     sys.exit()
@@ -187,7 +191,7 @@ pdesc = re.compile('(.+)Desc')
 
 FileContentsBinary = bytearray(FileContents)
 print('parsing binary file...')
-for k in range(0,len(FileContentsBinary)):
+for k in range(0, len(FileContentsBinary)):
     #for testing/debugging
     #if counter > 500:
     #    break
