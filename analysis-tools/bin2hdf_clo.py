@@ -32,85 +32,68 @@ import sys
 
 # class for parsing Bfs messages
 class BfsMessage:
-    _ParserState = 0
-    _Length = 0
-    _ReturnDataType = 0
-    _Buffer = []
-    _Payload = []
-    _ReturnPayload = []
-    _LengthBuffer = []
-    _Checksum = [0,0]
+    state = 0
+    length = 0
+    buf = []
+    payload = []
+    length_buf = []
+    checksum = [0,0]
     DataTypes = ("Uint64Key","Uint32Key","Uint16Key","Uint8Key","Int64Key","Int32Key","Int16Key","Int8Key","FloatKey","DoubleKey","Uint64Desc","Uint32Desc","Uint16Desc","Uint8Desc","Int64Desc","Int32Desc","Int16Desc","Int8Desc","FloatDesc","DoubleDesc","Data")
     
-    def Parse(Self,ByteRead):
+    def Parse(self,ByteRead):
         Header = bytearray([0x42,0x46])
         HeaderLength = 5;
-        if Self._ParserState < 2:
-            if ByteRead == Header[Self._ParserState]:
-                Self._Buffer.append(ByteRead)
-                Self._ParserState += 1
-            return False, Self._ReturnDataType, Self._ReturnPayload
-        elif Self._ParserState == 2:
-            Self._Buffer.append(ByteRead)
-            Self._ParserState += 1
-            return False, Self._ReturnDataType, Self._ReturnPayload
-        elif Self._ParserState == 3:
-            Self._Buffer.append(ByteRead)
-            Self._LengthBuffer.append(ByteRead)
-            Self._ParserState += 1
-            return False, Self._ReturnDataType, Self._ReturnPayload
-        elif Self._ParserState == 4:
-            Self._Buffer.append(ByteRead)
-            Self._LengthBuffer.append(ByteRead)
-            Self._Length = struct.unpack_from('@H',bytearray(Self._LengthBuffer),0)[0]
-            Self._ParserState += 1
-            return False, Self._ReturnDataType, Self._ReturnPayload
-        elif Self._ParserState < (Self._Length + HeaderLength):
-            Self._Buffer.append(ByteRead)
-            Self._Payload.append(ByteRead)
-            Self._ParserState += 1
-            return False, Self._ReturnDataType, Self._ReturnPayload
-        elif Self._ParserState == (Self._Length + HeaderLength):
-            Self._Checksum = Self.CalcChecksum(Self._Buffer)
-            if ByteRead == Self._Checksum[0]:
-                Self._ParserState += 1
+        if self.state < 2:
+            if self.state == 0:
+                self.length = 0
+                self.buf = []
+                self.payload = []
+                self.length_buf = []
+                self.checksum = [0,0]
+            if ByteRead == Header[self.state]:
+                self.buf.append(ByteRead)
+                self.state += 1
+            return None, None
+        elif self.state == 2:
+            self.buf.append(ByteRead)
+            self.state += 1
+            return None, None
+        elif self.state == 3:
+            self.buf.append(ByteRead)
+            self.length_buf.append(ByteRead)
+            self.state += 1
+            return None, None
+        elif self.state == 4:
+            self.buf.append(ByteRead)
+            self.length_buf.append(ByteRead)
+            self.length = struct.unpack_from('@H',bytearray(self.length_buf),0)[0]
+            self.state += 1
+            return None, None
+        elif self.state < (self.length + HeaderLength):
+            self.buf.append(ByteRead)
+            self.payload.append(ByteRead)
+            self.state += 1
+            return None, None
+        elif self.state == (self.length + HeaderLength):
+            self.checksum = self.CalcChecksum(self.buf)
+            if ByteRead == self.checksum[0]:
+                self.state += 1
             else:
-                Self._ParserState = 0
-                Self._Length = 0
-                Self._Buffer = []
-                Self._Payload = []
-                Self._LengthBuffer = []
-                Self._Checksum = [0,0]
-            return False, Self._ReturnDataType, Self._ReturnPayload
-        elif Self._ParserState == (Self._Length + HeaderLength + 1):
-            if ByteRead == Self._Checksum[1]:
-                Self._ReturnPayload = Self._Payload
-                Self._ReturnDataType = Self._Buffer[2]
-                Self._ParserState = 0
-                Self._Length = 0
-                Self._Buffer = []
-                Self._Payload = []
-                Self._LengthBuffer = []
-                Self._Checksum = [0,0]
-                return True, Self._ReturnDataType, Self._ReturnPayload
+                self.state = 0
+            return None, None
+        elif self.state == (self.length + HeaderLength + 1):
+            if ByteRead == self.checksum[1]:
+                self.state = 0
+                DataType = self.DataTypes[self.buf[2]]
+                return DataType, self.payload
             else:
-                Self._ParserState = 0
-                Self._Length = 0
-                Self._Buffer = []
-                Self._Payload = []
-                Self._LengthBuffer = []
-                Self._Checksum = [0,0]
-                return False, Self._ReturnDataType, Self._ReturnPayload
+                self.state = 0
+                return None, None
         else:
-            Self._ParserState = 0
-            Self._Length = 0
-            Self._Buffer = []
-            Self._Payload = []
-            Self._LengthBuffer = []
-            Self._Checksum = [0,0]
-            return False, Self._ReturnDataType, Self._ReturnPayload
+            self.state = 0
+            return None, None
 
-    def CalcChecksum(Self,ByteArray):
+    def CalcChecksum(self,ByteArray):
         Checksum = [0,0]
         for i in range(0,len(ByteArray)):
             Checksum[0] = (Checksum[0] + ByteArray[i]) % 256
@@ -209,10 +192,10 @@ for k in range(0,len(FileContentsBinary)):
     #if counter > 500:
     #    break
     ReadByte = FileContentsBinary[k]
-    ValidMessage, DataType, Payload = DataLogMessage.Parse(ReadByte)
-    if ValidMessage:
+    DataType, Payload = DataLogMessage.Parse(ReadByte)
+    if DataType:
         # match 'Key' token
-        mkey = pkey.match(DataLogMessage.DataTypes[DataType])
+        mkey = pkey.match(DataType)
         if mkey != None:
             KeyName = ""
             for i in range(0,len(Payload)):
@@ -223,7 +206,7 @@ for k in range(0,len(FileContentsBinary)):
             storage[mtype]['packstr'] += storage[mtype]['packcode']
             storage[mtype]['sizeof'] = struct.calcsize(storage[mtype]['packstr'])
         # match 'Desc' token
-        mdesc = pdesc.match(DataLogMessage.DataTypes[DataType])
+        mdesc = pdesc.match(DataType)
         if mdesc != None:
             Desc = ""
             for i in range(0,len(Payload)):
@@ -231,7 +214,7 @@ for k in range(0,len(FileContentsBinary)):
             dtype = mdesc[1]
             storage[dtype]['desc'].append(Desc)
         # match 'Data' token
-        if DataLogMessage.DataTypes[DataType] == 'Data':
+        if DataType == 'Data':
             offset = 0
             for t in types:
                 vals = struct.unpack_from(storage[t]['packstr'],
