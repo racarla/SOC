@@ -77,7 +77,7 @@ private:
   Config config_;
   Data data_;
   uint64_t Time0_us = 0;
-  float ElapsedTime_us = 0;
+  float ExciteTime_s = 0;
   bool TimeLatch = false;
 };
 
@@ -125,7 +125,7 @@ private:
   Config config_;
   Data data_;
   uint64_t Time0_us = 0;
-  float ElapsedTime_us = 0;
+  float ExciteTime_s = 0;
   bool TimeLatch = false;
 };
 
@@ -173,7 +173,7 @@ private:
   Config config_;
   Data data_;
   uint64_t Time0_us = 0;
-  float ElapsedTime_us = 0;
+  float ExciteTime_s = 0;
   bool TimeLatch = false;
 };
 
@@ -221,7 +221,7 @@ private:
   Config config_;
   Data data_;
   uint64_t Time0_us = 0;
-  float ElapsedTime_us = 0;
+  float ExciteTime_s = 0;
   bool TimeLatch = false;
 };
 
@@ -271,7 +271,7 @@ private:
   Config config_;
   Data data_;
   uint64_t Time0_us = 0;
-  float ElapsedTime_us = 0;
+  float ExciteTime_s = 0;
   bool TimeLatch = false;
 };
 
@@ -323,7 +323,7 @@ private:
   Config config_;
   Data data_;
   uint64_t Time0_us = 0;
-  float ElapsedTime_us = 0;
+  float ExciteTime_s = 0;
   bool TimeLatch = false;
 };
 
