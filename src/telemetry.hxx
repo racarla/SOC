@@ -145,7 +145,11 @@ struct ap_status
    int16_t groundtrack_deg;
    int16_t roll_deg;
    uint16_t Target_msl_ft;
+<<<<<<< Updated upstream
    int16_t ground_m;
+=======
+   uint16_t ground_m;
+>>>>>>> Stashed changes
    int16_t pitch_deg;
    int16_t airspeed_kt;
    uint16_t flight_timer;

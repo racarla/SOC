@@ -23,14 +23,14 @@
 TARGET_FLIGHT := flightcode
 TARGET_DATALOG := datalog-server
 TARGET_CAL := calibrate-surf
-TARGET_FILT := filter-test 
+TARGET_FILT := filter-test
 TARGET_TELEM := telemetry-server
 
 # compiler
 CXX := arm-linux-gnueabihf-g++-7
 
 # cxx flags
-override CXXFLAGS += -std=c++17 -O3 -Wno-psabi -I includes/
+override CXXFLAGS += -std=c++17 -O3 -g -Wno-psabi -I includes/
 
 # directory structure
 OBJDIR := obj
@@ -157,7 +157,7 @@ $(addprefix $(BINDIR)/,$(TARGET_TELEM)): $(OBJS_TELEM) | $(BINDIR)
 	@ echo "Bolder Flight Systems, by Design!"
 	@ echo "Copyright (c) 2018 Bolder Flight Systems"
 	@ echo "bolderflight.com"
-	@ echo ""	
+	@ echo ""
 
 $(addprefix $(BINDIR)/,$(TARGET_CAL)): $(OBJS_CAL) | $(BINDIR)
 	@ echo
