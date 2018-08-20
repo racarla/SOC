@@ -30,7 +30,7 @@ TARGET_TELEM := telemetry-server
 CXX := arm-linux-gnueabihf-g++-7
 
 # cxx flags
-override CXXFLAGS += -std=c++17 -O3 -g -Wno-psabi -I includes/
+override CXXFLAGS += -std=c++17 -O3 -Wno-psabi -I includes/
 
 # directory structure
 OBJDIR := obj
@@ -50,6 +50,7 @@ filter-functions.o \
 flow-control-functions.o \
 general-functions.o \
 generic-function.o \
+power.o \
 uNavINS.o \
 AirData.o \
 telemetry.o \
@@ -81,6 +82,7 @@ excitation-waveforms.o \
 filter-algorithms.o \
 filter-functions.o \
 flow-control-functions.o \
+power.o \
 general-functions.o \
 generic-function.o \
 uNavINS.o \
