@@ -110,15 +110,15 @@ GlobalData.PrettyPrint("/");
         // run mission
         Mission.Run();
         // get and set engaged sensor processing
-        SenProc.SetEngagedSensorProcessing(Mission.GetEnagagedSensorProcessing());
+        SenProc.SetEngagedSensorProcessing(Mission.GetEngagedSensorProcessing());
         // run sensor processing
         SenProc.Run();
         // get and set engaged and armed controllers
-        Control.SetEngagedController(Mission.GetEnagagedController());
+        Control.SetEngagedController(Mission.GetEngagedController());
         Control.SetArmedController(Mission.GetArmedController());
         // get and set engaged excitation
-        Excitation.SetEngagedExcitation(Mission.GetEnagagedExcitation());
-        if (Mission.GetEnagagedController()!="Fmu") {
+        Excitation.SetEngagedExcitation(Mission.GetEngagedExcitation());
+        if (Mission.GetEngagedController()!="Fmu") {
           // loop through control levels running excitations and control laws
           for (size_t i=0; i < Control.ActiveControlLevels(); i++) {
             // run excitation
@@ -134,22 +134,23 @@ GlobalData.PrettyPrint("/");
         // run armed control laws
         Control.RunArmed();
 
-float refV_ms = *GlobalData.GetValuePtr<float*>("/Control/refV_ms");
-float vel_mps = *GlobalData.GetValuePtr<float*>("/Sensor-Processing/vIAS_ms");
-float cmdTotEnergy = *GlobalData.GetValuePtr<float*>("/Control/cmdTotEnergy");
-float cmdMotor_nd = *GlobalData.GetValuePtr<float*>("/Control/cmdMotor_nd");
-
-float refAlt_m = *GlobalData.GetValuePtr<float*>("/Control/refAlt_m");
-float alt_m = *GlobalData.GetValuePtr<float*>("/Sensor-Processing/hBaro_m");
-float cmdDiffEnergy = *GlobalData.GetValuePtr<float*>("/Control/cmdDiffEnergy");
-float cmdPitch_rads = *GlobalData.GetValuePtr<float*>("/Control/cmdPitch_rads");
+// float refV_ms = *GlobalData.GetValuePtr<float*>("/Control/refV_ms");
+// float vel_mps = *GlobalData.GetValuePtr<float*>("/Sensor-Processing/vIAS_ms");
+// float cmdTotEnergy = *GlobalData.GetValuePtr<float*>("/Control/cmdTotEnergy");
+// float cmdMotor_nd = *GlobalData.GetValuePtr<float*>("/Control/cmdMotor_nd");
+//
+// float refAlt_m = *GlobalData.GetValuePtr<float*>("/Control/refAlt_m");
+// float alt_m = *GlobalData.GetValuePtr<float*>("/Sensor-Processing/hBaro_m");
+// float cmdDiffEnergy = *GlobalData.GetValuePtr<float*>("/Control/cmdDiffEnergy");
+// float cmdPitch_rads = *GlobalData.GetValuePtr<float*>("/Control/cmdPitch_rads");
 
 // std::cout << refV_ms << "\t" << vel_mps << "\t" <<  cmdTotEnergy << "\t" << cmdMotor_nd << "\t\t"  << refAlt_m << "\t" << alt_m << "\t" << cmdDiffEnergy << "\t" << cmdPitch_rads << std::endl;
+std::string CtrlEngaged = Mission.GetEngagedController();
+float tempMPU = *GlobalData.GetValuePtr<float*>("/Sensors/Fmu/Mpu9250/Temperature_C");
+float tempBME = *GlobalData.GetValuePtr<float*>("/Sensors/Fmu/Bme280/Temperature_C");
+// float vCellMin = *GlobalData.GetValuePtr<float*>("/Sensor-Processing/MinCellVolt_V");
 
-float refVD_ms = *GlobalData.GetValuePtr<float*>("/Control/refVd_ms");
-float vD_ms = *GlobalData.GetValuePtr<float*>("/Sensor-Processing/DownVelocity_ms");
-
-std::cout << refV_ms << "\t" << vel_mps << "\t" <<  cmdPitch_rads << "\t\t"  << refVD_ms << "\t" << vD_ms << "\t" << cmdMotor_nd << std::endl;
+std::cout << CtrlEngaged << "\t" << tempMPU << "\t" << tempBME << std::endl;
 
       }
       // run telemetry
