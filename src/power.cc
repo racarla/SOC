@@ -69,7 +69,6 @@ void MinCellVolt::Run(Mode mode) {
       MinVoltPerCell = VoltPerCell;
     }
   }
-
   data_.Output = MinVoltPerCell;
 }
 
