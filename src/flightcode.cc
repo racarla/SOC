@@ -134,7 +134,7 @@ GlobalData.PrettyPrint("/");
         // run armed control laws
         Control.RunArmed();
 
-// float refV_ms = *GlobalData.GetValuePtr<float*>("/Control/refV_ms");
+float refV_ms = *GlobalData.GetValuePtr<float*>("/Control/refV_ms");
 // float vel_mps = *GlobalData.GetValuePtr<float*>("/Sensor-Processing/vIAS_ms");
 // float cmdTotEnergy = *GlobalData.GetValuePtr<float*>("/Control/cmdTotEnergy");
 // float cmdMotor_nd = *GlobalData.GetValuePtr<float*>("/Control/cmdMotor_nd");
@@ -150,7 +150,7 @@ float tempMPU = *GlobalData.GetValuePtr<float*>("/Sensors/Fmu/Mpu9250/Temperatur
 float tempBME = *GlobalData.GetValuePtr<float*>("/Sensors/Fmu/Bme280/Temperature_C");
 // float vCellMin = *GlobalData.GetValuePtr<float*>("/Sensor-Processing/MinCellVolt_V");
 
-std::cout << CtrlEngaged << "\t" << tempMPU << "\t" << tempBME << std::endl;
+std::cout << refV_ms << "\t" << CtrlEngaged << "\t" << tempMPU << "\t" << tempBME << std::endl;
 
       }
       // run telemetry
