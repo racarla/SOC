@@ -56,52 +56,72 @@ int main(int argc, char* argv[]) {
   AircraftEffectors Effectors;
   DatalogClient Datalog;
   TelemetryClient Telemetry;
+
   /* initialize classes */
   std::cout << "Initializing software modules." << std::endl;
   std::cout << "\tInitializing FMU..." << std::flush;
   Fmu.Begin();
   std::cout << "done!" << std::endl;
+
   /* configure classes and register with global defs */
   std::cout << "Configuring aircraft." << std::endl;
   rapidjson::Document AircraftConfiguration;
   std::cout << "\tLoading configuration..." << std::flush;
   Config.LoadConfiguration(argv[1], &AircraftConfiguration);
   std::cout << "done!" << std::endl;
+
   std::cout << "\tConfiguring flight management unit..." << std::endl;
   Fmu.Configure(AircraftConfiguration,&GlobalData);
   std::cout << "\tdone!" << std::endl;
+  GlobalData.PrettyPrint("/Sensors/");
+  std::cout << std::endl;
+
   if (AircraftConfiguration.HasMember("Sensor-Processing")) {
     std::cout << "\tConfiguring sensor processing..." << std::flush;
     SenProc.Configure(AircraftConfiguration["Sensor-Processing"],&GlobalData);
     std::cout << "done!" << std::endl;
+    GlobalData.PrettyPrint("/Sensor-Processing/");
+    std::cout << std::endl;
+
     if (AircraftConfiguration.HasMember("Control")&&AircraftConfiguration.HasMember("Mission-Manager")&&AircraftConfiguration.HasMember("Effectors")) {
       std::cout << "\tConfiguring mission manager..." << std::flush;
       Mission.Configure(AircraftConfiguration["Mission-Manager"],&GlobalData);
       std::cout << "done!" << std::endl;
+      GlobalData.PrettyPrint("/Mission-Manager/");
+      std::cout << std::endl;
+
       std::cout << "\tConfiguring control laws..." << std::flush;
       Control.Configure(AircraftConfiguration["Control"],&GlobalData);
       std::cout << "done!" << std::endl;
+      GlobalData.PrettyPrint("/Control/");
+      std::cout << std::endl;
+
       std::cout << "\tConfiguring effectors..." << std::flush;
       Effectors.Configure(AircraftConfiguration["Effectors"],&GlobalData);
       std::cout << "done!" << std::endl;
+      GlobalData.PrettyPrint("/Effectors/");
+      std::cout << std::endl;
+
       if (AircraftConfiguration.HasMember("Excitation")) {
         std::cout << "\tConfiguring excitations..." << std::flush;
         Excitation.Configure(AircraftConfiguration["Excitation"],&GlobalData);
         std::cout << "done!" << std::endl;
+        GlobalData.PrettyPrint("/Excitation/");
+        std::cout << std::endl;
       }
     }
   }
+
   if (AircraftConfiguration.HasMember("Telemetry")) {
     std::cout << "\tConfiguring telemetry..." << std::flush;
     Telemetry.Configure(AircraftConfiguration["Telemetry"],&GlobalData);
     std::cout << "done!" << std::endl;
   }
+
   std::cout << "\tConfiguring datalog..." << std::flush;
   Datalog.RegisterGlobalData(GlobalData);
   std::cout << "done!" << std::endl;
   std::cout << "Entering main loop." << std::endl;
-
-GlobalData.PrettyPrint("/");
 
   /* main loop */
   while(1) {
@@ -134,10 +154,10 @@ GlobalData.PrettyPrint("/");
         // run armed control laws
         Control.RunArmed();
 
-float refV_ms = *GlobalData.GetValuePtr<float*>("/Control/refV_ms");
+// float refV_ms = *GlobalData.GetValuePtr<float*>("/Control/refV_ms");
 // float vel_mps = *GlobalData.GetValuePtr<float*>("/Sensor-Processing/vIAS_ms");
 // float cmdTotEnergy = *GlobalData.GetValuePtr<float*>("/Control/cmdTotEnergy");
-// float cmdMotor_nd = *GlobalData.GetValuePtr<float*>("/Control/cmdMotor_nd");
+float cmdMotor_nd = *GlobalData.GetValuePtr<float*>("/Control/cmdMotor_nd");
 //
 // float refAlt_m = *GlobalData.GetValuePtr<float*>("/Control/refAlt_m");
 // float alt_m = *GlobalData.GetValuePtr<float*>("/Sensor-Processing/hBaro_m");
@@ -147,10 +167,10 @@ float refV_ms = *GlobalData.GetValuePtr<float*>("/Control/refV_ms");
 // std::cout << refV_ms << "\t" << vel_mps << "\t" <<  cmdTotEnergy << "\t" << cmdMotor_nd << "\t\t"  << refAlt_m << "\t" << alt_m << "\t" << cmdDiffEnergy << "\t" << cmdPitch_rads << std::endl;
 std::string CtrlEngaged = Mission.GetEngagedController();
 float tempMPU = *GlobalData.GetValuePtr<float*>("/Sensors/Fmu/Mpu9250/Temperature_C");
-float tempBME = *GlobalData.GetValuePtr<float*>("/Sensors/Fmu/Bme280/Temperature_C");
-// float vCellMin = *GlobalData.GetValuePtr<float*>("/Sensor-Processing/MinCellVolt_V");
+// float tempBME = *GlobalData.GetValuePtr<float*>("/Sensors/Fmu/Bme280/Temperature_C");
+float vCellMin = *GlobalData.GetValuePtr<float*>("/Sensor-Processing/MinCellVolt_V");
 
-std::cout << refV_ms << "\t" << CtrlEngaged << "\t" << tempMPU << "\t" << tempBME << std::endl;
+std::cout << CtrlEngaged << "\t" << tempMPU << "\t" << vCellMin << "\t" << cmdMotor_nd << std::endl;
 
       }
       // run telemetry
