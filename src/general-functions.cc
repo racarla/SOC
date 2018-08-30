@@ -256,7 +256,7 @@ void LatchClass::Run(Mode mode) {
   switch(data_.Mode) {
     case GenericFunction::Mode::kEngage: {
       if (initLatch_ == false) {
-        initLatch_ == true;
+        initLatch_ = true;
         data_.Output = *config_.Input;
       }
       break;
