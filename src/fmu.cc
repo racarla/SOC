@@ -285,7 +285,7 @@ void FlightManagementUnit::ConfigureEffectors(const rapidjson::Value& Config) {
       Payload.push_back((uint8_t)ConfigString[j]);
     }
     SendMessage(Message::kConfigMesg,Payload);
-    sleep(6);
+    sleep(4);
   }
 }
 
