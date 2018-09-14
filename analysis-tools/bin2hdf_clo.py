@@ -125,24 +125,7 @@ except IOError:
 # Read binary file and close
 FileContents = BinaryFile.read()
 BinaryFile.close()
-
-# Create HDF5 file
-if args.output:
-    DataLogName = args.output
-else:
-    FileNameCounter = 0
-    DataLogBaseName = "data"
-    DataLogType = ".h5";
-    DataLogName = DataLogBaseName + "%03d" % FileNameCounter + DataLogType
-    while os.path.isfile(DataLogName):
-        FileNameCounter += 1
-        DataLogName = DataLogBaseName + "%03d" % FileNameCounter + DataLogType
-print("Data log file name:", DataLogName)
-try:
-    DataLogFile = h5py.File(DataLogName, 'w-', libver='earliest')
-except:
-    print("Could not create output file:", args.output)
-    sys.exit()
+print('read bytes:', len(FileContents))
 
 # build up our in memory data structures
 # storage is a top level map for each type
@@ -156,6 +139,8 @@ except:
 
 storage = {}
 types = []
+counter = 0
+
 def init_type(type, np_type, packcode):
     global storage
     global types
@@ -168,26 +153,66 @@ def init_type(type, np_type, packcode):
                       'desc': [],
                       'data': [] }
 
-# the order of initialization is important here and must match the order
-# in the binary data file.
-init_type('Uint64', np_type='uint64', packcode='Q')
-init_type('Uint32', np_type='uint32', packcode='I')
-init_type('Uint16', np_type='uint16', packcode='H')
-init_type('Uint8', np_type='uint8', packcode='B')
-init_type('Int64', np_type='int64', packcode='q')
-init_type('Int32', np_type='int32', packcode='i')
-init_type('Int16', np_type='int16', packcode='h')
-init_type('Int8', np_type='int8', packcode='b')
-init_type('Float', np_type='float', packcode='f')
-init_type('Double', np_type='double', packcode='d')
+def init_storage():
+    global storage
+    global types
+    global counter
+    storage = {}
+    types = []
+    counter = 0
+    # the order of initialization is important here and must match the order
+    # in the binary data file.
+    init_type('Uint64', np_type='uint64', packcode='Q')
+    init_type('Uint32', np_type='uint32', packcode='I')
+    init_type('Uint16', np_type='uint16', packcode='H')
+    init_type('Uint8', np_type='uint8', packcode='B')
+    init_type('Int64', np_type='int64', packcode='q')
+    init_type('Int32', np_type='int32', packcode='i')
+    init_type('Int16', np_type='int16', packcode='h')
+    init_type('Int8', np_type='int8', packcode='b')
+    init_type('Float', np_type='float', packcode='f')
+    init_type('Double', np_type='double', packcode='d')
 
+def write_storage():
+    # Create HDF5 file
+    if args.output:
+        DataLogName = args.output
+    else:
+        FileNameCounter = 0
+        DataLogBaseName = "data"
+        DataLogType = ".h5";
+        DataLogName = DataLogBaseName + "%03d" % FileNameCounter + DataLogType
+        while os.path.isfile(DataLogName):
+            FileNameCounter += 1
+            DataLogName = DataLogBaseName + "%03d" % FileNameCounter + DataLogType
+    print("Data log file name:", DataLogName)
+    try:
+        DataLogFile = h5py.File(DataLogName, 'w-', libver='earliest')
+    except:
+        print("Could not create output file:", args.output)
+        sys.exit()
+
+    print("Writing hdf5 file...")
+    for t in types:
+        for i in range (len(storage[t]['keys'])):
+            d = DataLogFile.create_dataset(storage[t]['keys'][i], (counter, 1),
+                                           data=np.array(storage[t]['data'][i]),
+                                           dtype=storage[t]['np_type'])
+            d.attrs["Description"] = storage[t]['desc'][i]
+    DataLogFile.close()
+    print("Finished writing hdf5 file:", DataLogName)
+    
 # instance of BfsMessage class to parse file
 DataLogMessage = BfsMessage()
 
+# create the working space
+init_storage()
+
 # parse byte array
-counter = 0
 pkey = re.compile('(.+)Key')
 pdesc = re.compile('(.+)Desc')
+
+data_latch = False
 
 FileContentsBinary = bytearray(FileContents)
 print('parsing binary file...')
@@ -201,6 +226,10 @@ for k in range(0, len(FileContentsBinary)):
         # match 'Key' token
         mkey = pkey.match(DataType)
         if mkey != None:
+            if data_latch:
+                write_storage()
+                init_storage()
+                data_latch = False
             KeyName = ""
             for i in range(0,len(Payload)):
                 KeyName += chr(Payload[i])
@@ -219,6 +248,7 @@ for k in range(0, len(FileContentsBinary)):
             storage[dtype]['desc'].append(Desc)
         # match 'Data' token
         if DataType == 'Data':
+            data_latch = True
             offset = 0
             for t in types:
                 vals = struct.unpack_from(storage[t]['packstr'],
@@ -228,14 +258,6 @@ for k in range(0, len(FileContentsBinary)):
                 offset += storage[t]['sizeof']
             counter += 1
             if (counter % 500) == 0:
-                print("Scanning:", "%.0f seconds" % (counter/50))
-                
-print("Writing hdf5 file...")
-for t in types:
-    for i in range (len(storage[t]['keys'])):
-        d = DataLogFile.create_dataset(storage[t]['keys'][i], (counter, 1),
-                                       data=np.array(storage[t]['data'][i]),
-                                       dtype=storage[t]['np_type'])
-        d.attrs["Description"] = storage[t]['desc'][i]
-DataLogFile.close()
-print("Finished writing hdf5 file:", DataLogName)
+                print("Scanning:", "%.0f seconds (%d bytes)" % (counter/50, k))
+
+write_storage()
