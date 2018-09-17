@@ -197,7 +197,9 @@ def write_storage():
         for i in range (len(storage[t]['keys'])):
             d = DataLogFile.create_dataset(storage[t]['keys'][i], (counter, 1),
                                            data=np.array(storage[t]['data'][i]),
-                                           dtype=storage[t]['np_type'])
+                                           dtype=storage[t]['np_type'],
+                                           compression="gzip",
+                                           compression_opts=9)
             d.attrs["Description"] = storage[t]['desc'][i]
     DataLogFile.close()
     print("Finished writing hdf5 file:", DataLogName)
