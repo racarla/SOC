@@ -27,7 +27,7 @@ TARGET_FILT := filter-test
 TARGET_TELEM := telemetry-server
 
 # compiler
-CXX := arm-linux-gnueabihf-g++-7
+CXX := arm-linux-gnueabihf-g++-8
 
 # cxx flags
 override CXXFLAGS += -std=c++17 -O3 -Wno-psabi -I includes/
@@ -39,6 +39,10 @@ SRCDIR := src
 
 # flight code objects
 OBJECTS_FLIGHT := \
+wgs84.o \
+waypoint.o \
+route.o \
+route_mgr.o \
 ins-functions.o \
 airdata-functions.o \
 allocation-functions.o \
