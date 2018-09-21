@@ -108,7 +108,7 @@ int main(int argc, char* argv[]) {
   telnet.open();
   std::cout << "Telnet interface opened on port 6500" << std::endl;
   
-  GlobalData.PrettyPrint("/");
+GlobalData.PrettyPrint("/");
 
   /* main loop */
   while(1) {
