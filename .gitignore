@@ -38,3 +38,6 @@
 # data logs
 *.bin
 *.h5
+
+# emacs droppings
+*~
