@@ -67,7 +67,7 @@ struct filterPack //BdddfhhhhhhhhhhhhBB
    int16_t ay_bias;
    int16_t az_bias;
    uint8_t sequence_num;
-   uint8_t status; //always 0 
+   uint8_t status; //always 0
 };
 
 struct ImunodePack //BdfffffffffhB
@@ -84,7 +84,7 @@ struct ImunodePack //BdfffffffffhB
    float hy;
    float hz;
    int16_t temp_C;
-   uint8_t status; 
+   uint8_t status;
 };
 
 struct numactPack //BdhhHhhhhhB
@@ -137,15 +137,15 @@ struct gpsPack
    uint8_t fixType;
 };
 
-struct ap_status 
+struct ap_status
 {
    uint8_t index;
-   int8_t frame_time;
-   uint8_t flags;//?
+   double frame_time;
+   uint8_t flags; //?
    int16_t groundtrack_deg;
    int16_t roll_deg;
    uint16_t Target_msl_ft;
-   uint16_t ground_m;  
+   int16_t ground_m;
    int16_t pitch_deg;
    int16_t airspeed_kt;
    uint16_t flight_timer;
@@ -215,7 +215,7 @@ class TelemetryClient {
       float *Channels[16];
       bool *FailSafe;
       uint64_t *LostFrames;
-    };    
+    };
     struct ImuDataPtr{
       float *Ax, *Ay, *Az;
       float *Gx, *Gy, *Gz;
@@ -229,7 +229,7 @@ class TelemetryClient {
       float *Gxb,*Gyb,*Gzb;
       float *Pitch,*Roll,*Yaw,*Heading,*Track;
       double *Lat,*Lon,*Alt;
-      double *Vn,*Ve,*Vd;
+      float *Vn,*Ve,*Vd;
     };
     struct DataPtr{
       TimeDataPtr Time;
@@ -279,7 +279,7 @@ class TelemetryClient {
       float Channels[16];
       bool FailSafe;
       uint64_t LostFrames;
-    };    
+    };
     struct ImuData{
       float Ax, Ay, Az;
       float Gx, Gy, Gz;
@@ -371,7 +371,7 @@ class TelemetryServer {
       float Channels[16];
       bool FailSafe;
       uint64_t LostFrames;
-    };    
+    };
     struct ImuData{
       float Ax, Ay, Az;
       float Gx, Gy, Gz;
@@ -416,7 +416,6 @@ class TelemetryServer {
 
    int count;
    int num2 = 1;
-   int portCode = FileDesc_;
 
    void update(const Data &DataRef);
 

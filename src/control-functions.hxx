@@ -33,9 +33,10 @@ configuration below. See generic-function.hxx for more information
 on the methods and modes. */
 
 /*
-PID Class - PID and PID2 control law
+PID2 Class - PID2 control law
 Example JSON configuration:
 {
+  "Type": "PID2",
   "Output": "OutputName",
   "Reference": "ReferenceName",
   "Feedback": "FeedbackName",
@@ -70,7 +71,7 @@ Where:
 Data types for all input and output values are float.
 */
 
-class PIDClass: public GenericFunction {
+class PID2Class: public GenericFunction {
   public:
     void Configure(const rapidjson::Value& Config,std::string RootPath,DefinitionTree *DefinitionTreePtr);
     void Initialize();
@@ -83,23 +84,80 @@ class PIDClass: public GenericFunction {
       float *Feedback;
       float *dt;
       float SampleTime;
-      bool UseSampleTime = false;
+      bool UseFixedTimeSample = false;
     };
     struct Data {
       uint8_t Mode = kStandby;
       float Output = 0.0f;
       int8_t Saturated = 0;
     };
-    __PIDClass PIDClass_;
+    __PID2Class PID2Class_;
     Config config_;
     Data data_;
-    std::string ReferenceKey_,FeedbackKey_,SampleTimeKey_,ModeKey_,SaturatedKey_,OutputKey_;
+    std::string ReferenceKey_,FeedbackKey_,SampleTimeKey_;
+};
+
+/*
+PID Class - PID control law
+Example JSON configuration:
+{
+  "Type": "PID",
+  "Output": "OutputName",
+  "Reference": "ReferenceName",
+  "Sample-Time": "SampleTime" or X,
+  "Time-Constant": X,
+  "Gains": {
+    "Proportional": Kp,
+    "Integral": Ki,
+    "Derivative": Kd,
+  },
+  "Limits": {
+    "Upper": X,
+    "Lower": X
+  }
+}
+Where:
+   * Output gives a convenient name for the block (i.e. PitchControl).
+   * Reference is the full path name of the reference signal.
+   * Sample-Time is either: the full path name of the sample time signal in seconds,
+     or a fixed value sample time in seconds.
+   * Time-Constant is the time constant for the derivative filter.
+     If a time constant is not specified, then no filtering is used.
+   * Gains specifies the proportional derivative and integral gains.
+   * Limits are optional and saturate the output if defined.
+Data types for all input and output values are float.
+*/
+
+class PIDClass: public GenericFunction {
+  public:
+    void Configure(const rapidjson::Value& Config,std::string RootPath,DefinitionTree *DefinitionTreePtr);
+    void Initialize();
+    bool Initialized();
+    void Run(Mode mode);
+    void Clear(DefinitionTree *DefinitionTreePtr);
+  private:
+    struct Config {
+      float *Reference;
+      float *dt;
+      float SampleTime;
+      bool UseFixedTimeSample = false;
+    };
+    struct Data {
+      uint8_t Mode = kStandby;
+      float Output = 0.0f;
+      int8_t Saturated = 0;
+    };
+    __PID2Class PID2Class_;
+    Config config_;
+    Data data_;
+    std::string ReferenceKey_,SampleTimeKey_;
 };
 
 /*
 SS Class - State Space
 Example JSON configuration:
 {
+  "Type": "SS",
   "Name": "Name",
   "Inputs": ["InputNames"],
   "Outputs": ["OutputNames"],
@@ -124,20 +182,13 @@ Where:
 
 Data types for all input and output values are float.
 
-The implemented algorithm assumes a discrete state space model, with variable dt.
-x[k+1] = dt * (Ad*x + Bd*u);
+The implemented algorithm uses a discrete state space model, with variable dt.
+The A and B matrices supplied are the continuous form, a simple zero-order hold is used to compute the discrete form.
+xDot = A*x + B*u;
 y = C*x + D*u;
-  where:  Ad = (Ac + I);
-          Bd = B;
-
-If providing a value (dt) or source (dt = t - tPrev) for Sample-Time:
-Compute the discrete SS from the continuous SS as:
-  sysD = c2d(sysC, 1, 'zoh'); % use dt = 1 for c2d to allow variable sample time
-
-If the c2d was performed with a non-one value, dt,
-  sysD = c2d(sysC, dt, 'zoh'); % use dt as nominal framerate for c2d to allow variable sample time
-the set Sample-Time to 1.0.
-
+  where:  Ad = (Ac*dt + I);
+          Bd = B*dt;
+Thus, x[k+1] = Ad*x + Bd*u;
 */
 
 class SSClass: public GenericFunction {
@@ -158,9 +209,10 @@ class SSClass: public GenericFunction {
       Eigen::MatrixXf D;
       Eigen::VectorXf yMin;
       Eigen::VectorXf yMax;
-      float *dt;
-      float SampleTime;
-      bool UseSampleTime = false;
+      float dt = 0;
+      float* TimeSource = 0;
+      float timePrev = 0;
+      bool UseFixedTimeSample = false;
     };
     struct Data {
       uint8_t Mode = kStandby;
@@ -170,7 +222,64 @@ class SSClass: public GenericFunction {
     __SSClass SSClass_;
     Config config_;
     Data data_;
-    std::vector<std::string> InputKeys_, OutputKeys_, SaturatedKeys_;
-    std::string ModeKey_, SampleTimeKey_;
+    std::vector<std::string> InputKeys_;
+    std::string TimeSourceKey_;
+};
+
+/*
+Tecs Class - Total Energy Control System
+Example JSON configuration:
+{
+  "Type": "Tecs",
+  "mass_kg": x,
+  "weight_bal": x,
+  "max_mps": x,
+  "min_mps": x,
+  "RefSpeed": "RefSpeed",
+  "RefAltitude": "RefAltitude",
+  "FeedbackSpeed": "FeedbackSpeed",
+  "FeedbackAltitude": "FeedbackAltitude",
+  "OutputTotal": "OutputTotal",
+  "OutputDiff": "OutputDiff"
+}
+Where:
+   * mass_kg is the total aircraft weight in kg
+   * weight_bal is a value = [0.0 - 2.0] with 1.0 being a good starting point.
+     0.0 = elevator controls speed only, 2.0 = elevator controls altitude only
+   * min_mps: the system will not command a pitch angle that causes the
+     airspeed to drop below min_mps, even with zero throttle.
+   * max_mps: the system will not command a combination of pitch and throttle
+     that will cause the airspeed to exceed this value
+   * In either case it is possible to momentarily bust these limits, but the
+     system will always be driving the airspeed back within the specified limits
+
+Data types for all input and output values are float.
+
+*/
+
+class TecsClass: public GenericFunction {
+  public:
+    void Configure(const rapidjson::Value& Config,std::string RootPath,DefinitionTree *DefinitionTreePtr);
+    void Initialize();
+    bool Initialized();
+    void Run(Mode mode);
+    void Clear(DefinitionTree *DefinitionTreePtr);
+  private:
+    float *ref_vel_mps;
+    float *ref_agl_m;
+    float *vel_mps;
+    float *agl_m;
+    float error_total;
+    float error_diff;
+
+    bool initFlag = false;
+    float mass_kg = 0.0;
+    float weight_bal = 1.0;
+    float min_mps = 0.0;
+    float max_mps;
+    uint8_t mode = kStandby;
+    int8_t error_totalSat = 0;
+    int8_t error_diffSat = 0;
+
 };
 #endif

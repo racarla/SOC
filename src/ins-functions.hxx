@@ -30,7 +30,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SO
 #include <sys/time.h>
 #include <iostream>
 
-/* 
+/*
 15 State EKF INS - 15 State Extended Kalman Filter Inertial Navigation System,
 Estimates inertial position and velocity and estimates gyro and accelerometer bias
 using GPS and IMU input
@@ -42,7 +42,7 @@ Example JSON configuration:
   "GPS": X,
   "IMU": X
 }
-Where: 
+Where:
    * Output gives a convenient name for the block (i.e. EKF).
    * Time is the time data source
    * GPS is the GPS data source
@@ -74,7 +74,7 @@ class Ekf15StateIns: public GenericFunction {
       float Gxb,Gyb,Gzb = 0.0f;
       float Pitch,Roll,Yaw,Heading,Track = 0.0f;
       double Lat,Lon,Alt = 0;
-      double Vn,Ve,Vd = 0;
+      float Vn,Ve,Vd = 0;
     };
     Config config_;
     Data data_;

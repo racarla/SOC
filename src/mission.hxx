@@ -48,10 +48,10 @@ class MissionManager {
     };
     void Configure(const rapidjson::Value& Config, DefinitionTree *DefinitionTreePtr);
     void Run();
-    std::string GetEnagagedSensorProcessing();
-    std::string GetEnagagedController();
+    std::string GetEngagedSensorProcessing();
+    std::string GetEngagedController();
     std::string GetArmedController();
-    std::string GetEnagagedExcitation();
+    std::string GetEngagedExcitation();
   private:
     struct Configuration {
       struct Switch {
@@ -86,9 +86,10 @@ class MissionManager {
     size_t NextTestPointIndex_ = 0;
 
     std::string EngagedSensorProcessing_ = "Baseline";
-    std::string EnagagedController_ = "Fmu";
+    std::string EngagedController_ = "Fmu";
     std::string ArmedController_ = "Fmu";
-    std::string EnagagedExcitation_ = "None";
+    std::string EngagedExcitation_ = "None";
+    bool EngagedExcitationFlag_ = false;
 
     std::map<std::string,TestPointDefinition> TestPoints_;
 };

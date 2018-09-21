@@ -20,9 +20,9 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SO
 
 #include "filter-algorithms.hxx"
 
-void __GeneralFilter::Configure(std::vector<float> a,std::vector<float> b) {
-  config_.a = a;
+void __GeneralFilter::Configure(std::vector<float> b,std::vector<float> a) {
   config_.b = b;
+  config_.a = a;
   states_.x.resize(config_.b.size());
   states_.y.resize(config_.a.size());
   // scale all a and b by a[0] if available
@@ -42,10 +42,10 @@ void __GeneralFilter::Configure(std::vector<float> a,std::vector<float> b) {
 float __GeneralFilter::Run(float input) {
   // shift all x and y values to the right 1
   if (states_.x.size()>0) {
-    std::rotate(states_.x.data(),states_.x.data()+states_.x.size()-1,states_.x.data()+states_.x.size());
+    std::rotate(states_.x.data(), states_.x.data()+states_.x.size()-1, states_.x.data()+states_.x.size());
   }
   if (states_.y.size() > 0) {
-    std::rotate(states_.y.data(),states_.y.data()+states_.y.size()-1,states_.y.data()+states_.y.size());
+    std::rotate(states_.y.data(), states_.y.data()+states_.y.size()-1, states_.y.data()+states_.y.size());
   }
   // grab the newest x value
   states_.x[0] = input;

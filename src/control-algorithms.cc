@@ -1,7 +1,7 @@
 
 #include "control-algorithms.hxx"
 
-void __PIDClass::Configure(float Kp, float Ki, float Kd, float Tf, float b, float c, bool SatFlag, float OutMax, float OutMin) {
+void __PID2Class::Configure(float Kp, float Ki, float Kd, float b, float c, float Tf, bool SatFlag, float OutMax, float OutMin) {
   Clear();  // Set Defaults
 
   Kp_ = Kp;
@@ -15,24 +15,28 @@ void __PIDClass::Configure(float Kp, float Ki, float Kd, float Tf, float b, floa
   OutMin_ = OutMin;
 }
 
-void __PIDClass::Run(GenericFunction::Mode mode,float Reference,float Feedback,float dt,float *Output,int8_t *Saturated) {
+void __PID2Class::Run(GenericFunction::Mode mode,float Reference,float Feedback,float dt,float *Output,int8_t *Saturated) {
 
   // error for proportional
   ProportionalError_ = b_ * Reference - Feedback;
+
   // error for integral
   IntegralError_ = Reference - Feedback;
+
   // error for derivative
   DerivativeError_ = c_ * Reference - Feedback;
 
   mode_ = mode;
   switch(mode_) {
     case GenericFunction::Mode::kStandby: {
+      initLatch_ = false;
       break;
     }
     case GenericFunction::Mode::kArm: {
       Reset();
       ComputeDerivative(dt);
       InitializeState(0.0f);
+      initLatch_ = true;
       CalculateCommand();
       break;
     }
@@ -43,6 +47,10 @@ void __PIDClass::Run(GenericFunction::Mode mode,float Reference,float Feedback,f
     }
     case GenericFunction::Mode::kEngage: {
       ComputeDerivative(dt);
+      if (initLatch_ == false) {
+        InitializeState(0.0f);
+        initLatch_ = true;
+      }
       UpdateState(dt);
       CalculateCommand();
       break;
@@ -52,16 +60,17 @@ void __PIDClass::Run(GenericFunction::Mode mode,float Reference,float Feedback,f
   *Saturated = Saturated_;
 }
 
-void __PIDClass::InitializeState(float Command) {
+void __PID2Class::InitializeState(float Command) {
   // Protect for Ki == 0
   if (Ki_ != 0.0f) {
-    IntegralErrorState_ = (Command - (Kp_*ProportionalError_ + Kd_*DerivativeErrorState_)) / Ki_;
+    // IntegralErrorState_ = (Command - (Kp_*ProportionalError_ + Kd_*DerivativeErrorState_)) / Ki_;
+    IntegralErrorState_ = (Command - (Kp_*ProportionalError_)) / Ki_; // Ignore the derivative term to reduce noise on limits
   } else {
     IntegralErrorState_ = 0.0f;
   }
 }
 
-void __PIDClass::ComputeDerivative(float dt) {
+void __PID2Class::ComputeDerivative(float dt) {
 
   float DerivativeErrorChange = DerivativeError_ - PreviousDerivativeError_;
   float DerivativeFiltVal = 0.0f;
@@ -81,7 +90,7 @@ void __PIDClass::ComputeDerivative(float dt) {
   PreviousDerivativeError_ = DerivativeError_;
 }
 
-void __PIDClass::UpdateState(float dt) {
+void __PID2Class::UpdateState(float dt) {
   // Protect for unlimited windup when Ki == 0
   if (Ki_ != 0.0f) {
     IntegralErrorState_ += (dt*IntegralError_);
@@ -90,7 +99,7 @@ void __PIDClass::UpdateState(float dt) {
   }
 }
 
-void __PIDClass::CalculateCommand() {
+void __PID2Class::CalculateCommand() {
   float ProportionalCommand = Kp_*ProportionalError_;
   float IntegralCommand = Ki_*IntegralErrorState_;
   float DerivativeCommand = Kd_*DerivativeErrorState_;
@@ -115,7 +124,7 @@ void __PIDClass::CalculateCommand() {
   }
 }
 
-void __PIDClass::Reset() {
+void __PID2Class::Reset() {
   // Reset internal values
   ProportionalError_ = 0.0f;
   DerivativeError_ = 0.0f;
@@ -128,9 +137,10 @@ void __PIDClass::Reset() {
 
   // reset mode
   mode_ = GenericFunction::Mode::kStandby;
+  initLatch_ = false;
 }
 
-void __PIDClass::Clear() {
+void __PID2Class::Clear() {
   Reset();
 
   Kp_ = 1.0f;
@@ -149,7 +159,7 @@ void __PIDClass::Clear() {
 
 
 /* State Space */
-void __SSClass::Configure(Eigen::MatrixXf A, Eigen::MatrixXf B, Eigen::MatrixXf C, Eigen::MatrixXf D, bool SatFlag, Eigen::VectorXf yMax, Eigen::VectorXf yMin) {
+void __SSClass::Configure(Eigen::MatrixXf A, Eigen::MatrixXf B, Eigen::MatrixXf C, Eigen::MatrixXf D, float dt, bool SatFlag, Eigen::VectorXf yMax, Eigen::VectorXf yMin) {
   Clear(); // Clear and set to defaults
 
   A_ = A;
@@ -173,8 +183,13 @@ void __SSClass::Configure(Eigen::MatrixXf A, Eigen::MatrixXf B, Eigen::MatrixXf 
 
   // Compute the Inverse of C
   // Pseduo-Inverse using singular value decomposition
-  CA_inv_ = (C_ * A_).jacobiSvd(Eigen::ComputeThinU | Eigen::ComputeThinV).solve( Eigen::MatrixXf::Identity(numY, numY)); // Jacobi SVD
+  Eigen::MatrixXf Ix = Eigen::MatrixXf::Identity(numX, numX);
+  Eigen::MatrixXf Iy = Eigen::MatrixXf::Identity(numY, numY);
+  CA_inv_ = (C_ * (A_*dt + Ix)).jacobiSvd(Eigen::ComputeThinU | Eigen::ComputeThinV).solve(Iy); // Jacobi SVD
+
+  // Pre-compute C*B
   CB_ = C_*B_;
+  CB_.resize(numY, numU);
 }
 
 void __SSClass::Run(GenericFunction::Mode mode, Eigen::VectorXf u, float dt, Eigen::VectorXf *y, Eigen::VectorXi *ySat) {
@@ -182,11 +197,13 @@ void __SSClass::Run(GenericFunction::Mode mode, Eigen::VectorXf u, float dt, Eig
 
   switch(mode_) {
     case GenericFunction::Mode::kStandby: {
+      initLatch_ = false;
       break;
     }
     case GenericFunction::Mode::kArm: {
       Reset();
       InitializeState(u, dt);
+      initLatch_ = true;
       UpdateState(u, dt);
       OutputEquation(u, dt);
       break;
@@ -196,6 +213,10 @@ void __SSClass::Run(GenericFunction::Mode mode, Eigen::VectorXf u, float dt, Eig
       break;
     }
     case GenericFunction::Mode::kEngage: {
+      if (initLatch_ == false) {
+        InitializeState(u, dt);
+        initLatch_ = true;
+      }
       UpdateState(u, dt);
       OutputEquation(u, dt);
       break;
@@ -206,11 +227,14 @@ void __SSClass::Run(GenericFunction::Mode mode, Eigen::VectorXf u, float dt, Eig
 }
 
 void __SSClass::InitializeState(Eigen::VectorXf u, float dt) {
-  x_ = (1.0f/dt) * CA_inv_ * (y_ - (CB_*dt + D_) * u);
+  x_ = CA_inv_ * (y_ - (CB_*dt + D_) * u);
 }
 
 void __SSClass::UpdateState(Eigen::VectorXf u, float dt) {
-  x_ = dt * (A_*x_ + B_*u);
+
+  uint8_t numX = A_.rows();
+  Eigen::MatrixXf Ix = Eigen::MatrixXf::Identity(numX, numX);
+  x_ = (A_*dt + Ix)*x_ + B_*u*dt;
 }
 
 void __SSClass::OutputEquation(Eigen::VectorXf u, float dt) {
@@ -242,6 +266,7 @@ void __SSClass::Reset() {
   ySat_.Zero(C_.cols()); // Reset to Zero
 
   mode_ = GenericFunction::Mode::kStandby;
+  initLatch_ = false;
 }
 
 void __SSClass::Clear() {

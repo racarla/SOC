@@ -24,19 +24,19 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SO
 #include <algorithm>
 #include <vector>
 
-/* 
+/*
 General Filter - Implements a general discrete time filter using the
 general filter difference equation. Matches the MATLAB filter function.
 */
 class __GeneralFilter {
   public:
-    void Configure(std::vector<float> a,std::vector<float> b);
+    void Configure(std::vector<float> b,std::vector<float> a);
     float Run(float input);
     void Clear();
   private:
     struct Config {
-      std::vector<float> a;
       std::vector<float> b;
+      std::vector<float> a;
     };
     struct Data {
       float Output = 0.0f;

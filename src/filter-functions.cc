@@ -46,7 +46,7 @@ void GeneralFilter::Configure(const rapidjson::Value& Config,std::string RootPat
       b.push_back(Config["b"][i].GetFloat());
     }
   } else {
-    throw std::runtime_error(std::string("ERROR")+OutputName+std::string(": Feedforward coefficients not specified in configuration."));
+    throw std::runtime_error(std::string("ERROR")+OutputName+std::string(": Numerator coefficients not specified in configuration."));
   }
   // get feedback coefficients, if any
   if (Config.HasMember("a")) {
@@ -63,7 +63,7 @@ void GeneralFilter::Configure(const rapidjson::Value& Config,std::string RootPat
   DefinitionTreePtr->InitMember(OutputKey_,&data_.Output,"Control law output",true,false);
 
   // configure filter
-  filter_.Configure(a,b);
+  filter_.Configure(b,a);
 }
 
 void GeneralFilter::Initialize() {}

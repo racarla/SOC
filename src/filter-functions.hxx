@@ -28,7 +28,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SO
 #include "generic-function.hxx"
 #include "filter-algorithms.hxx"
 
-/* 
+/*
 General Filter - Implements a general discrete time filter using the
 general filter difference equation.
 
@@ -39,16 +39,16 @@ Example JSON configuration:
   "Type": "Filter",
   "Input": "InputPath",
   "Output": "OutputName",
-  "a": [X],
-  "b": [X]
+  "b": [X],
+  "a": [X]
 }
-Where: 
+Where:
    * Input gives the full path of the input to the filter
    * Output gives a convenient name for the block (i.e. SpeedReference).
-   * a is a vector of feedback coefficients. a[0] scales all a and b coefficients if given.
-     Feedback coefficients are optional and, if none are provided, a FIR filter is implemented.
-   * b is a vector of feedforward coefficients. At least one feedforward coefficient must be given.
-The order of the filter is given by the length of the a and b vectors.
+   * a is a vector of denominator coefficients. a[0] scales all a and b coefficients if given.
+     Denominator coefficients are optional and, if none are provided, a FIR filter is implemented.
+   * b is a vector of numerator coefficients. At least one feedforward coefficient must be given.
+The order of the filter is given by the length of the b and a vectors.
 */
 class GeneralFilter: public GenericFunction {
   public:

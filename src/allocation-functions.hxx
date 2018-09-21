@@ -76,14 +76,11 @@ class PseudoInverseAllocation: public GenericFunction {
     struct Data {
       uint8_t Mode = kStandby;
       Eigen::VectorXf uCmd;
-      Eigen::VectorXi Saturated;
+      Eigen::VectorXi uSat;
     };
     Config config_;
     Data data_;
     std::vector<std::string> InputKeys_;
-    std::vector<std::string> OutputKeys_;
-    std::vector<std::string> SaturatedKeys_;
-    std::vector<std::string> ModeKeys_;
 };
 
 #endif

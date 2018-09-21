@@ -357,6 +357,7 @@ void SensorProcessing::Run() {
         }
       }
     }
+
     // setting the output
     for (auto Key : ResearchDataKeys_[EngagedGroup_]) {
       std::string KeyName = Key.substr(Key.rfind("/"));

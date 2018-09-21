@@ -123,8 +123,59 @@ void DefinitionTree::PrettyPrint(std::string Prefix) {
         std::size_t pos = element.first.find(Prefix);
         if ( pos != std::string::npos) {
             std::string tail = element.first.substr(pos + 1);
-            std::cout << "  " << tail << std::endl;
+            std::cout << "  " << tail << " (" << GetType(&element.second)
+                      << ") = " << GetValue(&element.second) << std::endl;
         }
+    }
+}
+
+std::string DefinitionTree::GetType(const struct VariableDefinition *VariableDefinitionPtr) {
+    if ( auto val = std::get_if<uint64_t*>(&VariableDefinitionPtr->Value) ) {
+        return "uint64_t";
+    } else if ( auto val = std::get_if<uint32_t*>(&VariableDefinitionPtr->Value) ) {
+        return "uint32_t";
+    } else if ( auto val = std::get_if<uint16_t*>(&VariableDefinitionPtr->Value) ) {
+        return "uint16_t";
+    } else if ( auto val = std::get_if<uint8_t*>(&VariableDefinitionPtr->Value) ) {
+        return "uint8_t";
+    } else if ( auto val = std::get_if<int64_t*>(&VariableDefinitionPtr->Value) ) {
+        return "int64_t";
+    } else if ( auto val = std::get_if<int32_t*>(&VariableDefinitionPtr->Value) ) {
+        return "int32_t";
+    } else if ( auto val = std::get_if<int16_t*>(&VariableDefinitionPtr->Value) ) {
+        return "int16_t";
+    } else if ( auto val = std::get_if<int8_t*>(&VariableDefinitionPtr->Value) ) {
+        return "int8_t";
+    } else if ( auto val = std::get_if<float*>(&VariableDefinitionPtr->Value) ) {
+        return "float";
+    } else if ( auto val = std::get_if<double*>(&VariableDefinitionPtr->Value) ) {
+        return "double";
+    } else {
+        return "unknown";
+    }
+}
+
+std::string DefinitionTree::GetValue(const struct VariableDefinition *VariableDefinitionPtr) {
+    if ( auto val = std::get_if<uint64_t*>(&VariableDefinitionPtr->Value) ) {
+        return std::to_string(**val);
+    } else if ( auto val = std::get_if<uint32_t*>(&VariableDefinitionPtr->Value) ) {
+        return std::to_string(**val);
+    } else if ( auto val = std::get_if<uint16_t*>(&VariableDefinitionPtr->Value) ) {
+        return std::to_string(**val);
+    } else if ( auto val = std::get_if<uint8_t*>(&VariableDefinitionPtr->Value) ) {
+        return std::to_string(**val);
+    } else if ( auto val = std::get_if<int64_t*>(&VariableDefinitionPtr->Value) ) {
+        return std::to_string(**val);
+    } else if ( auto val = std::get_if<int32_t*>(&VariableDefinitionPtr->Value) ) {
+        return std::to_string(**val);
+    } else if ( auto val = std::get_if<int16_t*>(&VariableDefinitionPtr->Value) ) {
+        return std::to_string(**val);
+    } else if ( auto val = std::get_if<int8_t*>(&VariableDefinitionPtr->Value) ) {
+        return std::to_string(**val);
+    } else if ( auto val = std::get_if<float*>(&VariableDefinitionPtr->Value) ) {
+        return std::to_string(**val);
+    } else if ( auto val = std::get_if<double*>(&VariableDefinitionPtr->Value) ) {
+        return std::to_string(**val);
     }
 }
 

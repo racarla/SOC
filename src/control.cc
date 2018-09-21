@@ -62,6 +62,9 @@ void ControlLaws::Configure(const rapidjson::Value& Config, DefinitionTree *Defi
                 if (Func["Type"] == "Sum") {
                   SocControlGroups_[SocGroupKeys_.back()][level].push_back(std::make_shared<SumClass>());
                 }
+                if (Func["Type"] == "PID2") {
+                  SocControlGroups_[SocGroupKeys_.back()][level].push_back(std::make_shared<PID2Class>());
+                }
                 if (Func["Type"] == "PID") {
                   SocControlGroups_[SocGroupKeys_.back()][level].push_back(std::make_shared<PIDClass>());
                 }
@@ -73,6 +76,9 @@ void ControlLaws::Configure(const rapidjson::Value& Config, DefinitionTree *Defi
                 }
                 if (Func["Type"] == "PseudoInverse") {
                   SocControlGroups_[SocGroupKeys_.back()][level].push_back(std::make_shared<PseudoInverseAllocation>());
+                }
+                if (Func["Type"] == "Tecs") {
+                  SocControlGroups_[SocGroupKeys_.back()][level].push_back(std::make_shared<TecsClass>());
                 }
                 // configure the function
                 SocControlGroups_[SocGroupKeys_.back()][level].back()->Configure(Func,PathName,DefinitionTreePtr);
