@@ -80,6 +80,9 @@ void ControlLaws::Configure(const rapidjson::Value& Config, DefinitionTree *Defi
                 if (Func["Type"] == "Tecs") {
                   SocControlGroups_[SocGroupKeys_.back()][level].push_back(std::make_shared<TecsClass>());
                 }
+                if (Func["Type"] == "Latch") {
+                  SocControlGroups_[SocGroupKeys_.back()][level].push_back(std::make_shared<LatchClass>());
+                }
                 // configure the function
                 SocControlGroups_[SocGroupKeys_.back()][level].back()->Configure(Func,PathName,DefinitionTreePtr);
               } else {

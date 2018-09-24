@@ -30,16 +30,15 @@ void ConstantClass::Configure(const rapidjson::Value& Config,std::string RootPat
   } else {
     throw std::runtime_error(std::string("ERROR")+RootPath+std::string(": Output not specified in configuration."));
   }
+
   if (Config.HasMember("Constant")) {
     config_.Constant = Config["Constant"].GetFloat();
   } else {
     throw std::runtime_error(std::string("ERROR")+OutputName+std::string(": Constant value not specified in configuration."));
   }
-  // pointer to log run mode data
-  ModeKey_ = OutputName+"/Mode";
-  DefinitionTreePtr->InitMember(ModeKey_,&data_.Mode,"Control law mode",true,false);
+
   // pointer to log command data
-  OutputKey_ = OutputName+"/"+Config["Output"].GetString();
+  OutputKey_ = OutputName;
   DefinitionTreePtr->InitMember(OutputKey_,&data_.Output,"Control law output",true,false);
 }
 
@@ -56,9 +55,7 @@ void ConstantClass::Clear(DefinitionTree *DefinitionTreePtr) {
   config_.Constant = 0.0f;
   data_.Mode = kStandby;
   data_.Output = 0.0f;
-  DefinitionTreePtr->Erase(ModeKey_);
   DefinitionTreePtr->Erase(OutputKey_);
-  ModeKey_.clear();
   OutputKey_.clear();
 }
 
@@ -70,11 +67,13 @@ void GainClass::Configure(const rapidjson::Value& Config,std::string RootPath,De
   } else {
     throw std::runtime_error(std::string("ERROR")+RootPath+std::string(": Output not specified in configuration."));
   }
+
   if (Config.HasMember("Gain")) {
     config_.Gain = Config["Gain"].GetFloat();
   } else {
     throw std::runtime_error(std::string("ERROR")+OutputName+std::string(": Gain value not specified in configuration."));
   }
+
   if (Config.HasMember("Input")) {
     InputKey_ = Config["Input"].GetString();
     if (DefinitionTreePtr->GetValuePtr<float*>(InputKey_)) {
@@ -85,10 +84,12 @@ void GainClass::Configure(const rapidjson::Value& Config,std::string RootPath,De
   } else {
     throw std::runtime_error(std::string("ERROR")+OutputName+std::string(": Input not specified in configuration."));
   }
+
   if (Config.HasMember("Limits")) {
     config_.SaturateOutput = true;
+
     // pointer to log saturation data
-    SaturatedKey_ = OutputName+"/Saturated";
+    SaturatedKey_ = RootPath+"/Saturated";
     DefinitionTreePtr->InitMember(SaturatedKey_,&data_.Saturated,"Control law saturation, 0 if not saturated, 1 if saturated on the upper limit, and -1 if saturated on the lower limit",true,false);
     if (Config["Limits"].HasMember("Lower")&&Config["Limits"].HasMember("Upper")) {
       config_.UpperLimit = Config["Limits"]["Upper"].GetFloat();
@@ -97,11 +98,9 @@ void GainClass::Configure(const rapidjson::Value& Config,std::string RootPath,De
       throw std::runtime_error(std::string("ERROR")+OutputName+std::string(": Either upper or lower limit not specified in configuration."));
     }
   }
-  // pointer to log run mode data
-  ModeKey_ = OutputName+"/Mode";
-  DefinitionTreePtr->InitMember(ModeKey_,&data_.Mode,"Control law mode",true,false);
+
   // pointer to log command data
-  OutputKey_ = OutputName+"/"+Config["Output"].GetString();
+  OutputKey_ = RootPath+"/"+Config["Output"].GetString();
   DefinitionTreePtr->InitMember(OutputKey_,&data_.Output,"Control law output",true,false);
 }
 
@@ -133,11 +132,9 @@ void GainClass::Clear(DefinitionTree *DefinitionTreePtr) {
   data_.Mode = kStandby;
   data_.Output = 0.0f;
   data_.Saturated = 0.0f;
-  DefinitionTreePtr->Erase(ModeKey_);
   DefinitionTreePtr->Erase(SaturatedKey_);
   DefinitionTreePtr->Erase(OutputKey_);
   InputKey_.clear();
-  ModeKey_.clear();
   SaturatedKey_.clear();
   OutputKey_.clear();
 }
@@ -169,7 +166,7 @@ void SumClass::Configure(const rapidjson::Value& Config,std::string RootPath,Def
   if (Config.HasMember("Limits")) {
     config_.SaturateOutput = true;
     // pointer to log saturation data
-    SaturatedKey_ = OutputName+"/Saturated";
+    SaturatedKey_ = RootPath+"/Saturated";
     DefinitionTreePtr->InitMember(SaturatedKey_,&data_.Saturated,"Control law saturation, 0 if not saturated, 1 if saturated on the upper limit, and -1 if saturated on the lower limit",true,false);
     if (Config["Limits"].HasMember("Lower")&&Config["Limits"].HasMember("Upper")) {
       config_.UpperLimit = Config["Limits"]["Upper"].GetFloat();
@@ -179,12 +176,8 @@ void SumClass::Configure(const rapidjson::Value& Config,std::string RootPath,Def
     }
   }
 
-  // pointer to log run mode data
-  ModeKey_ = OutputName+"/Mode";
-  DefinitionTreePtr->InitMember(ModeKey_,&data_.Mode,"Run mode",true,false);
-
   // pointer to log command data
-  OutputKey_ = OutputName+"/"+Config["Output"].GetString();
+  OutputKey_ = RootPath+"/"+Config["Output"].GetString();
   DefinitionTreePtr->InitMember(OutputKey_,&data_.Output,"Control law output",true,false);
 }
 
@@ -221,11 +214,64 @@ void SumClass::Clear(DefinitionTree *DefinitionTreePtr) {
   data_.Mode = kStandby;
   data_.Output = 0.0f;
   data_.Saturated = 0.0f;
-  DefinitionTreePtr->Erase(ModeKey_);
   DefinitionTreePtr->Erase(SaturatedKey_);
   DefinitionTreePtr->Erase(OutputKey_);
   InputKeys_.clear();
-  ModeKey_.clear();
   SaturatedKey_.clear();
+  OutputKey_.clear();
+}
+
+
+/* Latch class methods, see general-functions.hxx for more information */
+void LatchClass::Configure(const rapidjson::Value& Config,std::string RootPath,DefinitionTree *DefinitionTreePtr) {
+  std::string OutputName;
+  if (Config.HasMember("Output")) {
+    OutputName = RootPath + "/" + Config["Output"].GetString();
+  } else {
+    throw std::runtime_error(std::string("ERROR")+RootPath+std::string(": Output not specified in configuration."));
+  }
+
+  if (Config.HasMember("Input")) {
+    InputKey_ = Config["Input"].GetString();
+    if (DefinitionTreePtr->GetValuePtr<float*>(InputKey_)) {
+      config_.Input = DefinitionTreePtr->GetValuePtr<float*>(InputKey_);
+    } else {
+      throw std::runtime_error(std::string("ERROR")+OutputName+std::string(": Input ")+InputKey_+std::string(" not found in global data."));
+    }
+  } else {
+    throw std::runtime_error(std::string("ERROR")+OutputName+std::string(": Input not specified in configuration."));
+  }
+
+  // pointer to log command data
+  OutputKey_ = RootPath+"/"+Config["Output"].GetString();
+  DefinitionTreePtr->InitMember(OutputKey_,&data_.Output,"Control law output",true,false);
+}
+
+void LatchClass::Initialize() {}
+bool LatchClass::Initialized() {return true;}
+
+void LatchClass::Run(Mode mode) {
+  data_.Mode = (uint8_t) mode;
+
+  switch(data_.Mode) {
+    case GenericFunction::Mode::kEngage: {
+      if (initLatch_ == false) {
+        initLatch_ = true;
+        data_.Output = *config_.Input;
+      }
+      break;
+    }
+    default: {
+      initLatch_ = false;
+    }
+  }
+
+}
+
+void LatchClass::Clear(DefinitionTree *DefinitionTreePtr) {
+  data_.Mode = kStandby;
+  data_.Output = 0.0f;
+  DefinitionTreePtr->Erase(OutputKey_);
+  InputKey_.clear();
   OutputKey_.clear();
 }

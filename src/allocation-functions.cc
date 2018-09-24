@@ -50,7 +50,7 @@ void PseudoInverseAllocation::Configure(const rapidjson::Value& Config,std::stri
       DefinitionTreePtr->InitMember(RootPath + "/Mode", &data_.Mode, "Run mode", true, false);
 
       // pointer to log saturation data
-      // DefinitionTreePtr->InitMember(RootPath + "/Saturated" + "/" + OutputName, &data_.uSat(i), "Allocation saturation, 0 if not saturated, 1 if saturated on the upper limit, and -1 if saturated on the lower limit", true, false);
+      //DefinitionTreePtr->InitMember(RootPath + "/Saturated" + "/" + OutputName, &data_.uSat(i), "Allocation saturation, 0 if not saturated, 1 if saturated on the upper limit, and -1 if saturated on the lower limit", true, false);
 
       // pointer to log output
       DefinitionTreePtr->InitMember(RootPath + "/" + OutputName, &data_.uCmd(i), "Allocator output", true, false);

@@ -121,13 +121,50 @@ void MissionManager::Configure(const rapidjson::Value& Config, DefinitionTree *D
     }
   }
 
+  if (Config.HasMember("Launch-Switch")) {
+    const rapidjson::Value& TempSwitch = Config["Launch-Switch"];
+    if (TempSwitch.HasMember("Source")) {
+      if (DefinitionTreePtr->GetValuePtr<float*>(TempSwitch["Source"].GetString())) {
+        config_.LaunchSelectSwitch.SourcePtr = DefinitionTreePtr->GetValuePtr<float*>(TempSwitch["Source"].GetString());
+      } else {
+        throw std::runtime_error(std::string("ERROR")+RootPath_+std::string(": Launch-Switch source not found in global data."));
+      }
+    } else {
+      throw std::runtime_error(std::string("ERROR")+RootPath_+std::string(": Launch-Switch configuration does not define a source."));
+    }
+    if (TempSwitch.HasMember("Threshold")) {
+      config_.LaunchSelectSwitch.Threshold = TempSwitch["Threshold"].GetFloat();
+    }
+    if (TempSwitch.HasMember("Gain")) {
+      config_.LaunchSelectSwitch.Gain = TempSwitch["Gain"].GetFloat();
+    }
+  }
+
+  if (Config.HasMember("Land-Switch")) {
+    const rapidjson::Value& TempSwitch = Config["Land-Switch"];
+    if (TempSwitch.HasMember("Source")) {
+      if (DefinitionTreePtr->GetValuePtr<float*>(TempSwitch["Source"].GetString())) {
+        config_.LandSelectSwitch.SourcePtr = DefinitionTreePtr->GetValuePtr<float*>(TempSwitch["Source"].GetString());
+      } else {
+        throw std::runtime_error(std::string("ERROR")+RootPath_+std::string(": Land-Switch source not found in global data."));
+      }
+    } else {
+      throw std::runtime_error(std::string("ERROR")+RootPath_+std::string(": Land-Switch configuration does not define a source."));
+    }
+    if (TempSwitch.HasMember("Threshold")) {
+      config_.LandSelectSwitch.Threshold = TempSwitch["Threshold"].GetFloat();
+    }
+    if (TempSwitch.HasMember("Gain")) {
+      config_.LandSelectSwitch.Gain = TempSwitch["Gain"].GetFloat();
+    }
+  }
+
   // Add signals to the definition tree
   DefinitionTreePtr->InitMember("/Mission/testID",&CurrentTestPointIndex_,"Current test point index",true,false);
   DefinitionTreePtr->InitMember("/Mission/socEngage",(uint8_t*) &SocEngage_,"SOC control flag",true,false);
   DefinitionTreePtr->InitMember("/Mission/ctrlSel",(uint8_t*) &CtrlSelect_,"Control selection",true,false);
   DefinitionTreePtr->InitMember("/Mission/testSel",(uint8_t*) &TestSelect_,"Test selection",true,false);
   DefinitionTreePtr->InitMember("/Mission/excitEngage",(uint8_t*) &EngagedExcitationFlag_,"Excitation engage flag",true,false);
-  DefinitionTreePtr->InitMember("/Mission/trig",(uint8_t*) &Trigger_,"Trigger event",true,false);
 
   // build a map of the test point data
   if (Config.HasMember("Test-Points")) {
@@ -153,11 +190,18 @@ void MissionManager::Configure(const rapidjson::Value& Config, DefinitionTree *D
     }
   }
 
-  // setting the baseline controller
+  // setting the baseline controllers
   if (Config.HasMember("Baseline-Controller")) {
     config_.BaselineController = Config["Baseline-Controller"].GetString();
   }
 
+  if (Config.HasMember("Launch-Controller")) {
+    config_.LaunchController = Config["Launch-Controller"].GetString();
+  }
+
+  if (Config.HasMember("Land-Controller")) {
+    config_.LandController = Config["Land-Controller"].GetString();
+  }
 }
 
 /* runs the mission manager */
@@ -207,6 +251,52 @@ void MissionManager::Run() {
   } else {
     CtrlSelect_ = false;
     CtrlSelectPersistenceCounter_ = 0;
+  }
+
+  // Launch and Landing switch Logic
+  float LaunchSelectSwitchVal = (*config_.LaunchSelectSwitch.SourcePtr) * config_.LaunchSelectSwitch.Gain;
+  bool LaunchSelectCheck = LaunchSelectSwitchVal > config_.LaunchSelectSwitch.Threshold;
+
+  float LandSelectSwitchVal = (*config_.LandSelectSwitch.SourcePtr) * config_.LandSelectSwitch.Gain;
+  bool LandSelectCheck = LandSelectSwitchVal > config_.LandSelectSwitch.Threshold;
+
+  bool BaselineCheck;
+
+  // If the switch is not in Launch or Landing, then set to Baseline
+  if ((LaunchSelectCheck == false) && (LandSelectCheck == false)) {
+    BaselineCheck = true;
+  } else {
+    BaselineCheck = false;
+  }
+
+  if ((LaunchSelect_ != true) && (LaunchSelectCheck == true)) {
+    LaunchSelectPersistenceCounter_++;
+    if (LaunchSelectPersistenceCounter_ > PersistenceThreshold_) {
+      LaunchSelect_ = true;
+      LandSelect_ = false;
+      BaselineSelect_ = false;
+      LaunchSelectPersistenceCounter_ = 0;
+    }
+  } else if ((LandSelect_ != true) && (LandSelectCheck == true)) {
+    LandSelectPersistenceCounter_++;
+    if (LandSelectPersistenceCounter_ > PersistenceThreshold_) {
+      LaunchSelect_ = false;
+      LandSelect_ = true;
+      BaselineSelect_ = false;
+      LandSelectPersistenceCounter_ = 0;
+    }
+  } else if ((BaselineSelect_ != true) && (BaselineCheck == true)) {
+    BaselineSelectPersistenceCounter_++;
+    if (BaselineSelectPersistenceCounter_ > PersistenceThreshold_) {
+      LaunchSelect_ = false;
+      LandSelect_ = false;
+      BaselineSelect_ = true;
+      BaselineSelectPersistenceCounter_ = 0;
+    }
+  } else {
+    LaunchSelectPersistenceCounter_ = 0;
+    LandSelectPersistenceCounter_ = 0;
+    BaselineSelectPersistenceCounter_ = 0;
   }
 
   // Test point select logic
@@ -317,6 +407,13 @@ void MissionManager::Run() {
       EngagedController_ = config_.BaselineController;
       ArmedController_ = TestPoints_[std::to_string(CurrentTestPointIndex_)].Control;
       EngagedExcitation_ = "None";
+      if (LaunchSelect_ == true) {  // In SOC, Launch Controller
+        EngagedController_ = config_.LaunchController;
+        ArmedController_ = config_.BaselineController;
+      } else if (LandSelect_ == true) { // In SOC, Landing Controller
+        EngagedController_ = config_.LandController;
+        ArmedController_ = config_.BaselineController;
+      }
     }
 
   } else { // FMU Mode

@@ -51,6 +51,8 @@ void SensorProcessing::Configure(const rapidjson::Value& Config,DefinitionTree *
           BaselineSensorProcessing_.push_back(std::make_shared<GeneralFilter>());
         } else if (Func["Type"] == "If") {
           BaselineSensorProcessing_.push_back(std::make_shared<If>());
+        } else if (Func["Type"] == "MinCellVolt") {
+          BaselineSensorProcessing_.push_back(std::make_shared<MinCellVolt>());
         } else {
           throw std::runtime_error(std::string("ERROR")+PathName+std::string(": Type specified is not a defined type"));
         }
@@ -107,6 +109,8 @@ void SensorProcessing::Configure(const rapidjson::Value& Config,DefinitionTree *
               ResearchSensorProcessingGroups_[ResearchGroupKeys_.back()].push_back(std::make_shared<GeneralFilter>());
             } else if (Func["Type"] == "If") {
               ResearchSensorProcessingGroups_[ResearchGroupKeys_.back()].push_back(std::make_shared<If>());
+            } else if (Func["Type"] == "MinCellVolt") {
+              ResearchSensorProcessingGroups_[ResearchGroupKeys_.back()].push_back(std::make_shared<MinCellVolt>());
             } else {
               throw std::runtime_error(std::string("ERROR")+PathName+std::string(": Type specified is not a defined type"));
             }
