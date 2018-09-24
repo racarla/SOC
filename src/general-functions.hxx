@@ -27,7 +27,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SO
 #include "definition-tree.hxx"
 #include "generic-function.hxx"
 
-/* 
+/*
 Constant Class - Outputs a constant value.
 Example JSON configuration:
 {
@@ -35,7 +35,7 @@ Example JSON configuration:
   "Output": "OutputName",
   "Constant": X
 }
-Where: 
+Where:
    * Output gives a convenient name for the block (i.e. SpeedReference).
    * Constant is the value of the constant output.
 Data type for the output is float.
@@ -57,10 +57,10 @@ class ConstantClass: public GenericFunction {
     };
     Config config_;
     Data data_;
-    std::string ModeKey_,OutputKey_;
+    std::string OutputKey_;
 };
 
-/* 
+/*
 Gain Class - Multiplies an input by a gain
 Example JSON configuration:
 {
@@ -73,7 +73,7 @@ Example JSON configuration:
     "Lower": X
   }
 }
-Where: 
+Where:
    * Output gives a convenient name for the block (i.e. SpeedControl).
    * Input is the full path name of the input signal.
    * Gain is the gain applied to the input signal.
@@ -101,10 +101,10 @@ class GainClass: public GenericFunction {
     };
     Config config_;
     Data data_;
-    std::string InputKey_,ModeKey_,SaturatedKey_,OutputKey_;
+    std::string InputKey_,SaturatedKey_,OutputKey_;
 };
 
-/* 
+/*
 Sum Class - Sums all inputs
 Example JSON configuration:
 {
@@ -116,7 +116,7 @@ Example JSON configuration:
     "Lower": X
   }
 }
-Where: 
+Where:
    * Output gives a convenient name for the block (i.e. SpeedReference).
    * Inputs is a vector of full path names of the input signals. All inputs
      will be summed.
@@ -144,7 +144,42 @@ class SumClass: public GenericFunction {
     Config config_;
     Data data_;
     std::vector<std::string> InputKeys_;
-    std::string ModeKey_,SaturatedKey_,OutputKey_;
+    std::string SaturatedKey_,OutputKey_;
+};
+
+/*
+Latch Class - Latches the Output to the initial input
+Example JSON configuration:
+{
+  "Type": "Latch",
+  "Output": "OutputName",
+  "Input": "InputName",
+  }
+}
+Where:
+   * Output gives a convenient name for the block (i.e. SpeedControl).
+   * Input is the full path name of the input signal.
+Data types for the input and output are both float.
+*/
+class LatchClass: public GenericFunction {
+  public:
+    void Configure(const rapidjson::Value& Config,std::string RootPath,DefinitionTree *DefinitionTreePtr);
+    void Initialize();
+    bool Initialized();
+    void Run(Mode mode);
+    void Clear(DefinitionTree *DefinitionTreePtr);
+  private:
+    struct Config {
+      float *Input;
+    };
+    struct Data {
+      uint8_t Mode = kStandby;
+      float Output = 0.0f;
+    };
+    bool initLatch_ = false;
+    Config config_;
+    Data data_;
+    std::string InputKey_,OutputKey_;
 };
 
 #endif
