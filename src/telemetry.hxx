@@ -23,7 +23,7 @@
 #include <Eigen/Dense>
 
 #pragma pack(push, 1)
-struct pilotPack
+struct pilotPacket
 {
    uint8_t index;
    double time;
@@ -31,7 +31,7 @@ struct pilotPack
    int8_t status;
 };
 
-struct airPack //BdHhhffhHBBB
+struct airPacket //BdHhhffhHBBB
 {
    uint8_t index;
    double timestamp;
@@ -47,7 +47,7 @@ struct airPack //BdHhhffhHBBB
    uint8_t status;
 };
 
-struct filterPack //BdddfhhhhhhhhhhhhBB
+struct filterPacket //BdddfhhhhhhhhhhhhBB
 {
    uint8_t index;
    double timestamp;
@@ -70,7 +70,7 @@ struct filterPack //BdddfhhhhhhhhhhhhBB
    uint8_t status; //always 0
 };
 
-struct ImunodePack //BdfffffffffhB
+struct ImunodePacket //BdfffffffffhB
 {
    uint8_t index;
    double imu_timestamp;
@@ -87,7 +87,7 @@ struct ImunodePack //BdfffffffffhB
    uint8_t status;
 };
 
-struct numactPack //BdhhHhhhhhB
+struct numactPacket //BdhhHhhhhhB
 {
    uint8_t index; //always 0
    double timestamp;
@@ -102,26 +102,26 @@ struct numactPack //BdhhHhhhhhB
    uint8_t status; //always 0
 };
 
-struct healthPack //BdHHHHHH
+struct healthPacket //BfHHHHHH
 {
    uint8_t index;
-   double frame_time;
+   float frame_time;
    uint16_t system_load_avg;
-   uint16_t board_vct;
+   uint16_t board_vcc;
    uint16_t extern_volts;
    uint16_t extern_cell_volts;
    uint16_t extern_amps;
    uint16_t dekamah;
 };
 
-struct payloadPack //BdH
+struct payloadPacket //BdH
 {
    uint8_t index;
    double timestamp;
    uint16_t trigger_num;
 };
 
-struct gpsPack
+struct gpsPacket
 {
    uint8_t index;
    double timestamp, lat_deg, long_deg;
@@ -176,7 +176,7 @@ class TelemetryClient {
     int TelemetrySocket_;
     int TelemetryPort_ = 8020;
     struct sockaddr_in TelemetryServer_;
-    bool useTime, useStaticPressure, useAirspeed, useAlt, useGps, useSbus, useImu, useAttitude;
+  bool useTime, useStaticPressure, useAirspeed, useAlt, useGps, useSbus, useImu, useAttitude, usePower;
     struct TimeDataPtr{
       uint64_t* Time_us;
     };
@@ -231,6 +231,9 @@ class TelemetryClient {
       double *Lat,*Lon,*Alt;
       float *Vn,*Ve,*Vd;
     };
+  struct PowerDataPtr{
+    float *MinCellVolt;
+  };
     struct DataPtr{
       TimeDataPtr Time;
       StaticPressDataPtr StaticPress;
@@ -240,6 +243,7 @@ class TelemetryClient {
       SbusDataPtr Sbus;
       ImuDataPtr Imu;
       AttitudeDataPtr Attitude;
+      PowerDataPtr Power;
     };
     struct TimeData{
       uint64_t Time_us;
@@ -295,6 +299,11 @@ class TelemetryClient {
       double Lat,Lon,Alt;
       double Vn,Ve,Vd;
     };
+  struct PowerData{
+    float MinCellVolt;
+    int ExperimentNumber;
+    float ExperimentProgress;
+  };
     struct Data{
       TimeData Time;
       StaticPressData StaticPress;
@@ -304,6 +313,7 @@ class TelemetryClient {
       SbusData Sbus;
       ImuData Imu;
       AttitudeData Attitude;
+      PowerData Power;
     };
     DataPtr DataPtr_;
     Data Data_;
@@ -387,6 +397,9 @@ class TelemetryServer {
       double Lat,Lon,Alt;
       double Vn,Ve,Vd;
     };
+  struct PowerData{
+    float MinCellVolt;
+  };
     struct Data{
       TimeData Time;
       StaticPressData StaticPress;
@@ -396,6 +409,7 @@ class TelemetryServer {
       SbusData Sbus;
       ImuData Imu;
       AttitudeData Attitude;
+      PowerData Power;
     };
     Data Data_;
     std::string Uart;
@@ -420,7 +434,7 @@ class TelemetryServer {
    void update(const Data &DataRef);
 
    void generate_cksum(uint8_t id, uint8_t size, uint8_t * buf, uint8_t & cksum0, uint8_t &cksum1);
-   void sending_packs(uint8_t * package, uint8_t IDnum, uint8_t size);
+   void send_packet(uint8_t * package, uint8_t IDnum, uint8_t size);
 
     bool ParseMessage(uint8_t byte,PacketType_ *message,std::vector<uint8_t> *Payload);
     void CalcChecksum(size_t ArraySize, uint8_t *ByteArray, uint8_t *Checksum);

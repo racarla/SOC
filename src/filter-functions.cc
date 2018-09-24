@@ -56,10 +56,10 @@ void GeneralFilter::Configure(const rapidjson::Value& Config,std::string RootPat
   }
 
   // pointer to log run mode data
-  ModeKey_ = OutputName+"/Mode";
+  ModeKey_ = RootPath+"/Mode";
   DefinitionTreePtr->InitMember(ModeKey_,&data_.Mode,"Control law mode",true,false);
   // pointer to log command data
-  OutputKey_ = OutputName+"/"+Config["Output"].GetString();
+  OutputKey_ = RootPath+"/"+Config["Output"].GetString();
   DefinitionTreePtr->InitMember(OutputKey_,&data_.Output,"Control law output",true,false);
 
   // configure filter

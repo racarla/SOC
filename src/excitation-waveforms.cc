@@ -29,12 +29,10 @@ void Pulse::Configure(const rapidjson::Value& Config,std::string RootPath,Defini
   if (Config.HasMember("Signal")) {
     SignalName = Config["Signal"].GetString();
     OutputName = RootPath + SignalName.substr(SignalName.rfind("/"));
-    // pointer to log run mode data
-    ModeKey_ = OutputName+"/Mode";
-    DefinitionTreePtr->InitMember(ModeKey_,&data_.Mode,"Run mode",true,false);
+
     // pointer to log excitation data
-    OutputKey_ = OutputName+"/Excitation";
-    DefinitionTreePtr->InitMember(OutputKey_,&data_.Excitation,"Excitation system output",true,false);
+    DefinitionTreePtr->InitMember(OutputName,&data_.Excitation,"Excitation system output",true,false);
+
     if (DefinitionTreePtr->GetValuePtr<float*>(SignalName)) {
       config_.Signal = DefinitionTreePtr->GetValuePtr<float*>(SignalName);
     } else {
@@ -79,12 +77,13 @@ void Pulse::Run(Mode mode) {
       Time0_us = *config_.Time_us;
       TimeLatch = true;
     }
-    ElapsedTime_us = (float)(*config_.Time_us-Time0_us);
+    ExciteTime_s = (float)(*config_.Time_us-Time0_us)/1e6 - config_.StartTime_s;
+
     // pulse logic
-    if (ElapsedTime_us < (config_.StartTime_s)*1e6){
+    if (ExciteTime_s < 0){
       // do nothing
       data_.Excitation = 0;
-    } else if (ElapsedTime_us < (config_.StartTime_s+config_.Duration_s)*1e6) {
+    } else if (ExciteTime_s < config_.Duration_s) {
       // add the pulse to the signal
       data_.Excitation = config_.Amplitude;
     } else {
@@ -97,6 +96,7 @@ void Pulse::Run(Mode mode) {
     // do nothing
     data_.Excitation = 0;
   }
+
   data_.Excitation = data_.Excitation * config_.Scale;
   data_.Mode = (uint8_t)mode;
   *config_.Signal = *config_.Signal + data_.Excitation;
@@ -110,12 +110,8 @@ void Pulse::Clear(DefinitionTree *DefinitionTreePtr) {
   data_.Mode = kStandby;
   data_.Excitation = 0.0f;
   Time0_us = 0;
-  ElapsedTime_us = 0;
+  ExciteTime_s = 0;
   TimeLatch = false;
-  DefinitionTreePtr->Erase(ModeKey_);
-  DefinitionTreePtr->Erase(OutputKey_);
-  ModeKey_.clear();
-  OutputKey_.clear();
 }
 
 void Doublet::Configure(const rapidjson::Value& Config,std::string RootPath,DefinitionTree *DefinitionTreePtr) {
@@ -127,12 +123,10 @@ void Doublet::Configure(const rapidjson::Value& Config,std::string RootPath,Defi
   if (Config.HasMember("Signal")) {
     SignalName = Config["Signal"].GetString();
     OutputName = RootPath + SignalName.substr(SignalName.rfind("/"));
-    // pointer to log run mode data
-    ModeKey_ = OutputName+"/Mode";
-    DefinitionTreePtr->InitMember(ModeKey_,&data_.Mode,"Run mode",true,false);
+
     // pointer to log excitation data
-    OutputKey_ = OutputName+"/Excitation";
-    DefinitionTreePtr->InitMember(OutputKey_,&data_.Excitation,"Excitation system output",true,false);
+    DefinitionTreePtr->InitMember(OutputName,&data_.Excitation,"Excitation system output",true,false);
+
     if (DefinitionTreePtr->GetValuePtr<float*>(SignalName)) {
       config_.Signal = DefinitionTreePtr->GetValuePtr<float*>(SignalName);
     } else {
@@ -177,15 +171,16 @@ void Doublet::Run(Mode mode) {
       Time0_us = *config_.Time_us;
       TimeLatch = true;
     }
-    ElapsedTime_us = (float)(*config_.Time_us-Time0_us);
+    ExciteTime_s = (float)(*config_.Time_us-Time0_us)/1e6 - config_.StartTime_s;
+
     // doublet logic
-    if (ElapsedTime_us < (config_.StartTime_s)*1e6){
+    if (ExciteTime_s < 0){
       // do nothing
       data_.Excitation = 0;
-    } else if (ElapsedTime_us < (config_.StartTime_s+config_.Duration_s)*1e6) {
+    } else if (ExciteTime_s < config_.Duration_s) {
       // add the doublet to the signal
       data_.Excitation = config_.Amplitude;
-    } else if (ElapsedTime_us < (config_.StartTime_s+2.0f*config_.Duration_s)*1e6) {
+    } else if (ExciteTime_s < 2.0f*config_.Duration_s) {
       // add the doublet to the signal
       data_.Excitation = -1*config_.Amplitude;
     } else {
@@ -198,6 +193,7 @@ void Doublet::Run(Mode mode) {
     // do nothing
     data_.Excitation = 0;
   }
+
   data_.Excitation = data_.Excitation * config_.Scale;
   data_.Mode = (uint8_t)mode;
   *config_.Signal = *config_.Signal + data_.Excitation;
@@ -211,12 +207,8 @@ void Doublet::Clear(DefinitionTree *DefinitionTreePtr) {
   data_.Mode = kStandby;
   data_.Excitation = 0.0f;
   Time0_us = 0;
-  ElapsedTime_us = 0;
+  ExciteTime_s = 0;
   TimeLatch = false;
-  DefinitionTreePtr->Erase(ModeKey_);
-  DefinitionTreePtr->Erase(OutputKey_);
-  ModeKey_.clear();
-  OutputKey_.clear();
 }
 
 void Doublet121::Configure(const rapidjson::Value& Config,std::string RootPath,DefinitionTree *DefinitionTreePtr) {
@@ -228,12 +220,10 @@ void Doublet121::Configure(const rapidjson::Value& Config,std::string RootPath,D
   if (Config.HasMember("Signal")) {
     SignalName = Config["Signal"].GetString();
     OutputName = RootPath + SignalName.substr(SignalName.rfind("/"));
-    // pointer to log run mode data
-    ModeKey_ = OutputName+"/Mode";
-    DefinitionTreePtr->InitMember(ModeKey_,&data_.Mode,"Run mode",true,false);
+
     // pointer to log excitation data
-    OutputKey_ = OutputName+"/Excitation";
-    DefinitionTreePtr->InitMember(OutputKey_,&data_.Excitation,"Excitation system output",true,false);
+    DefinitionTreePtr->InitMember(OutputName,&data_.Excitation,"Excitation system output",true,false);
+
     if (DefinitionTreePtr->GetValuePtr<float*>(SignalName)) {
       config_.Signal = DefinitionTreePtr->GetValuePtr<float*>(SignalName);
     } else {
@@ -278,18 +268,19 @@ void Doublet121::Run(Mode mode) {
       Time0_us = *config_.Time_us;
       TimeLatch = true;
     }
-    ElapsedTime_us = (float)(*config_.Time_us-Time0_us);
+    ExciteTime_s = (float)(*config_.Time_us-Time0_us)/1e6 - config_.StartTime_s;
+
     // doublet logic, 1-2-1
-    if (ElapsedTime_us < (config_.StartTime_s)*1e6){
+    if (ExciteTime_s < 0){
       // do nothing
       data_.Excitation = 0;
-    } else if (ElapsedTime_us < (config_.StartTime_s+config_.Duration_s)*1e6) {
+    } else if (ExciteTime_s < config_.Duration_s) {
       // add the doublet to the signal
       data_.Excitation = config_.Amplitude;
-    } else if (ElapsedTime_us < (config_.StartTime_s+3.0f*config_.Duration_s)*1e6) {
+    } else if (ExciteTime_s < 3.0f*config_.Duration_s) {
       // add the doublet to the signal
       data_.Excitation = -1*config_.Amplitude;
-    } else if (ElapsedTime_us < (config_.StartTime_s+4.0f*config_.Duration_s)*1e6) {
+    } else if (ExciteTime_s < 4.0f*config_.Duration_s) {
       // add the doublet to the signal
       data_.Excitation = config_.Amplitude;
     } else {
@@ -302,6 +293,7 @@ void Doublet121::Run(Mode mode) {
     // do nothing
     data_.Excitation = 0;
   }
+
   data_.Excitation = data_.Excitation * config_.Scale;
   data_.Mode = (uint8_t)mode;
   *config_.Signal = *config_.Signal + data_.Excitation;
@@ -315,12 +307,8 @@ void Doublet121::Clear(DefinitionTree *DefinitionTreePtr) {
   data_.Mode = kStandby;
   data_.Excitation = 0.0f;
   Time0_us = 0;
-  ElapsedTime_us = 0;
+  ExciteTime_s = 0;
   TimeLatch = false;
-  DefinitionTreePtr->Erase(ModeKey_);
-  DefinitionTreePtr->Erase(OutputKey_);
-  ModeKey_.clear();
-  OutputKey_.clear();
 }
 
 void Doublet3211::Configure(const rapidjson::Value& Config,std::string RootPath,DefinitionTree *DefinitionTreePtr) {
@@ -332,12 +320,10 @@ void Doublet3211::Configure(const rapidjson::Value& Config,std::string RootPath,
   if (Config.HasMember("Signal")) {
     SignalName = Config["Signal"].GetString();
     OutputName = RootPath + SignalName.substr(SignalName.rfind("/"));
-    // pointer to log run mode data
-    ModeKey_ = OutputName+"/Mode";
-    DefinitionTreePtr->InitMember(ModeKey_,&data_.Mode,"Run mode",true,false);
+
     // pointer to log excitation data
-    OutputKey_ = OutputName+"/Excitation";
-    DefinitionTreePtr->InitMember(OutputKey_,&data_.Excitation,"Excitation system output",true,false);
+    DefinitionTreePtr->InitMember(OutputName,&data_.Excitation,"Excitation system output",true,false);
+
     if (DefinitionTreePtr->GetValuePtr<float*>(SignalName)) {
       config_.Signal = DefinitionTreePtr->GetValuePtr<float*>(SignalName);
     } else {
@@ -382,21 +368,22 @@ void Doublet3211::Run(Mode mode) {
       Time0_us = *config_.Time_us;
       TimeLatch = true;
     }
-    ElapsedTime_us = (float)(*config_.Time_us-Time0_us);
+    ExciteTime_s = (float)(*config_.Time_us-Time0_us)/1e6 - config_.StartTime_s;
+
     // doublet logic, 3-2-1-1
-    if (ElapsedTime_us < (config_.StartTime_s)*1e6){
+    if (ExciteTime_s < 0){
       // do nothing
       data_.Excitation = 0;
-    } else if (ElapsedTime_us < (config_.StartTime_s+3.0f*config_.Duration_s)*1e6) {
+    } else if (ExciteTime_s < (3.0f*config_.Duration_s)) {
       // add the doublet to the signal
       data_.Excitation = config_.Amplitude;
-    } else if (ElapsedTime_us < (config_.StartTime_s+5.0f*config_.Duration_s)*1e6) {
+    } else if (ExciteTime_s < (5.0f*config_.Duration_s)) {
       // add the doublet to the signal
       data_.Excitation = -1*config_.Amplitude;
-    } else if (ElapsedTime_us < (config_.StartTime_s+6.0f*config_.Duration_s)*1e6) {
+    } else if (ExciteTime_s < (6.0f*config_.Duration_s)) {
       // add the doublet to the signal
       data_.Excitation = config_.Amplitude;
-    } else if (ElapsedTime_us < (config_.StartTime_s+7.0f*config_.Duration_s)*1e6) {
+    } else if (ExciteTime_s < (7.0f*config_.Duration_s)) {
       // add the doublet to the signal
       data_.Excitation = -1*config_.Amplitude;
     } else {
@@ -409,6 +396,7 @@ void Doublet3211::Run(Mode mode) {
     // do nothing
     data_.Excitation = 0;
   }
+
   data_.Excitation = data_.Excitation * config_.Scale;
   data_.Mode = (uint8_t)mode;
   *config_.Signal = *config_.Signal + data_.Excitation;
@@ -422,12 +410,8 @@ void Doublet3211::Clear(DefinitionTree *DefinitionTreePtr) {
   data_.Mode = kStandby;
   data_.Excitation = 0.0f;
   Time0_us = 0;
-  ElapsedTime_us = 0;
+  ExciteTime_s = 0;
   TimeLatch = false;
-  DefinitionTreePtr->Erase(ModeKey_);
-  DefinitionTreePtr->Erase(OutputKey_);
-  ModeKey_.clear();
-  OutputKey_.clear();
 }
 
 void LinearChirp::Configure(const rapidjson::Value& Config,std::string RootPath,DefinitionTree *DefinitionTreePtr) {
@@ -439,12 +423,10 @@ void LinearChirp::Configure(const rapidjson::Value& Config,std::string RootPath,
   if (Config.HasMember("Signal")) {
     SignalName = Config["Signal"].GetString();
     OutputName = RootPath + SignalName.substr(SignalName.rfind("/"));
-    // pointer to log run mode data
-    ModeKey_ = OutputName+"/Mode";
-    DefinitionTreePtr->InitMember(ModeKey_,&data_.Mode,"Run mode",true,false);
+
     // pointer to log excitation data
-    OutputKey_ = OutputName+"/Excitation";
-    DefinitionTreePtr->InitMember(OutputKey_,&data_.Excitation,"Excitation system output",true,false);
+    DefinitionTreePtr->InitMember(OutputName,&data_.Excitation,"Excitation system output",true,false);
+
     if (DefinitionTreePtr->GetValuePtr<float*>(SignalName)) {
       config_.Signal = DefinitionTreePtr->GetValuePtr<float*>(SignalName);
     } else {
@@ -504,18 +486,20 @@ void LinearChirp::Run(Mode mode) {
       Time0_us = *config_.Time_us;
       TimeLatch = true;
     }
-    ElapsedTime_us = (float)(*config_.Time_us-Time0_us);
+    ExciteTime_s = (float)(*config_.Time_us-Time0_us)/1e6 - config_.StartTime_s;
+
+
     // chirp logic
-    if (ElapsedTime_us < (config_.StartTime_s)*1e6){
+    if (ExciteTime_s < 0){
       // do nothing
       data_.Excitation = 0;
-    } else if (ElapsedTime_us < config_.Duration_s*1e6) {
+    } else if (ExciteTime_s < config_.Duration_s) {
       // linear varying instantanious frequency
-      float freq_rps = config_.Frequency[0]+(config_.Frequency[1]-config_.Frequency[0])/(2.0f*config_.Duration_s*1e6)*ElapsedTime_us;
+      float freq_rps = config_.Frequency[0]+(config_.Frequency[1]-config_.Frequency[0])*ExciteTime_s / (2.0f*config_.Duration_s);
       // linear varying amplitude
-      float amp_nd = config_.Amplitude[0]+(config_.Amplitude[1]-config_.Amplitude[0])*ElapsedTime_us/(config_.Duration_s*1e6);
+      float amp_nd = config_.Amplitude[0]+(config_.Amplitude[1]-config_.Amplitude[0])*ExciteTime_s / (config_.Duration_s);
       // chirp Equation
-      data_.Excitation = amp_nd*sinf(freq_rps*ElapsedTime_us/1e6);
+      data_.Excitation = amp_nd*sinf(freq_rps*ExciteTime_s);
     } else {
       // do nothing
       data_.Excitation = 0;
@@ -526,6 +510,7 @@ void LinearChirp::Run(Mode mode) {
     // do nothing
     data_.Excitation = 0;
   }
+
   data_.Excitation = data_.Excitation * config_.Scale;
   data_.Mode = (uint8_t)mode;
   *config_.Signal = *config_.Signal + data_.Excitation;
@@ -542,12 +527,8 @@ void LinearChirp::Clear(DefinitionTree *DefinitionTreePtr) {
   data_.Mode = kStandby;
   data_.Excitation = 0.0f;
   Time0_us = 0;
-  ElapsedTime_us = 0;
+  ExciteTime_s = 0;
   TimeLatch = false;
-  DefinitionTreePtr->Erase(ModeKey_);
-  DefinitionTreePtr->Erase(OutputKey_);
-  ModeKey_.clear();
-  OutputKey_.clear();
 }
 
 void MultiSine::Configure(const rapidjson::Value& Config,std::string RootPath,DefinitionTree *DefinitionTreePtr) {
@@ -559,12 +540,10 @@ void MultiSine::Configure(const rapidjson::Value& Config,std::string RootPath,De
   if (Config.HasMember("Signal")) {
     SignalName = Config["Signal"].GetString();
     OutputName = RootPath + SignalName.substr(SignalName.rfind("/"));
-    // pointer to log run mode data
-    ModeKey_ = OutputName+"/Mode";
-    DefinitionTreePtr->InitMember(ModeKey_,&data_.Mode,"Run mode",true,false);
+
     // pointer to log excitation data
-    OutputKey_ = OutputName+"/Excitation";
-    DefinitionTreePtr->InitMember(OutputKey_,&data_.Excitation,"Excitation system output",true,false);
+    DefinitionTreePtr->InitMember(OutputName,&data_.Excitation,"Excitation system output",true,false);
+
     if (DefinitionTreePtr->GetValuePtr<float*>(SignalName)) {
       config_.Signal = DefinitionTreePtr->GetValuePtr<float*>(SignalName);
     } else {
@@ -631,16 +610,17 @@ void MultiSine::Run(Mode mode) {
       Time0_us = *config_.Time_us;
       TimeLatch = true;
     }
-    ElapsedTime_us = (float)(*config_.Time_us-Time0_us);
+    ExciteTime_s = (float)(*config_.Time_us - Time0_us)/1e6 - config_.StartTime_s;
+
     // multisine logic
-    if (ElapsedTime_us < (config_.StartTime_s)*1e6){
+    if (ExciteTime_s < 0){
       // do nothing
       data_.Excitation = 0;
-    } else if (ElapsedTime_us < config_.Duration_s*1e6) {
+    } else if (ExciteTime_s < config_.Duration_s) {
       // Scale the waveform to preserve unity
-      float scale = sqrtf(1.0f/((float)config_.Amplitude.size()));
+      float scale = sqrtf(0.5f/((float)config_.Amplitude.size()));
       // Compute the Waveform - scale * sum(amp .* cos(freq * t + phase))
-      data_.Excitation=scale*(config_.Amplitude*(config_.Frequency*(ElapsedTime_us/1e6)+config_.Phase).cos()).sum();
+      data_.Excitation=scale*(config_.Amplitude*(config_.Frequency*ExciteTime_s + config_.Phase).cos()).sum();
     } else {
       // do nothing
       data_.Excitation = 0;
@@ -666,10 +646,6 @@ void MultiSine::Clear(DefinitionTree *DefinitionTreePtr) {
   data_.Mode = kStandby;
   data_.Excitation = 0.0f;
   Time0_us = 0;
-  ElapsedTime_us = 0;
+  ExciteTime_s = 0;
   TimeLatch = false;
-  DefinitionTreePtr->Erase(ModeKey_);
-  DefinitionTreePtr->Erase(OutputKey_);
-  ModeKey_.clear();
-  OutputKey_.clear();
 }

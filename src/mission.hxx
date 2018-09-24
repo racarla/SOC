@@ -59,18 +59,26 @@ class MissionManager {
         float Threshold = 0.5;
         float Gain = 1.0;
       };
-      Switch SocEngageSwitch,CtrlSelectSwitch,TestSelectIncrementSwitch,TestSelectDecrementSwitch,TriggerSwitch;
-      std::string BaselineController;
+      Switch SocEngageSwitch, CtrlSelectSwitch, TestSelectIncrementSwitch, TestSelectDecrementSwitch, TriggerSwitch, LaunchSelectSwitch, LandSelectSwitch;
+      std::string BaselineController, LaunchController, LandController;
     };
+
     Configuration config_;
     std::string RootPath_ = "/Mission-Manager";
     const size_t PersistenceThreshold_ = 5;
 
     size_t SocEngagePersistenceCounter_ = 0;
-    bool SocEngage_ = false;;
+    bool SocEngage_ = false;
 
     size_t CtrlSelectPersistenceCounter_ = 0;
     bool CtrlSelect_ = false;
+
+    size_t LaunchSelectPersistenceCounter_ = 0;
+    size_t LandSelectPersistenceCounter_ = 0;
+    size_t BaselineSelectPersistenceCounter_ = 0;
+    bool LaunchSelect_ = false;
+    bool LandSelect_ = false;
+    bool BaselineSelect_ = true;
 
     size_t TestSelectIncrementPersistenceCounter_ = 0;
     size_t TestSelectDecrementPersistenceCounter_ = 0;

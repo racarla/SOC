@@ -23,7 +23,7 @@
 TARGET_FLIGHT := flightcode
 TARGET_DATALOG := datalog-server
 TARGET_CAL := calibrate-surf
-TARGET_FILT := filter-test 
+TARGET_FILT := filter-test
 TARGET_TELEM := telemetry-server
 
 # compiler
@@ -50,6 +50,7 @@ filter-functions.o \
 flow-control-functions.o \
 general-functions.o \
 generic-function.o \
+power.o \
 uNavINS.o \
 AirData.o \
 telemetry.o \
@@ -87,6 +88,7 @@ excitation-waveforms.o \
 filter-algorithms.o \
 filter-functions.o \
 flow-control-functions.o \
+power.o \
 general-functions.o \
 generic-function.o \
 uNavINS.o \
@@ -163,7 +165,7 @@ $(addprefix $(BINDIR)/,$(TARGET_TELEM)): $(OBJS_TELEM) | $(BINDIR)
 	@ echo "Bolder Flight Systems, by Design!"
 	@ echo "Copyright (c) 2018 Bolder Flight Systems"
 	@ echo "bolderflight.com"
-	@ echo ""	
+	@ echo ""
 
 $(addprefix $(BINDIR)/,$(TARGET_CAL)): $(OBJS_CAL) | $(BINDIR)
 	@ echo
